@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Navigation from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, CheckCircle, Lock, Video, FileText, Quiz } from 'lucide-react';
+import { ChevronLeft, CheckCircle, Lock, Video, FileText, HelpCircle } from 'lucide-react';
 
 async function getEnrollment(enrollmentId: string, userId: string) {
   const supabase = await createClient();
@@ -72,7 +72,7 @@ export default async function LearningPage({ params }: { params: Promise<{ id: s
       case 'text':
         return <FileText className="h-5 w-5" />;
       case 'quiz':
-        return <Quiz className="h-5 w-5" />;
+        return <HelpCircle className="h-5 w-5" />;
       default:
         return <FileText className="h-5 w-5" />;
     }
