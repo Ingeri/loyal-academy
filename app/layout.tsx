@@ -7,9 +7,17 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Loyal Academy - Online Learning Platform',
+  description: 'Learn from industry experts with comprehensive online courses from Loyal Academy. Affordable, flexible, and career-focused learning.',
   generator: 'v0.app',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://loyalacademy.com',
+    title: 'Loyal Academy - Online Learning Platform',
+    description: 'Transform your skills with expert-led courses',
+    siteName: 'Loyal Academy',
+  },
   icons: {
     icon: [
       {
