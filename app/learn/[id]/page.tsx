@@ -6,7 +6,7 @@ import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, CheckCircle, Video, FileText, HelpCircle, Play, Download, MessageSquare } from 'lucide-react';
+import { ChevronLeft, CheckCircle, Video, FileText, HelpCircle, Play, Download, MessageSquare, Calendar, Users, Award } from 'lucide-react';
 
 const mockCourses = [
   {
@@ -17,6 +17,20 @@ const mockCourses = [
     instructor: 'Sarah Johnson',
     rating: 4.8,
     duration: '8 weeks',
+    hasWebinar: true,
+    webinars: [
+      {
+        id: 'webinar-1-1',
+        title: 'Building Your First Website',
+        date: '2026-04-20',
+        time: '2:00 PM UTC',
+        duration: '90 mins',
+        instructor: 'Sarah Johnson',
+        description: 'Join us as we build a complete website from scratch using HTML, CSS, and JavaScript.',
+        recordingUrl: 'https://example.com/recording/webinar-1',
+        isRecorded: true,
+      }
+    ],
     curriculum: [
       { 
         id: 'lesson-1-1', 
@@ -154,6 +168,47 @@ const mockCourses = [
       },
     ],
   },
+  {
+    id: '4',
+    title: 'UX/UI Design Bootcamp',
+    description: 'Learn design principles, Figma, and user research.',
+    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=400&fit=crop',
+    instructor: 'Alex Kim',
+    rating: 4.6,
+    duration: '10 weeks',
+    hasWebinar: true,
+    webinars: [
+      {
+        id: 'webinar-4-1',
+        title: 'Designing User-Centered Interfaces',
+        date: '2026-04-25',
+        time: '3:30 PM UTC',
+        duration: '90 mins',
+        instructor: 'Alex Kim',
+        description: 'Learn how to design interfaces that users love. We\'ll cover design principles, user testing, and real-world examples.',
+        recordingUrl: 'https://example.com/recording/webinar-4',
+        isRecorded: true,
+      }
+    ],
+    curriculum: [
+      { 
+        id: 'lesson-4-1', 
+        title: 'Design Fundamentals', 
+        module: 'Module 1', 
+        duration: '40 mins', 
+        type: 'video',
+        content: 'Learn the core principles of great design including balance, contrast, alignment, and hierarchy.'
+      },
+      { 
+        id: 'lesson-4-2', 
+        title: 'Figma Essentials', 
+        module: 'Module 1', 
+        duration: '50 mins', 
+        type: 'video',
+        content: 'Master Figma for UI/UX design with components, styles, and prototyping.'
+      },
+    ],
+  },
 ];
 
 function getCourse(id: string) {
@@ -165,6 +220,7 @@ export default function LearnPage({ params }: { params: { id: string } }) {
   const [currentLessonId, setCurrentLessonId] = useState(course?.curriculum?.[0]?.id || '');
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [certificateGenerated, setCertificateGenerated] = useState(false);
 
   if (!course) {
     return (
@@ -347,6 +403,68 @@ export default function LearnPage({ params }: { params: { id: string } }) {
                   />
                   <Button className="mt-3">Post Comment</Button>
                 </Card>
+
+                {/* Webinar Section */}
+                {course.hasWebinar && course.webinars && course.webinars.length > 0 && (
+                  <Card className="p-6 mb-8 bg-blue-50 border-blue-200">
+                    <div className="flex items-start gap-4">
+                      <Calendar className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" />
+                      <div className="flex-1">
+                        <h2 className="text-xl font-semibold text-blue-900 mb-3">Live Webinar</h2>
+                        {course.webinars.map((webinar) => (
+                          <div key={webinar.id} className="mb-4">
+                            <p className="font-medium text-blue-900">{webinar.title}</p>
+                            <div className="grid grid-cols-2 gap-3 text-sm text-blue-800 mt-2 mb-3">
+                              <div>📅 {webinar.date} at {webinar.time}</div>
+                              <div>⏱️ {webinar.duration}</div>
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4" />
+                                Instructor: {webinar.instructor}
+                              </div>
+                            </div>
+                            <p className="text-sm text-blue-800 mb-4">{webinar.description}</p>
+                            <div className="flex gap-3">
+                              <Button variant="default" size="sm">
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Register for Webinar
+                              </Button>
+                              {webinar.isRecorded && (
+                                <Button variant="outline" size="sm">
+                                  <Play className="h-4 w-4 mr-2" />
+                                  Watch Recording
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+                {/* Completion & Certificate */}
+                {completionPercentage === 100 && !certificateGenerated && (
+                  <Card className="p-6 mb-8 bg-green-50 border-green-200">
+                    <div className="text-center">
+                      <Award className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-green-900 mb-2">Course Completed!</h3>
+                      <p className="text-green-800 mb-6">
+                        Congratulations on completing &quot;{course.title}&quot;! Your certificate is ready to download and share.
+                      </p>
+                      <Button 
+                        size="lg"
+                        onClick={() => setCertificateGenerated(true)}
+                        asChild
+                        className="gap-2"
+                      >
+                        <Link href={`/certificate/${params.id}`}>
+                          <Award className="h-5 w-5" />
+                          View & Download Certificate
+                        </Link>
+                      </Button>
+                    </div>
+                  </Card>
+                )}
 
                 {/* Navigation */}
                 <div className="flex items-center justify-between mb-12">

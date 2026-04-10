@@ -24,7 +24,8 @@ const mockCourses = [
     rating: 4.8,
     students: 2540,
     duration: '8 weeks',
-    instructor: 'Sarah Johnson'
+    instructor: 'Sarah Johnson',
+    hasWebinar: true
   },
   {
     id: '2',
@@ -63,7 +64,8 @@ const mockCourses = [
     rating: 4.6,
     students: 1540,
     duration: '10 weeks',
-    instructor: 'Alex Kim'
+    instructor: 'Alex Kim',
+    hasWebinar: true
   },
   {
     id: '5',
@@ -223,7 +225,12 @@ export default async function CoursesPage({
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
                   {courses.map((course: any) => (
                     <Link key={course.id} href={`/courses/${course.id}`}>
-                      <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                      <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative">
+                        {course.hasWebinar && (
+                          <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full z-10">
+                            Live Webinar
+                          </div>
+                        )}
                         {course.image && (
                           <img
                             src={course.image}

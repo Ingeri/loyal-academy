@@ -1,77 +1,100 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+'use client';
+
 import Link from 'next/link';
 import Navigation from '@/components/navigation';
+import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { BookOpen, Clock, CheckCircle, TrendingUp, Award } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle, TrendingUp, Award, Calendar, Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export const metadata = {
   title: 'Dashboard - Loyal Academy',
   description: 'Your learning dashboard',
 };
 
-async function getUserData() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+const mockEnrollments = [
+  {
+    id: 'enroll-1',
+    courseId: '1',
+    courseTitle: 'Web Development Fundamentals',
+    image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=300&fit=crop',
+    progress: 75,
+    enrollmentDate: '2026-03-15',
+    isCompleted: false,
+  },
+  {
+    id: 'enroll-2',
+    courseId: '4',
+    courseTitle: 'UX/UI Design Bootcamp',
+    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=300&fit=crop',
+    progress: 100,
+    enrollmentDate: '2026-02-20',
+    isCompleted: true,
+  },
+];
 
-  if (!user) {
-    redirect('/auth/login');
-  }
+const mockCertificates = [
+  {
+    id: 'cert-1',
+    courseId: '4',
+    courseTitle: 'UX/UI Design Bootcamp',
+    instructor: 'Alex Kim',
+    issueDate: '2026-04-08',
+    certificateNumber: 'LC-2026-ABC123',
+  },
+];
 
-  return user;
-}
+const mockWebinars = [
+  {
+    id: 'webinar-1-1',
+    courseId: '1',
+    courseTitle: 'Web Development Fundamentals',
+    title: 'Building Your First Website',
+    date: '2026-04-20',
+    time: '2:00 PM UTC',
+    instructor: 'Sarah Johnson',
+    registered: true,
+  },
+  {
+    id: 'webinar-4-1',
+    courseId: '4',
+    courseTitle: 'UX/UI Design Bootcamp',
+    title: 'Designing User-Centered Interfaces',
+    date: '2026-04-25',
+    time: '3:30 PM UTC',
+    instructor: 'Alex Kim',
+    registered: true,
+  },
+];
 
-async function getEnrollments(userId: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('enrollments')
-    .select('id, student_id, course_id, enrollment_date, completion_percentage, is_completed, courses(id, title, image_url, description)')
-    .eq('student_id', userId)
-    .order('enrollment_date', { ascending: false });
-
-  return data || [];
-}
-
-async function getCertificates(userId: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('certificates')
-    .select('id, enrollment_id, issue_date, enrollments(courses(title))')
-    .eq('enrollments.student_id', userId);
-
-  return data || [];
-}
-
-async function getStats(userId: string) {
-  const supabase = await createClient();
-  const [enrollmentsResult, certificatesResult, completedResult] = await Promise.all([
-    supabase.from('enrollments').select('id', { count: 'exact' }).eq('student_id', userId),
-    supabase
-      .from('certificates')
-      .select('id', { count: 'exact' })
-      .eq('enrollments.student_id', userId),
-    supabase
-      .from('enrollments')
-      .select('id', { count: 'exact' })
-      .eq('student_id', userId)
-      .eq('is_completed', true),
-  ]);
-
+function getUserData() {
   return {
-    enrollments: enrollmentsResult.count || 0,
-    certificates: certificatesResult.count || 0,
-    completed: completedResult.count || 0,
+    name: 'John Doe',
+    email: 'john@example.com',
   };
 }
 
-export default async function DashboardPage() {
-  const user = await getUserData();
-  const enrollments = await getEnrollments(user.id);
-  const certificates = await getCertificates(user.id);
-  const stats = await getStats(user.id);
+export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false);
+  const user = getUserData();
+  const enrollments = mockEnrollments;
+  const certificates = mockCertificates;
+  const webinars = mockWebinars;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  const stats = {
+    enrollments: enrollments.length,
+    certificates: certificates.length,
+    completed: enrollments.filter(e => e.isCompleted).length,
+  };
 
   const recentEnrollments = enrollments.slice(0, 6);
 
@@ -82,7 +105,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <section className="border-b bg-card px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <h1 className="text-3xl font-bold text-foreground">Welcome back, {user.user_metadata?.full_name || 'Learner'}!</h1>
+          <h1 className="text-3xl font-bold text-foreground">Welcome back, {user.name}!</h1>
           <p className="mt-2 text-muted-foreground">Continue your learning journey with Loyal Academy</p>
         </div>
       </section>
@@ -147,7 +170,7 @@ export default async function DashboardPage() {
                 {recentEnrollments.map((enrollment: any) => (
                   <Link
                     key={enrollment.id}
-                    href={`/learn/${enrollment.id}`}
+                    href={`/learn/${enrollment.courseId}`}
                   >
                     <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full">
                       {enrollment.courses?.image_url && (
@@ -194,26 +217,104 @@ export default async function DashboardPage() {
 
           {/* Certificates */}
           {certificates.length > 0 && (
-            <div>
+            <div className="mb-12">
               <h2 className="text-2xl font-bold text-foreground mb-6">My Certificates</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {certificates.map((cert: any) => (
-                  <Card key={cert.id} className="p-6">
-                    <Award className="h-8 w-8 text-yellow-500 mb-4" />
-                    <p className="text-sm text-muted-foreground">Certificate Earned</p>
-                    <p className="font-semibold text-foreground">
-                      {cert.enrollments?.courses?.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Issued on {new Date(cert.issue_date).toLocaleDateString()}
-                    </p>
+                  <Link key={cert.id} href={`/certificate/${cert.courseId}`}>
+                    <Card className="p-6 h-full hover:shadow-lg transition-shadow cursor-pointer">
+                      <Award className="h-8 w-8 text-yellow-500 mb-4" />
+                      <p className="text-sm text-muted-foreground">Certificate Earned</p>
+                      <p className="font-semibold text-foreground line-clamp-2">
+                        {cert.courseTitle}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-3 mb-4">
+                        Issued on {new Date(cert.issueDate).toLocaleDateString()}
+                      </p>
+                      <Button size="sm" variant="outline" className="w-full" asChild>
+                        <span>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </span>
+                      </Button>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upcoming Webinars */}
+          {webinars.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold text-foreground mb-6">Upcoming Webinars</h2>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {webinars.map((webinar: any) => (
+                  <Card key={webinar.id} className="p-6 border-blue-200 bg-blue-50">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <p className="text-sm font-medium text-blue-600 mb-1">{webinar.courseTitle}</p>
+                        <h3 className="text-lg font-semibold text-foreground">{webinar.title}</h3>
+                      </div>
+                      <Calendar className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    </div>
+                    <div className="space-y-2 mb-6">
+                      <p className="text-sm text-foreground">
+                        <span className="font-medium">📅 Date:</span> {webinar.date}
+                      </p>
+                      <p className="text-sm text-foreground">
+                        <span className="font-medium">⏰ Time:</span> {webinar.time}
+                      </p>
+                      <p className="text-sm text-foreground">
+                        <span className="font-medium">👨‍🏫 Instructor:</span> {webinar.instructor}
+                      </p>
+                    </div>
+                    {webinar.registered && (
+                      <div className="bg-green-100 border border-green-300 rounded p-2 mb-4">
+                        <p className="text-sm text-green-800 font-medium">✓ You&apos;re registered</p>
+                      </div>
+                    )}
+                    <Button className="w-full" size="sm">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Add to Calendar
+                    </Button>
                   </Card>
                 ))}
               </div>
             </div>
           )}
+
+          {/* Continue Learning */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Continue Learning</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {enrollments.filter((e: any) => !e.isCompleted).map((enrollment: any) => (
+                <Link key={enrollment.id} href={`/learn/${enrollment.courseId}`}>
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full">
+                    <img
+                      src={enrollment.image}
+                      alt={enrollment.courseTitle}
+                      className="h-40 w-full object-cover"
+                    />
+                    <div className="p-4">
+                      <h3 className="font-semibold text-foreground mb-2">{enrollment.courseTitle}</h3>
+                      <div className="w-full bg-muted rounded-full h-2 mb-2">
+                        <div
+                          className="bg-primary h-2 rounded-full transition-all"
+                          style={{ width: `${enrollment.progress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">{enrollment.progress}% complete</p>
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
+
+      <Footer />
     </main>
   );
 }
