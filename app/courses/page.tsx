@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,40 +11,111 @@ export const metadata = {
   description: 'Browse our comprehensive collection of online courses',
 };
 
-async function getCourses(searchQuery?: string, category?: string, level?: string) {
-  const supabase = await createClient();
-  
-  let query = supabase
-    .from('courses')
-    .select('*')
-    .eq('is_published', true)
-    .order('created_at', { ascending: false });
+// Mock courses data - will be replaced with Supabase queries once tables are created
+const mockCourses = [
+  {
+    id: '1',
+    title: 'Web Development Fundamentals',
+    description: 'Learn HTML, CSS, and JavaScript from scratch',
+    category: 'Web Development',
+    level: 'Beginner',
+    price: 49.99,
+    image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=300&fit=crop',
+    rating: 4.8,
+    students: 2540,
+    duration: '8 weeks',
+    instructor: 'Sarah Johnson'
+  },
+  {
+    id: '2',
+    title: 'Advanced React Patterns',
+    description: 'Master advanced React concepts and best practices',
+    category: 'Web Development',
+    level: 'Advanced',
+    price: 79.99,
+    image: 'https://images.unsplash.com/photo-1633356122544-f134324ef6db?w=500&h=300&fit=crop',
+    rating: 4.9,
+    students: 1820,
+    duration: '10 weeks',
+    instructor: 'Mike Chen'
+  },
+  {
+    id: '3',
+    title: 'Data Science Essentials',
+    description: 'Introduction to Python, pandas, and data visualization',
+    category: 'Data Science',
+    level: 'Beginner',
+    price: 59.99,
+    image: 'https://images.unsplash.com/photo-1518186285671-4d71bcdd2085?w=500&h=300&fit=crop',
+    rating: 4.7,
+    students: 3200,
+    duration: '12 weeks',
+    instructor: 'Dr. Emily Rodriguez'
+  },
+  {
+    id: '4',
+    title: 'UX/UI Design Bootcamp',
+    description: 'Learn design principles, Figma, and user research',
+    category: 'Design',
+    level: 'Intermediate',
+    price: 69.99,
+    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=300&fit=crop',
+    rating: 4.6,
+    students: 1540,
+    duration: '10 weeks',
+    instructor: 'Alex Kim'
+  },
+  {
+    id: '5',
+    title: 'Cloud Architecture with AWS',
+    description: 'Deploy and manage applications on AWS',
+    category: 'Cloud',
+    level: 'Intermediate',
+    price: 89.99,
+    image: 'https://images.unsplash.com/photo-1460925895917-adf4e5e68f72?w=500&h=300&fit=crop',
+    rating: 4.8,
+    students: 2100,
+    duration: '12 weeks',
+    instructor: 'James Park'
+  },
+  {
+    id: '6',
+    title: 'Machine Learning Fundamentals',
+    description: 'Build your first ML models with scikit-learn',
+    category: 'Data Science',
+    level: 'Intermediate',
+    price: 99.99,
+    image: 'https://images.unsplash.com/photo-1516321318423-f06f70d504d0?w=500&h=300&fit=crop',
+    rating: 4.9,
+    students: 2800,
+    duration: '14 weeks',
+    instructor: 'Prof. David Lee'
+  },
+];
+
+function getCourses(searchQuery?: string, category?: string, level?: string) {
+  let filtered = [...mockCourses];
 
   if (searchQuery) {
-    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+    const query = searchQuery.toLowerCase();
+    filtered = filtered.filter(
+      c => c.title.toLowerCase().includes(query) || c.description.toLowerCase().includes(query)
+    );
   }
 
   if (category && category !== 'all') {
-    query = query.eq('category', category);
+    filtered = filtered.filter(c => c.category === category);
   }
 
   if (level && level !== 'all') {
-    query = query.eq('level', level);
+    filtered = filtered.filter(c => c.level === level);
   }
 
-  const { data } = await query;
-  return data || [];
+  return filtered;
 }
 
-async function getCategories() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('courses')
-    .select('category')
-    .eq('is_published', true)
-    .distinct();
-  
-  return Array.from(new Set(data?.map(c => c.category).filter(Boolean))) || [];
+function getCategories() {
+  return Array.from(new Set(mockCourses.map(c => c.category)));
 }
 
 export default async function CoursesPage({
@@ -54,8 +124,8 @@ export default async function CoursesPage({
   searchParams: Promise<{ q?: string; category?: string; level?: string }>;
 }) {
   const params = await searchParams;
-  const courses = await getCourses(params.q, params.category, params.level);
-  const categories = await getCategories();
+  const courses = getCourses(params.q, params.category, params.level);
+  const categories = getCategories();
 
   return (
     <main className="min-h-screen bg-background">
@@ -132,11 +202,11 @@ export default async function CoursesPage({
                         All Levels
                       </Button>
                     </Link>
-                    {['beginner', 'intermediate', 'advanced'].map((level) => (
+                    {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
                       <Link key={level} href={`/courses?level=${level}`}>
                         <Button
                           variant={params.level === level ? 'default' : 'outline'}
-                          className="w-full justify-start capitalize"
+                          className="w-full justify-start"
                         >
                           {level}
                         </Button>
@@ -154,9 +224,9 @@ export default async function CoursesPage({
                   {courses.map((course: any) => (
                     <Link key={course.id} href={`/courses/${course.id}`}>
                       <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                        {course.image_url && (
+                        {course.image && (
                           <img
-                            src={course.image_url}
+                            src={course.image}
                             alt={course.title}
                             className="h-48 w-full object-cover"
                           />
