@@ -335,8 +335,9 @@ function getCourse(id: string) {
   return mockCourses.find(c => c.id === id) || null;
 }
 
-export default function LearnPage({ params }: { params: { id: string } }) {
-  const course = getCourse(params.id);
+export default function LearnPage({ params }: { params: any }) {
+  const id = params?.id || '';
+  const course = getCourse(id);
   const [currentLessonId, setCurrentLessonId] = useState(course?.curriculum?.[0]?.id || '');
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);

@@ -35,6 +35,18 @@ const mockCourses = [
     instructor: 'Alex Kim',
     duration: '10 weeks',
   },
+  {
+    id: '5',
+    title: 'Cloud Architecture with AWS',
+    instructor: 'James Park',
+    duration: '12 weeks',
+  },
+  {
+    id: '6',
+    title: 'Machine Learning Fundamentals',
+    instructor: 'Prof. David Lee',
+    duration: '14 weeks',
+  },
 ];
 
 function getCourse(id: string) {
@@ -45,8 +57,9 @@ function generateCertificateNumber() {
   return `LC-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 }
 
-export default function CertificatePage({ params }: { params: { id: string } }) {
-  const course = getCourse(params.id);
+export default function CertificatePage({ params }: { params: any }) {
+  const id = params?.id || '';
+  const course = getCourse(id);
   const certificateRef = useRef<HTMLDivElement>(null);
   const studentName = 'John Doe'; // In production, this would come from user auth
   const completionDate = new Date().toLocaleDateString('en-US', {

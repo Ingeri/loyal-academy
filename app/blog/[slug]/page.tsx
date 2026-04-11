@@ -159,9 +159,10 @@ const mockBlogPosts: { [key: string]: any } = {
   },
 };
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
+export default function BlogPostPage({ params }: { params: any }) {
   const [mounted, setMounted] = useState(false);
-  const post = mockBlogPosts[params.slug];
+  const slug = params?.slug || '';
+  const post = mockBlogPosts[slug];
 
   useEffect(() => {
     setMounted(true);
