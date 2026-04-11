@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { Card } from '@/components/ui/card';
@@ -159,9 +160,10 @@ const mockBlogPosts: { [key: string]: any } = {
   },
 };
 
-export default function BlogPostPage({ params }: { params: any }) {
+export default function BlogPostPage() {
+  const params = useParams();
   const [mounted, setMounted] = useState(false);
-  const slug = params?.slug || '';
+  const slug = params?.slug as string || '';
   const post = mockBlogPosts[slug];
 
   useEffect(() => {

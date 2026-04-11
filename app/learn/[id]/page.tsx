@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
@@ -335,13 +336,26 @@ function getCourse(id: string) {
   return mockCourses.find(c => c.id === id) || null;
 }
 
-export default function LearnPage({ params }: { params: any }) {
-  const id = params?.id || '';
+export default function LearnPage() {
+  const params = useParams();
+  const [mounted, setMounted] = useState(false);
+  const id = params?.id as string || '';
   const course = getCourse(id);
-  const [currentLessonId, setCurrentLessonId] = useState(course?.curriculum?.[0]?.id || '');
+  const [currentLessonId, setCurrentLessonId] = useState('');
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [certificateGenerated, setCertificateGenerated] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    if (course && currentLessonId === '') {
+      setCurrentLessonId(course.curriculum[0]?.id || '');
+    }
+  }, [course]);
+
+  if (!mounted) {
+    return null;
+  }
 
   if (!course) {
     return (

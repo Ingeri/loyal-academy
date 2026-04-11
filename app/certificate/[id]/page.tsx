@@ -1,6 +1,7 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Link from 'next/link';
@@ -57,8 +58,10 @@ function generateCertificateNumber() {
   return `LC-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 }
 
-export default function CertificatePage({ params }: { params: any }) {
-  const id = params?.id || '';
+export default function CertificatePage() {
+  const params = useParams();
+  const [mounted, setMounted] = useState(false);
+  const id = params?.id as string || '';
   const course = getCourse(id);
   const certificateRef = useRef<HTMLDivElement>(null);
   const studentName = 'John Doe'; // In production, this would come from user auth
@@ -68,6 +71,14 @@ export default function CertificatePage({ params }: { params: any }) {
     day: 'numeric',
   });
   const certificateNumber = generateCertificateNumber();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   if (!course) {
     return (
