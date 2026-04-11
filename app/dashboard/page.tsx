@@ -13,19 +13,39 @@ const mockEnrollments = [
     id: 'enroll-1',
     courseId: '1',
     courseTitle: 'Web Development Fundamentals',
-    image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=300&fit=crop',
+    image: 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?w=500&h=300&fit=crop',
     progress: 75,
     enrollmentDate: '2026-03-15',
     isCompleted: false,
+    totalLessons: 11,
+    completedLessons: 8,
+    estimatedCompletion: '3 weeks',
+    description: 'Learn HTML, CSS, and JavaScript from scratch',
   },
   {
     id: 'enroll-2',
     courseId: '4',
     courseTitle: 'UX/UI Design Bootcamp',
-    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=300&fit=crop',
+    image: 'https://images.pexels.com/photos/3150150/pexels-photo-3150150.jpeg?w=500&h=300&fit=crop',
     progress: 100,
     enrollmentDate: '2026-02-20',
     isCompleted: true,
+    totalLessons: 3,
+    completedLessons: 3,
+    description: 'Learn design principles, Figma, and user research',
+  },
+  {
+    id: 'enroll-3',
+    courseId: '2',
+    courseTitle: 'Advanced React Patterns',
+    image: 'https://images.pexels.com/photos/3583447/pexels-photo-3583447.jpeg?w=500&h=300&fit=crop',
+    progress: 45,
+    enrollmentDate: '2026-03-28',
+    isCompleted: false,
+    totalLessons: 2,
+    completedLessons: 1,
+    estimatedCompletion: '5 weeks',
+    description: 'Master advanced React concepts and best practices',
   },
 ];
 
@@ -167,33 +187,44 @@ export default function DashboardPage() {
                     key={enrollment.id}
                     href={`/learn/${enrollment.courseId}`}
                   >
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full">
-                      {enrollment.courses?.image_url && (
-                        <img
-                          src={enrollment.courses.image_url}
-                          alt={enrollment.courses.title}
-                          className="h-40 w-full object-cover"
-                        />
-                      )}
-                      <div className="p-4">
-                        <h3 className="font-semibold text-foreground line-clamp-2 mb-2">
-                          {enrollment.courses?.title}
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
+                      <img
+                        src={enrollment.image}
+                        alt={enrollment.courseTitle}
+                        className="h-40 w-full object-cover"
+                      />
+                      <div className="p-4 flex flex-col flex-1">
+                        <h3 className="font-semibold text-foreground line-clamp-2 mb-1">
+                          {enrollment.courseTitle}
                         </h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                          {enrollment.courses?.description}
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                          {enrollment.description}
                         </p>
-                        <div className="space-y-2">
+                        {!enrollment.isCompleted && (
+                          <p className="text-xs text-muted-foreground mb-2">
+                            {enrollment.completedLessons}/{enrollment.totalLessons} lessons complete
+                          </p>
+                        )}
+                        <div className="space-y-2 mt-auto">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Progress</span>
-                            <span className="font-semibold text-foreground">{enrollment.completion_percentage}%</span>
+                            <span className="font-semibold text-foreground">{enrollment.progress}%</span>
                           </div>
                           <div className="w-full bg-muted rounded-full h-2">
                             <div
                               className="bg-primary h-2 rounded-full transition-all"
-                              style={{ width: `${enrollment.completion_percentage}%` }}
+                              style={{ width: `${enrollment.progress}%` }}
                             />
                           </div>
+                          {enrollment.estimatedCompletion && (
+                            <p className="text-xs text-muted-foreground">Est. {enrollment.estimatedCompletion}</p>
+                          )}
                         </div>
+                        {enrollment.isCompleted && (
+                          <div className="mt-3 bg-green-100 rounded p-2">
+                            <p className="text-xs text-green-800 font-medium">✓ Completed</p>
+                          </div>
+                        )}
                       </div>
                     </Card>
                   </Link>

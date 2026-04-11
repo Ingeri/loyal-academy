@@ -13,7 +13,7 @@ const mockCourses = [
     id: '1',
     title: 'Web Development Fundamentals',
     description: 'Learn HTML, CSS, and JavaScript from scratch.',
-    image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&h=400&fit=crop',
+    image: 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?w=800&h=400&fit=crop',
     instructor: 'Sarah Johnson',
     rating: 4.8,
     duration: '8 weeks',
@@ -126,7 +126,7 @@ const mockCourses = [
     id: '2',
     title: 'Advanced React Patterns',
     description: 'Master advanced React concepts.',
-    image: 'https://images.unsplash.com/photo-1633356122544-f134324ef6db?w=800&h=400&fit=crop',
+    image: 'https://images.pexels.com/photos/3583447/pexels-photo-3583447.jpeg?w=800&h=400&fit=crop',
     instructor: 'Mike Chen',
     rating: 4.9,
     duration: '10 weeks',
@@ -153,7 +153,7 @@ const mockCourses = [
     id: '3',
     title: 'Data Science Essentials',
     description: 'Introduction to Python and data analysis.',
-    image: 'https://images.unsplash.com/photo-1518186285671-4d71bcdd2085?w=800&h=400&fit=crop',
+    image: 'https://images.pexels.com/photos/3182751/pexels-photo-3182751.jpeg?w=800&h=400&fit=crop',
     instructor: 'Dr. Emily Rodriguez',
     rating: 4.7,
     duration: '12 weeks',
@@ -172,7 +172,7 @@ const mockCourses = [
     id: '4',
     title: 'UX/UI Design Bootcamp',
     description: 'Learn design principles, Figma, and user research.',
-    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=400&fit=crop',
+    image: 'https://images.pexels.com/photos/3150150/pexels-photo-3150150.jpeg?w=800&h=400&fit=crop',
     instructor: 'Alex Kim',
     rating: 4.6,
     duration: '10 weeks',
@@ -206,6 +206,126 @@ const mockCourses = [
         duration: '50 mins', 
         type: 'video',
         content: 'Master Figma for UI/UX design with components, styles, and prototyping.'
+      },
+      { 
+        id: 'lesson-4-3', 
+        title: 'User Research Methods', 
+        module: 'Module 2', 
+        duration: '45 mins', 
+        type: 'video',
+        content: 'Learn how to conduct user interviews, surveys, and usability testing.'
+      },
+    ],
+  },
+  {
+    id: '5',
+    title: 'Cloud Architecture with AWS',
+    description: 'Deploy and manage applications on AWS.',
+    image: 'https://images.pexels.com/photos/3182759/pexels-photo-3182759.jpeg?w=800&h=400&fit=crop',
+    instructor: 'James Park',
+    rating: 4.8,
+    duration: '12 weeks',
+    hasWebinar: false,
+    curriculum: [
+      { 
+        id: 'lesson-5-1', 
+        title: 'AWS Fundamentals', 
+        module: 'Module 1: AWS Core Services', 
+        duration: '45 mins', 
+        type: 'video',
+        content: 'Learn about AWS account setup, regions, availability zones, and core services like EC2, S3, RDS, and Lambda.'
+      },
+      { 
+        id: 'lesson-5-2', 
+        title: 'Virtual Private Cloud (VPC)', 
+        module: 'Module 1: AWS Core Services', 
+        duration: '50 mins', 
+        type: 'video',
+        content: 'Master VPC configuration, subnets, route tables, and security groups.'
+      },
+      { 
+        id: 'lesson-5-3', 
+        title: 'Elastic Compute Cloud (EC2)', 
+        module: 'Module 2: Compute & Networking', 
+        duration: '55 mins', 
+        type: 'video',
+        content: 'Deploy and manage EC2 instances, security groups, and elastic IPs.'
+      },
+      { 
+        id: 'lesson-5-4', 
+        title: 'Relational Database Service (RDS)', 
+        module: 'Module 3: Databases & Storage', 
+        duration: '45 mins', 
+        type: 'video',
+        content: 'Set up and manage RDS databases with automated backups and multi-AZ deployment.'
+      },
+      { 
+        id: 'lesson-5-5', 
+        title: 'Serverless with Lambda', 
+        module: 'Module 4: Serverless & Advanced', 
+        duration: '50 mins', 
+        type: 'video',
+        content: 'Deploy serverless functions and create event-driven architectures with Lambda.'
+      },
+    ],
+  },
+  {
+    id: '6',
+    title: 'Machine Learning Fundamentals',
+    description: 'Build your first ML models with scikit-learn.',
+    image: 'https://images.pexels.com/photos/3862627/pexels-photo-3862627.jpeg?w=800&h=400&fit=crop',
+    instructor: 'Prof. David Lee',
+    rating: 4.9,
+    duration: '14 weeks',
+    hasWebinar: false,
+    curriculum: [
+      { 
+        id: 'lesson-6-1', 
+        title: 'Machine Learning Basics', 
+        module: 'Module 1: ML Fundamentals', 
+        duration: '45 mins', 
+        type: 'video',
+        content: 'Understand supervised vs unsupervised learning, training vs testing, and the ML workflow.'
+      },
+      { 
+        id: 'lesson-6-2', 
+        title: 'Linear Regression', 
+        module: 'Module 1: ML Fundamentals', 
+        duration: '50 mins', 
+        type: 'video',
+        content: 'Learn linear regression for predicting continuous values using scikit-learn.'
+      },
+      { 
+        id: 'lesson-6-3', 
+        title: 'Classification with Logistic Regression', 
+        module: 'Module 2: Supervised Learning', 
+        duration: '50 mins', 
+        type: 'video',
+        content: 'Build classification models to predict categories and probabilities.'
+      },
+      { 
+        id: 'lesson-6-4', 
+        title: 'Decision Trees & Random Forests', 
+        module: 'Module 2: Supervised Learning', 
+        duration: '55 mins', 
+        type: 'video',
+        content: 'Master ensemble methods and tree-based models for improved predictions.'
+      },
+      { 
+        id: 'lesson-6-5', 
+        title: 'Clustering & K-Means', 
+        module: 'Module 3: Unsupervised Learning', 
+        duration: '45 mins', 
+        type: 'video',
+        content: 'Learn unsupervised learning techniques to discover patterns in data.'
+      },
+      { 
+        id: 'lesson-6-6', 
+        title: 'Feature Engineering & Optimization', 
+        module: 'Module 4: Feature Engineering', 
+        duration: '60 mins', 
+        type: 'video',
+        content: 'Improve model performance through feature selection and hyperparameter tuning.'
       },
     ],
   },
