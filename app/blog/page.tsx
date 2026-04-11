@@ -8,11 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export const metadata = {
-  title: 'Blog - Loyal Academy',
-  description: 'Read the latest articles and insights from Loyal Academy',
-};
-
 const mockBlogPosts = [
   {
     id: '1',
