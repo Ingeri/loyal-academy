@@ -8,11 +8,6 @@ import { Card } from '@/components/ui/card';
 import { BookOpen, Clock, CheckCircle, TrendingUp, Award, Calendar, Download } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export const metadata = {
-  title: 'Dashboard - Loyal Academy',
-  description: 'Your learning dashboard',
-};
-
 const mockEnrollments = [
   {
     id: 'enroll-1',
