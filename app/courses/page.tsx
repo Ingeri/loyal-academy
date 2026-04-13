@@ -193,13 +193,13 @@ export default async function CoursesPage({
                 </div>
 
                 {/* Level Filter */}
-                <div>
+                <div className="mb-6 pb-6 border-b border-border">
                   <label className="block text-sm font-medium text-foreground mb-3">Level</label>
                   <div className="space-y-2">
                     <Link href="/courses">
                       <Button
                         variant={!params.level || params.level === 'all' ? 'default' : 'outline'}
-                        className="w-full justify-start"
+                        className="w-full justify-start cursor-pointer hover:shadow-md transition-all"
                       >
                         All Levels
                       </Button>
@@ -208,11 +208,43 @@ export default async function CoursesPage({
                       <Link key={level} href={`/courses?level=${level}`}>
                         <Button
                           variant={params.level === level ? 'default' : 'outline'}
-                          className="w-full justify-start"
+                          className="w-full justify-start cursor-pointer hover:shadow-md transition-all"
                         >
                           {level}
                         </Button>
                       </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Certification Filter */}
+                <div className="mb-6 pb-6 border-b border-border">
+                  <label className="block text-sm font-medium text-foreground mb-3">Certifications</label>
+                  <div className="space-y-2">
+                    {['Industry Certified', 'Professional Certificate', 'Completion Badge'].map((cert) => (
+                      <Button
+                        key={cert}
+                        variant="outline"
+                        className="w-full justify-start cursor-pointer hover:shadow-md transition-all"
+                      >
+                        {cert}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Qualification Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-3">Qualifications</label>
+                  <div className="space-y-2">
+                    {['Job Ready', 'Skill Badge', 'Portfolio Project'].map((qual) => (
+                      <Button
+                        key={qual}
+                        variant="outline"
+                        className="w-full justify-start cursor-pointer hover:shadow-md transition-all"
+                      >
+                        {qual}
+                      </Button>
                     ))}
                   </div>
                 </div>

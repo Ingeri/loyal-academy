@@ -345,13 +345,42 @@ export default function LearnPage() {
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [certificateGenerated, setCertificateGenerated] = useState(false);
+  const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
     if (course && currentLessonId === '') {
       setCurrentLessonId(course.curriculum[0]?.id || '');
     }
+    // Load saved progress from database
+    loadProgress();
   }, [course]);
+
+  const loadProgress = async () => {
+    try {
+      const enrollRes = await fetch('/api/enrollments');
+      const enrollments = await enrollRes.json();
+      
+      if (enrollments && enrollments.length > 0) {
+        const currentEnrollment = enrollments.find((e: any) => e.course_id === id);
+        if (currentEnrollment) {
+          setEnrollmentId(currentEnrollment.id);
+          
+          const progressRes = await fetch(`/api/progress?enrollmentId=${currentEnrollment.id}`);
+          const progress = await progressRes.json();
+          
+          if (progress && Array.isArray(progress)) {
+            const completed = progress
+              .filter((p: any) => p.is_completed)
+              .map((p: any) => p.content_id);
+            setCompletedLessons(completed);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('[v0] Error loading progress:', error);
+    }
+  };
 
   if (!mounted) {
     return null;
@@ -380,13 +409,37 @@ export default function LearnPage() {
   const nextLesson = lessonIndex < course.curriculum.length - 1 ? course.curriculum[lessonIndex + 1] : null;
   const prevLesson = lessonIndex > 0 ? course.curriculum[lessonIndex - 1] : null;
 
-  const toggleLessonComplete = () => {
+  const toggleLessonComplete = async () => {
     if (currentLessonId) {
+      const isCompleted = !completedLessons.includes(currentLessonId);
       setCompletedLessons(prev => 
-        prev.includes(currentLessonId) 
-          ? prev.filter(id => id !== currentLessonId)
-          : [...prev, currentLessonId]
+        isCompleted
+          ? [...prev, currentLessonId]
+          : prev.filter(id => id !== currentLessonId)
       );
+
+      // Save to database if enrolled
+      if (enrollmentId) {
+        const newCompleted = isCompleted 
+          ? [...completedLessons, currentLessonId]
+          : completedLessons.filter(id => id !== currentLessonId);
+        const newPercentage = Math.round((newCompleted.length / course!.curriculum.length) * 100);
+
+        try {
+          await fetch('/api/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              enrollmentId,
+              contentId: currentLessonId,
+              isCompleted,
+              completionPercentage: newPercentage,
+            }),
+          });
+        } catch (error) {
+          console.log('[v0] Error saving progress:', error);
+        }
+      }
     }
   };
 
