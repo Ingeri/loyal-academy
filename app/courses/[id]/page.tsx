@@ -358,7 +358,7 @@ export default function CoursePage() {
       </div>
 
       {/* Content Sections */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-12">
