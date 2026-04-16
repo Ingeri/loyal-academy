@@ -9,7 +9,7 @@ export default function ProtectedPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto px-4 py-20">
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-2xl mx-auto py-6">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl">Welcome to Loyal Academy</CardTitle>
             <CardDescription>You are now authenticated and ready to learn</CardDescription>

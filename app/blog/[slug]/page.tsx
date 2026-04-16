@@ -53,7 +53,7 @@ const mockBlogPosts: { [key: string]: any } = {
   'future-of-ui-design': {
     title: 'The Future of User Interface Design',
     excerpt: 'Explore emerging trends in UI design including AI-assisted design, voice interfaces, and immersive experiences.',
-    image: 'https://images.pexels.com/photos/3150150/pexels-photo-3150150.jpeg?w=1200&h=600&fit=crop',
+    image: 'https://images.pexels.com/photos/3861972/pexels-photo-3861972.jpeg?w=800&h=400&fit=crop',
     category: 'Design',
     author: 'Alex Kim',
     publishedAt: '2026-04-05',
@@ -87,7 +87,7 @@ const mockBlogPosts: { [key: string]: any } = {
   'mastering-react-hooks-useEffect': {
     title: 'Mastering React Hooks: useEffect Deep Dive',
     excerpt: 'Understand the intricacies of useEffect in React and learn how to avoid common pitfalls and optimize your components.',
-    image: 'https://images.pexels.com/photos/3583447/pexels-photo-3583447.jpeg?w=1200&h=600&fit=crop',
+    image: 'https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?w=800&h=400&fit=crop',
     category: 'Web Development',
     author: 'Mike Chen',
     publishedAt: '2026-04-01',
@@ -232,7 +232,7 @@ const mockBlogPosts: { [key: string]: any } = {
   'ux-research-methods': {
     title: 'UX Research Methods That Work',
     excerpt: 'Explore various user research methodologies and learn how to gather insights that inform better design decisions.',
-    image: 'https://images.pexels.com/photos/3150150/pexels-photo-3150150.jpeg?w=1200&h=600&fit=crop',
+    image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?w=800&h=400&fit=crop',
     category: 'Design',
     author: 'Alex Kim',
     publishedAt: '2026-03-15',

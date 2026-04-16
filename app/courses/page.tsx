@@ -34,7 +34,7 @@ const mockCourses = [
     category: 'Web Development',
     level: 'Advanced',
     price: 79.99,
-    image: 'https://images.pexels.com/photos/3583447/pexels-photo-3583447.jpeg?w=500&h=300&fit=crop',
+    image: 'https://images.pexels.com/photos/1181673/pexels-photo-1181673.jpeg?w=800&h=400&fit=crop',
     rating: 4.9,
     students: 1820,
     duration: '10 weeks',
@@ -60,7 +60,7 @@ const mockCourses = [
     category: 'Design',
     level: 'Intermediate',
     price: 69.99,
-    image: 'https://images.pexels.com/photos/3150150/pexels-photo-3150150.jpeg?w=500&h=300&fit=crop',
+    image: 'https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?w=800&h=400&fit=crop',
     rating: 4.6,
     students: 1540,
     duration: '10 weeks',
@@ -170,11 +170,11 @@ export default async function CoursesPage({
                 {/* Category Filter */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-foreground mb-3">Category</label>
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2">
                     <Link href="/courses">
                       <Button
                         variant={!params.category || params.category === 'all' ? 'default' : 'outline'}
-                        className="w-full justify-start"
+                        className="w-full justify-start p-t-8"
                       >
                         All Categories
                       </Button>
@@ -195,7 +195,7 @@ export default async function CoursesPage({
                 {/* Level Filter */}
                 <div className="mb-6 pb-6 border-b border-border">
                   <label className="block text-sm font-medium text-foreground mb-3">Level</label>
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2">
                     <Link href="/courses">
                       <Button
                         variant={!params.level || params.level === 'all' ? 'default' : 'outline'}
