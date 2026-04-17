@@ -662,24 +662,9 @@ export default function CoursePage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleEnroll = async () => {
-    try {
-      const res = await fetch("/api/enrollments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseId: id }),
-      });
-
-      if (res.ok) {
-        alert(
-          "Successfully enrolled! Head to your dashboard to start learning.",
-        );
-      } else {
-        alert("Please sign in to enroll in this course.");
-      }
-    } catch (error) {
-      console.error("Enrollment error:", error);
-    }
+  const handleEnroll = () => {
+    // Redirect to enrollment page
+    window.location.href = `/enroll/${id}`;
   };
 
   if (!mounted) {
@@ -981,7 +966,7 @@ export default function CoursePage() {
                   size="lg"
                   className="w-full cursor-pointer hover:shadow-lg transition-all text-base font-bold"
                 >
-                  Join This Course
+                  Enroll in Course
                 </Button>
 
                 <div className="space-y-4">
@@ -1072,7 +1057,7 @@ export default function CoursePage() {
                       size="lg"
                       className="w-full cursor-pointer hover:shadow-lg transition-all py-8"
                     >
-                      Enroll in Course{" "}
+                      Enroll in Course
                     </Button>
                   </div>
                 </div>

@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      console.error('[v0] Enrollment insert error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
