@@ -633,6 +633,8 @@ export default function CoursePage() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("overview");
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
 
   const id = (params?.id as string) || "";
   const course = getCourse(id);
@@ -663,6 +665,9 @@ export default function CoursePage() {
   }, []);
 
   const handleEnroll = async () => {
+    setIsEnrolling(true);
+    setEnrollmentError(null);
+    
     try {
       const res = await fetch("/api/enrollments", {
         method: "POST",
@@ -675,10 +680,20 @@ export default function CoursePage() {
           "Successfully enrolled! Head to your dashboard to start learning.",
         );
       } else {
-        alert("Please sign in to enroll in this course.");
+        const errorData = await res.json();
+        if (res.status === 401) {
+          setEnrollmentError("Please sign in to enroll in this course.");
+        } else if (res.status === 400) {
+          setEnrollmentError(errorData.error || "Unable to enroll. Please try again.");
+        } else {
+          setEnrollmentError("An error occurred. Please try again.");
+        }
       }
     } catch (error) {
       console.error("Enrollment error:", error);
+      setEnrollmentError("An error occurred. Please try again.");
+    } finally {
+      setIsEnrolling(false);
     }
   };
 
@@ -978,11 +993,15 @@ export default function CoursePage() {
 
                 <Button
                   onClick={handleEnroll}
+                  disabled={isEnrolling}
                   size="lg"
                   className="w-full cursor-pointer hover:shadow-lg transition-all text-base font-bold"
                 >
-                  Join This Course
+                  {isEnrolling ? "Enrolling..." : "Enroll in Course"}
                 </Button>
+                {enrollmentError && (
+                  <p className="text-sm text-red-600 text-center">{enrollmentError}</p>
+                )}
 
                 <div className="space-y-4">
                   <h4 className="font-semibold text-foreground flex items-center gap-2">
@@ -1069,10 +1088,11 @@ export default function CoursePage() {
                   <div className="flex items-center gap-2 py-4">
                     <Button
                       onClick={handleEnroll}
+                      disabled={isEnrolling}
                       size="lg"
                       className="w-full cursor-pointer hover:shadow-lg transition-all py-8"
                     >
-                      Enroll in Course{" "}
+                      {isEnrolling ? "Enrolling..." : "Enroll in Course"}
                     </Button>
                   </div>
                 </div>
