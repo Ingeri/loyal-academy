@@ -681,16 +681,17 @@ export default function CoursePage() {
         );
       } else {
         const errorData = await res.json();
+        console.log("[v0] Enrollment error response:", { status: res.status, errorData });
         if (res.status === 401) {
           setEnrollmentError("Please sign in to enroll in this course.");
         } else if (res.status === 400) {
           setEnrollmentError(errorData.error || "Unable to enroll. Please try again.");
         } else {
-          setEnrollmentError("An error occurred. Please try again.");
+          setEnrollmentError(errorData.error || "An error occurred. Please try again.");
         }
       }
     } catch (error) {
-      console.error("Enrollment error:", error);
+      console.error("[v0] Enrollment error:", error);
       setEnrollmentError("An error occurred. Please try again.");
     } finally {
       setIsEnrolling(false);
