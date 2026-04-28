@@ -1,101 +1,109 @@
+import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
-import { Search, Star } from 'lucide-react';
+import { CourseCard } from '@/components/course-card';
+import { Search, Filter, X } from 'lucide-react';
 
 export const metadata = {
   title: 'Courses - Loyal Academy',
   description: 'Browse our comprehensive collection of online courses',
 };
 
-// Mock courses data - will be replaced with Supabase queries once tables are created
+// Mock courses for development
 const mockCourses = [
   {
     id: '1',
     title: 'Web Development Fundamentals',
-    description: 'Learn HTML, CSS, and JavaScript from scratch',
+    description: 'Learn HTML, CSS, and JavaScript from scratch. Build real projects and master the basics.',
     category: 'Web Development',
-    level: 'Beginner',
+    level: 'beginner',
     price: 49.99,
-    image: 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?w=500&h=300&fit=crop',
+    image_url: 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?w=500&h=300&fit=crop',
     rating: 4.8,
-    students: 2540,
-    duration: '8 weeks',
-    instructor: 'Sarah Johnson',
-    hasWebinar: true
+    total_students: 2540,
+    duration_weeks: 8,
+    instructor: { full_name: 'Sarah Johnson' },
+    has_certificate: true,
   },
   {
     id: '2',
     title: 'Advanced React Patterns',
-    description: 'Master advanced React concepts and best practices',
+    description: 'Master advanced React concepts including hooks, context, and performance optimization.',
     category: 'Web Development',
-    level: 'Advanced',
+    level: 'advanced',
     price: 79.99,
-    image: 'https://images.pexels.com/photos/1181673/pexels-photo-1181673.jpeg?w=800&h=400&fit=crop',
+    image_url: 'https://images.pexels.com/photos/1181673/pexels-photo-1181673.jpeg?w=800&h=400&fit=crop',
     rating: 4.9,
-    students: 1820,
-    duration: '10 weeks',
-    instructor: 'Mike Chen'
+    total_students: 1820,
+    duration_weeks: 10,
+    instructor: { full_name: 'Mike Chen' },
+    has_certificate: true,
   },
   {
     id: '3',
     title: 'Data Science Essentials',
-    description: 'Introduction to Python, pandas, and data visualization',
+    description: 'Introduction to Python, pandas, and data visualization. Learn to analyze real datasets.',
     category: 'Data Science',
-    level: 'Beginner',
+    level: 'beginner',
     price: 59.99,
-    image: 'https://images.pexels.com/photos/3182751/pexels-photo-3182751.jpeg?w=500&h=300&fit=crop',
+    image_url: 'https://images.pexels.com/photos/3182751/pexels-photo-3182751.jpeg?w=500&h=300&fit=crop',
     rating: 4.7,
-    students: 3200,
-    duration: '12 weeks',
-    instructor: 'Dr. Emily Rodriguez'
+    total_students: 3200,
+    duration_weeks: 12,
+    instructor: { full_name: 'Dr. Emily Rodriguez' },
+    has_certificate: true,
   },
   {
     id: '4',
     title: 'UX/UI Design Bootcamp',
-    description: 'Learn design principles, Figma, and user research',
+    description: 'Learn design principles, Figma, and user research. Build a professional portfolio.',
     category: 'Design',
-    level: 'Intermediate',
+    level: 'intermediate',
     price: 69.99,
-    image: 'https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?w=800&h=400&fit=crop',
+    image_url: 'https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?w=800&h=400&fit=crop',
     rating: 4.6,
-    students: 1540,
-    duration: '10 weeks',
-    instructor: 'Alex Kim',
-    hasWebinar: true
+    total_students: 1540,
+    duration_weeks: 10,
+    instructor: { full_name: 'Alex Kim' },
+    has_certificate: true,
   },
   {
     id: '5',
     title: 'Cloud Architecture with AWS',
-    description: 'Deploy and manage applications on AWS',
+    description: 'Deploy and manage applications on AWS. Learn EC2, S3, Lambda, and more.',
     category: 'Cloud',
-    level: 'Intermediate',
+    level: 'intermediate',
     price: 89.99,
-    image: 'https://images.pexels.com/photos/3182759/pexels-photo-3182759.jpeg?w=500&h=300&fit=crop',
+    image_url: 'https://images.pexels.com/photos/3182759/pexels-photo-3182759.jpeg?w=500&h=300&fit=crop',
     rating: 4.8,
-    students: 2100,
-    duration: '12 weeks',
-    instructor: 'James Park'
+    total_students: 2100,
+    duration_weeks: 12,
+    instructor: { full_name: 'James Park' },
+    has_certificate: true,
   },
   {
     id: '6',
     title: 'Machine Learning Fundamentals',
-    description: 'Build your first ML models with scikit-learn',
+    description: 'Build your first ML models with scikit-learn. From theory to practical applications.',
     category: 'Data Science',
-    level: 'Intermediate',
+    level: 'intermediate',
     price: 99.99,
-    image: 'https://images.pexels.com/photos/3862627/pexels-photo-3862627.jpeg?w=500&h=300&fit=crop',
+    image_url: 'https://images.pexels.com/photos/3862627/pexels-photo-3862627.jpeg?w=500&h=300&fit=crop',
     rating: 4.9,
-    students: 2800,
-    duration: '14 weeks',
-    instructor: 'Prof. David Lee'
+    total_students: 2800,
+    duration_weeks: 14,
+    instructor: { full_name: 'Prof. David Lee' },
+    has_certificate: true,
   },
 ];
 
-function getCourses(searchQuery?: string, category?: string, level?: string) {
+const mockCategories = ['Web Development', 'Data Science', 'Design', 'Cloud', 'AI & ML', 'Business'];
+
+function filterMockCourses(searchQuery?: string, category?: string, level?: string) {
   let filtered = [...mockCourses];
 
   if (searchQuery) {
@@ -110,14 +118,65 @@ function getCourses(searchQuery?: string, category?: string, level?: string) {
   }
 
   if (level && level !== 'all') {
-    filtered = filtered.filter(c => c.level === level);
+    filtered = filtered.filter(c => c.level === level.toLowerCase());
   }
 
   return filtered;
 }
 
-function getCategories() {
-  return Array.from(new Set(mockCourses.map(c => c.category)));
+async function getCoursesFromDB(searchQuery?: string, category?: string, level?: string) {
+  const supabase = await createClient();
+  let query = supabase
+    .from('courses')
+    .select(`
+      *,
+      instructor:instructor_id (full_name)
+    `)
+    .eq('is_published', true);
+
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+  }
+
+  if (category && category !== 'all') {
+    query = query.eq('category', category);
+  }
+
+  if (level && level !== 'all') {
+    query = query.eq('level', level.toLowerCase());
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching courses:', error);
+    // Fallback to mock data on error
+    return filterMockCourses(searchQuery, category, level);
+  }
+
+  // Fallback to mock data if no courses in DB
+  if (!data || data.length === 0) {
+    return filterMockCourses(searchQuery, category, level);
+  }
+
+  return data;
+}
+
+async function getCategoriesFromDB() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('courses')
+    .select('category')
+    .eq('is_published', true)
+    .not('category', 'is', null);
+
+  if (error) {
+    console.error('Error fetching categories:', error);
+    return mockCategories;
+  }
+
+  const dbCategories = Array.from(new Set(data?.map((c: { category: string }) => c.category).filter(Boolean))) as string[];
+  return dbCategories.length > 0 ? dbCategories : mockCategories;
 }
 
 export default async function CoursesPage({
@@ -126,8 +185,8 @@ export default async function CoursesPage({
   searchParams: Promise<{ q?: string; category?: string; level?: string }>;
 }) {
   const params = await searchParams;
-  const courses = getCourses(params.q, params.category, params.level);
-  const categories = getCategories();
+  const courses = await getCoursesFromDB(params.q, params.category, params.level);
+  const categories = await getCategoriesFromDB();
 
   return (
     <main className="min-h-screen bg-background">
@@ -147,107 +206,100 @@ export default async function CoursesPage({
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
             {/* Filters Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-card p-6 rounded-lg border">
-                <h3 className="font-semibold text-foreground mb-4">Filters</h3>
-
-                {/* Search */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-foreground mb-2">Search</label>
+              <div className="lg:sticky lg:top-24 space-y-6">
+                {/* Search Card */}
+                <Card className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Search className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold text-foreground">Search</h3>
+                  </div>
                   <form method="get">
                     <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="search"
                         name="q"
                         placeholder="Search courses..."
                         defaultValue={params.q || ''}
-                        className="pl-8"
+                        className="pl-9"
                       />
                     </div>
                   </form>
-                </div>
+                </Card>
 
-                {/* Category Filter */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-foreground mb-3">Category</label>
-                  <div className="flex flex-col gap-2">
-                    <Link href="/courses">
-                      <Button
-                        variant={!params.category || params.category === 'all' ? 'default' : 'outline'}
-                        className="w-full justify-start p-t-8"
-                      >
-                        All Categories
-                      </Button>
-                    </Link>
-                    {categories.map((cat) => (
-                      <Link key={cat} href={`/courses?category=${cat}`}>
-                        <Button
-                          variant={params.category === cat ? 'default' : 'outline'}
-                          className="w-full justify-start"
-                        >
-                          {cat}
+                {/* Filters Card */}
+                <Card className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-5 w-5 text-primary" />
+                      <h3 className="font-semibold text-foreground">Filters</h3>
+                    </div>
+                    {(params.category || params.level || params.q) && (
+                      <Link href="/courses">
+                        <Button variant="ghost" size="sm" className="h-8 px-2">
+                          <X className="h-4 w-4 mr-1" /> Clear
                         </Button>
                       </Link>
-                    ))}
+                    )}
                   </div>
-                </div>
 
-                {/* Level Filter */}
-                <div className="mb-6 pb-6 border-b border-border">
-                  <label className="block text-sm font-medium text-foreground mb-3">Level</label>
-                  <div className="flex flex-col gap-2">
-                    <Link href="/courses">
-                      <Button
-                        variant={!params.level || params.level === 'all' ? 'default' : 'outline'}
-                        className="w-full justify-start cursor-pointer hover:shadow-md transition-all"
-                      >
-                        All Levels
-                      </Button>
-                    </Link>
-                    {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
-                      <Link key={level} href={`/courses?level=${level}`}>
+                  {/* Category Filter */}
+                  <div className="mb-6">
+                    <label className="text-sm font-medium text-foreground mb-3 block">Category</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Link href={`/courses${params.level ? `?level=${params.level}` : ''}${params.q ? `${params.level ? '&' : '?'}q=${params.q}` : ''}`}>
                         <Button
-                          variant={params.level === level ? 'default' : 'outline'}
-                          className="w-full justify-start cursor-pointer hover:shadow-md transition-all"
+                          variant={!params.category || params.category === 'all' ? 'default' : 'outline'}
+                          size="sm"
                         >
-                          {level}
+                          All
                         </Button>
                       </Link>
-                    ))}
+                      {categories.map((cat: string) => (
+                        <Link
+                          key={cat}
+                          href={`/courses?category=${cat}${params.level ? `&level=${params.level}` : ''}${params.q ? `&q=${params.q}` : ''}`}
+                        >
+                          <Button
+                            variant={params.category === cat ? 'default' : 'outline'}
+                            size="sm"
+                          >
+                            {cat}
+                          </Button>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Certification Filter */}
-                <div className="mb-6 pb-6 border-b border-border">
-                  <label className="block text-sm font-medium text-foreground mb-3">Certifications</label>
-                  <div className="space-y-2">
-                    {['Industry Certified', 'Professional Certificate', 'Completion Badge'].map((cert) => (
-                      <Button
-                        key={cert}
-                        variant="outline"
-                        className="w-full justify-start cursor-pointer hover:shadow-md transition-all"
-                      >
-                        {cert}
-                      </Button>
-                    ))}
+                  {/* Level Filter */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-3 block">Level</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Link href={`/courses${params.category ? `?category=${params.category}` : ''}${params.q ? `${params.category ? '&' : '?'}q=${params.q}` : ''}`}>
+                        <Button
+                          variant={!params.level || params.level === 'all' ? 'default' : 'outline'}
+                          size="sm"
+                        >
+                          All
+                        </Button>
+                      </Link>
+                      {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
+                        <Link
+                          key={level}
+                          href={`/courses?level=${level}${params.category ? `&category=${params.category}` : ''}${params.q ? `&q=${params.q}` : ''}`}
+                        >
+                          <Button
+                            variant={params.level === level ? 'default' : 'outline'}
+                            size="sm"
+                            className="capitalize"
+                          >
+                            {level}
+                          </Button>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                </div>
-
-                {/* Qualification Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-3">Qualifications</label>
-                  <div className="space-y-2">
-                    {['Job Ready', 'Skill Badge', 'Portfolio Project'].map((qual) => (
-                      <Button
-                        key={qual}
-                        variant="outline"
-                        className="w-full justify-start cursor-pointer hover:shadow-md transition-all"
-                      >
-                        {qual}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                </Card>
               </div>
             </div>
 
@@ -256,40 +308,23 @@ export default async function CoursesPage({
               {courses.length > 0 ? (
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
                   {courses.map((course: any) => (
-                    <Link key={course.id} href={`/courses/${course.id}`}>
-                      <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative">
-                        {course.hasWebinar && (
-                          <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full z-10">
-                            Live Webinar
-                          </div>
-                        )}
-                        {course.image && (
-                          <img
-                            src={course.image}
-                            alt={course.title}
-                            className="h-48 w-full object-cover"
-                          />
-                        )}
-                        <div className="p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h3 className="font-semibold text-foreground line-clamp-2 mb-1">{course.title}</h3>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                {course.rating ? course.rating.toFixed(1) : 'New'}
-                              </div>
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{course.description}</p>
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-primary text-lg">${course.price}</span>
-                            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded capitalize">
-                              {course.level}
-                            </span>
-                          </div>
-                        </div>
-                      </Card>
-                    </Link>
+                    <CourseCard
+                      key={course.id}
+                      course={{
+                        id: course.id,
+                        title: course.title,
+                        description: course.description,
+                        image_url: course.image_url,
+                        price: course.price,
+                        rating: course.rating,
+                        students: course.total_students,
+                        duration: course.duration_weeks ? `${course.duration_weeks} weeks` : 'Self-paced',
+                        level: course.level,
+                        category: course.category,
+                        instructor: course.instructor?.full_name || 'Expert Instructor',
+                        has_certificate: true,
+                      }}
+                    />
                   ))}
                 </div>
               ) : (

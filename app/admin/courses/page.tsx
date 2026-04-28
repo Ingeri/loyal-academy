@@ -1,118 +1,163 @@
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import Navigation from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Edit, Trash2, Plus, Search, Filter, Eye, EyeOff, MoreHorizontal } from 'lucide-react';
 
-async function checkAdminAccess() {
+async function getCourses(searchQuery?: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/auth/login');
-  }
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (userData?.role !== 'admin') {
-    redirect('/dashboard');
-  }
-
-  return user;
-}
-
-async function getCourses() {
-  const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from('courses')
-    .select('*')
+    .select('*, instructor:instructor_id(full_name)')
     .order('created_at', { ascending: false });
+
+  if (searchQuery) {
+    query = query.or(	itle.ilike.%%,description.ilike.%%);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching courses:', error);
+    return [];
+  }
 
   return data || [];
 }
 
-export default async function AdminCoursesPage() {
-  await checkAdminAccess();
-  const courses = await getCourses();
+export default async function AdminCoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const params = await searchParams;
+  const courses = await getCourses(params.q);
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
-
+    <div className='space-y-6'>
       {/* Header */}
-      <section className="border-b bg-card px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Manage Courses</h1>
-            <p className="mt-2 text-muted-foreground">Create and manage all courses</p>
-          </div>
-          <Link href="/admin/courses/new">
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Course
-            </Button>
-          </Link>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+        <div>
+          <h1 className='text-3xl font-bold text-foreground'>Courses</h1>
+          <p className='mt-1 text-muted-foreground'>Manage all your courses from one place</p>
         </div>
-      </section>
+        <Link href='/admin/courses/new'>
+          <Button className='gap-2'>
+            <Plus className='h-4 w-4' />
+            New Course
+          </Button>
+        </Link>
+      </div>
 
-      {/* Courses List */}
-      <section className="px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          {courses.length > 0 ? (
-            <div className="space-y-4">
-              {courses.map((course: any) => (
-                <Card key={course.id} className="p-6 flex items-center justify-between hover:bg-muted/50 transition">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground mb-1">{course.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">{course.description}</p>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-muted-foreground">${course.price}</span>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        course.is_published 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {course.is_published ? 'Published' : 'Draft'}
-                      </span>
-                      <span className="text-muted-foreground">{course.total_students || 0} students</span>
+      {/* Search & Filters */}
+      <Card className='p-4'>
+        <div className='flex flex-col sm:flex-row gap-4'>
+          <form method='get' className='flex-1'>
+            <div className='relative'>
+              <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
+              <Input
+                type='search'
+                name='q'
+                placeholder='Search courses...'
+                defaultValue={params.q || ''}
+                className='pl-9'
+              />
+            </div>
+          </form>
+          <Button variant='outline' className='gap-2'>
+            <Filter className='h-4 w-4' />
+            Filters
+          </Button>
+        </div>
+      </Card>
+
+      {/* Courses Grid */}
+      {courses.length > 0 ? (
+        <div className='grid gap-4'>
+          {courses.map((course: any) => (
+            <Card key={course.id} className='p-6 hover:shadow-md transition-shadow'>
+              <div className='flex flex-col lg:flex-row lg:items-center gap-4'>
+                {/* Course Info */}
+                <div className='flex-1 min-w-0'>
+                  <div className='flex items-start justify-between gap-4'>
+                    <div>
+                      <h3 className='font-semibold text-foreground text-lg'>{course.title}</h3>
+                      <p className='text-sm text-muted-foreground mt-1 line-clamp-2'>
+                        {course.description}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Link href={`/admin/courses/${course.id}/edit`}>
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Edit className="h-4 w-4" />
-                        Edit
-                      </Button>
-                    </Link>
-                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive gap-2">
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </Button>
+
+                  <div className='flex flex-wrap items-center gap-3 mt-3'>
+                    <Badge variant={course.is_published ? 'default' : 'secondary'}>
+                      {course.is_published ? (
+                        <><Eye className='h-3 w-3 mr-1' /> Published</>
+                      ) : (
+                        <><EyeOff className='h-3 w-3 mr-1' /> Draft</>
+                      )}
+                    </Badge>
+                    {course.category && (
+                      <Badge variant='outline'>{course.category}</Badge>
+                    )}
+                    {course.level && (
+                      <Badge variant='outline' className='capitalize'>{course.level}</Badge>
+                    )}
+                    <span className='text-sm text-muted-foreground'>
+                      
+                    </span>
+                    <span className='text-sm text-muted-foreground'>
+                      {course.total_students || 0} students
+                    </span>
+                    {course.instructor?.full_name && (
+                      <span className='text-sm text-muted-foreground'>
+                        by {course.instructor.full_name}
+                      </span>
+                    )}
                   </div>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground mb-6">No courses yet. Create your first course to get started.</p>
-              <Link href="/admin/courses/new">
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Course
-                </Button>
-              </Link>
+                </div>
+
+                {/* Actions */}
+                <div className='flex items-center gap-2 lg:justify-end'>
+                  <Link href={/courses/} target='_blank'>
+                    <Button variant='outline' size='sm' className='gap-2'>
+                      <Eye className='h-4 w-4' />
+                      Preview
+                    </Button>
+                  </Link>
+                  <Link href={/admin/courses//edit}>
+                    <Button variant='outline' size='sm' className='gap-2'>
+                      <Edit className='h-4 w-4' />
+                      Edit
+                    </Button>
+                  </Link>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='text-destructive hover:text-destructive hover:bg-destructive/10'
+                  >
+                    <Trash2 className='h-4 w-4' />
+                  </Button>
+                </div>
+              </div>
             </Card>
-          )}
+          ))}
         </div>
-      </section>
-    </main>
+      ) : (
+        <Card className='p-12 text-center'>
+          <p className='text-muted-foreground mb-6'>
+            {params.q ? 'No courses found matching your search.' : 'No courses yet. Create your first course to get started.'}
+          </p>
+          <Link href='/admin/courses/new'>
+            <Button className='gap-2'>
+              <Plus className='h-4 w-4' />
+              Create Course
+            </Button>
+          </Link>
+        </Card>
+      )}
+    </div>
   );
 }
+

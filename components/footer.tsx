@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Globe, MessageCircle, Link2, Camera } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -127,28 +127,28 @@ export default function Footer() {
                 className="text-muted-foreground hover:text-primary transition"
                 aria-label="Facebook"
               >
-                f
+                <Globe className="h-5 w-5" />
               </a>
               <a
                 href="https://twitter.com"
                 className="text-muted-foreground hover:text-primary transition"
                 aria-label="Twitter"
               >
-                𝕏
+                <MessageCircle className="h-5 w-5" />
               </a>
               <a
                 href="https://linkedin.com"
                 className="text-muted-foreground hover:text-primary transition"
                 aria-label="LinkedIn"
               >
-                in
+                <Link2 className="h-5 w-5" />
               </a>
               <a
                 href="https://instagram.com"
                 className="text-muted-foreground hover:text-primary transition"
                 aria-label="Instagram"
               >
-                📷
+                <Camera className="h-5 w-5" />
               </a>
             </div>
           </div>
