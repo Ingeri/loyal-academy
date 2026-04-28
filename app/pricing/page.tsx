@@ -105,7 +105,7 @@ export default function PricingPage() {
               return (
                 <Card
                   key={plan.name}
-                  className={p-8 relative }
+                  className={'p-8 relative'}
                 >
                   {plan.popular && (
                     <div className='absolute -top-4 left-1/2 -translate-x-1/2'>
@@ -116,8 +116,8 @@ export default function PricingPage() {
                   )}
 
                   <div className='text-center mb-6'>
-                    <div className={h-12 w-12 mx-auto rounded-xl flex items-center justify-center mb-4 }>
-                      <Icon className={h-6 w-6 } />
+                    <div className='h-12 w-12 mx-auto rounded-xl flex items-center justify-center mb-4'>
+                      <Icon className='h-6 w-6' />
                     </div>
                     <h3 className='text-2xl font-bold text-foreground'>{plan.name}</h3>
                     <p className='text-muted-foreground mt-1'>{plan.description}</p>

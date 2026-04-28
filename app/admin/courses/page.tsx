@@ -14,7 +14,7 @@ async function getCourses(searchQuery?: string) {
     .order('created_at', { ascending: false });
 
   if (searchQuery) {
-    query = query.or(	itle.ilike.%%,description.ilike.%%);
+    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
   }
 
   const { data, error } = await query;
@@ -105,7 +105,7 @@ export default async function AdminCoursesPage({
                       <Badge variant='outline' className='capitalize'>{course.level}</Badge>
                     )}
                     <span className='text-sm text-muted-foreground'>
-                      
+                      {course.lessons_count || 0} lessons
                     </span>
                     <span className='text-sm text-muted-foreground'>
                       {course.total_students || 0} students
@@ -120,13 +120,13 @@ export default async function AdminCoursesPage({
 
                 {/* Actions */}
                 <div className='flex items-center gap-2 lg:justify-end'>
-                  <Link href={/courses/} target='_blank'>
+                  <Link href={`/courses/${course.slug}`} target='_blank'>
                     <Button variant='outline' size='sm' className='gap-2'>
                       <Eye className='h-4 w-4' />
                       Preview
                     </Button>
                   </Link>
-                  <Link href={/admin/courses//edit}>
+                  <Link href={`/admin/courses/${course.slug}/edit`}>
                     <Button variant='outline' size='sm' className='gap-2'>
                       <Edit className='h-4 w-4' />
                       Edit
