@@ -1,0 +1,271 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User model with profile information
+model User {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  name               String?
+  bio                String?
+  profileImage       String?
+  role               UserRole  @default(STUDENT)
+  isActive           Boolean   @default(true)
+  
+  // Profile information
+  phone              String?
+  location           String?
+  jobTitle           String?
+  company            String?
+  educationLevel     String?
+  yearsOfExperience  Int       @default(0)
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  enrollments        Enrollment[]
+  courseProgress     CourseProgress[]
+  certificates       Certificate[]
+  jobApplications    JobApplication[]
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+  CAREER_ADVISOR
+}
+
+// Course Category for organization
+model CourseCategory {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  icon        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  courses     Course[]
+}
+
+// Main Course model
+model Course {
+  id                    String    @id @default(cuid())
+  title                 String
+  slug                  String    @unique
+  description           String
+  longDescription       String?
+  thumbnail             String?
+  instructor            String
+  price                 Float     @default(0)
+  rating                Float     @default(0)
+  reviewCount           Int       @default(0)
+  duration              Int       // in hours
+  level                 String    @default("Beginner")
+  language              String    @default("English")
+  
+  // SEO and search
+  categoryId            String
+  category              CourseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags                  String[]   @default([])
+  searchKeywords        String?
+  
+  // Content
+  lessonCount           Int       @default(0)
+  certificateAvailable  Boolean   @default(true)
+  
+  // Metadata
+  isPublished           Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  lessons               Lesson[]
+  enrollments           Enrollment[]
+  courseProgress        CourseProgress[]
+  certificates          Certificate[]
+  jobLinks              JobLink[]
+}
+
+// Lessons within a course
+model Lesson {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  videoUrl    String?
+  content     String?
+  order       Int       @default(0)
+  duration    Int?      // in minutes
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  lessonProgress LessonProgress[]
+}
+
+// User enrollment in courses
+model Enrollment {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId        String
+  course          Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  enrollmentDate  DateTime  @default(now())
+  completedAt     DateTime?
+  status          EnrollmentStatus @default(ACTIVE)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, courseId])
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  PAUSED
+}
+
+// Track overall course progress per user
+model CourseProgress {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId              String
+  course                Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  completionPercentage  Float     @default(0) // 0-100
+  lastAccessedAt        DateTime  @default(now())
+  lastLessonId          String?   // Last viewed lesson for resuming
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  lessonProgress        LessonProgress[]
+
+  @@unique([userId, courseId])
+}
+
+// Track individual lesson progress
+model LessonProgress {
+  id              String    @id @default(cuid())
+  userId          String
+  lessonId        String
+  lesson          Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  courseProgressId String
+  courseProgress  CourseProgress @relation(fields: [courseProgressId], references: [id], onDelete: Cascade)
+  
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+  watchedDuration Int?      // in seconds
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([courseProgressId, lessonId])
+}
+
+// Certificates awarded upon completion
+model Certificate {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId        String
+  course          Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  certificateUrl  String?
+  issuedAt        DateTime  @default(now())
+  expiresAt       DateTime?
+  certificateId   String    @unique @default(uuid())
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, courseId])
+}
+
+// Career Guidance and Job Linking
+model CareerPath {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  icon        String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  jobLinks    JobLink[]
+}
+
+model JobLink {
+  id          String    @id @default(cuid())
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  careerPathId String
+  careerPath  CareerPath @relation(fields: [careerPathId], references: [id], onDelete: Cascade)
+  
+  jobTitle    String
+  company     String?
+  salaryRange String?
+  requirements String?
+  jobUrl      String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Job Applications tracking
+model JobApplication {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  jobTitle    String
+  company     String
+  applicationDate DateTime @default(now())
+  status      ApplicationStatus @default(APPLIED)
+  notes       String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum ApplicationStatus {
+  APPLIED
+  INTERVIEW_SCHEDULED
+  REJECTED
+  ACCEPTED
+  OFFER_RECEIVED
+}
+
+// Search index for courses
+model SearchIndex {
+  id          String    @id @default(cuid())
+  courseId    String    @unique
+  title       String
+  description String?
+  tags        String
+  keywords    String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
