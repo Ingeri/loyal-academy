@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -124,79 +124,113 @@ function filterMockCourses(searchQuery?: string, category?: string, level?: stri
   return filtered;
 }
 
-async function getCoursesFromDB(searchQuery?: string, category?: string, level?: string) {
-  const supabase = await createClient();
-  let query = supabase
-    .from('courses')
-    .select(`
-      *,
-      instructor:instructor_id (full_name)
-    `)
-    .eq('is_published', true);
+async function getCoursesFromDB(searchQuery?: string, categorySlug?: string, level?: string, tag?: string) {
+  try {
+    const whereClause: any = {
+      published: true, // using 'published' from schema instead of 'is_published'
+    };
 
-  if (searchQuery) {
-    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-  }
+    if (searchQuery) {
+      whereClause.OR = [
+        { title: { contains: searchQuery, mode: 'insensitive' } },
+        { description: { contains: searchQuery, mode: 'insensitive' } },
+      ];
+    }
 
-  if (category && category !== 'all') {
-    query = query.eq('category', category);
-  }
+    if (categorySlug && categorySlug !== 'all') {
+      whereClause.category = {
+        slug: categorySlug
+      };
+    }
 
-  if (level && level !== 'all') {
-    query = query.eq('level', level.toLowerCase());
-  }
+    if (tag && tag !== 'all') {
+      whereClause.tags = {
+        some: { name: tag }
+      };
+    }
 
-  const { data, error } = await query.order('created_at', { ascending: false });
+    if (level && level !== 'all') {
+      whereClause.level = level.toUpperCase();
+    }
 
-  if (error) {
+    const data = await prisma.course.findMany({
+      where: whereClause,
+      include: {
+        category: true,
+        tags: true,
+        _count: {
+          select: { reviews: true }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!data || data.length === 0) {
+      return filterMockCourses(searchQuery, categorySlug, level);
+    }
+
+    return data;
+  } catch (error) {
     console.error('Error fetching courses:', error);
-    // Fallback to mock data on error
-    return filterMockCourses(searchQuery, category, level);
+    return filterMockCourses(searchQuery, categorySlug, level);
   }
+}
 
-  // Fallback to mock data if no courses in DB
-  if (!data || data.length === 0) {
-    return filterMockCourses(searchQuery, category, level);
+async function getTagsFromDB() {
+  try {
+    const tags = await prisma.tag.findMany({
+      orderBy: { name: 'asc' }
+    });
+    return tags;
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    return [];
   }
-
-  return data;
 }
 
 async function getCategoriesFromDB() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('courses')
-    .select('category')
-    .eq('is_published', true)
-    .not('category', 'is', null);
-
-  if (error) {
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { name: 'asc' }
+    });
+    
+    if (categories.length > 0) {
+      return categories;
+    }
+  } catch (error) {
     console.error('Error fetching categories:', error);
-    return mockCategories;
   }
 
-  const dbCategories = Array.from(new Set(data?.map((c: { category: string }) => c.category).filter(Boolean))) as string[];
-  return dbCategories.length > 0 ? dbCategories : mockCategories;
+  // Fallback map mock categories to object shape expected
+  return mockCategories.map(name => ({
+    id: name,
+    name: name,
+    slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  }));
 }
 
 export default async function CoursesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string; level?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; level?: string; tag?: string }>;
 }) {
   const params = await searchParams;
-  const courses = await getCoursesFromDB(params.q, params.category, params.level);
+  const courses = await getCoursesFromDB(params.q, params.category, params.level, params.tag);
   const categories = await getCategoriesFromDB();
+  const tags = await getTagsFromDB();
 
   return (
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      {/* Header */}
-      <section className="bg-primary/10 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <h1 className="text-4xl font-bold text-foreground mb-4">Browse Courses</h1>
-          <p className="text-lg text-muted-foreground">Find the perfect course to advance your skills</p>
+      {/* Breadcrumbs */}
+      <section className="px-4 py-4 sm:px-6 lg:px-8 border-b">
+        <div className="mx-auto max-w-6xl flex items-center text-sm text-muted-foreground gap-2">
+          <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+          <span>/</span>
+          <span className="text-foreground font-medium">All Courses</span>
         </div>
       </section>
 
@@ -246,25 +280,27 @@ export default async function CoursesPage({
                   {/* Category Filter */}
                   <div className="mb-6">
                     <label className="text-sm font-medium text-foreground mb-3 block">Category</label>
-                    <div className="flex flex-wrap gap-2">
-                      <Link href={`/courses${params.level ? `?level=${params.level}` : ''}${params.q ? `${params.level ? '&' : '?'}q=${params.q}` : ''}`}>
+                    <div className="flex flex-col gap-1.5">
+                      <Link href={`/courses${params.level ? `?level=${params.level}` : ''}${params.tag ? `${params.level ? '&' : '?'}tag=${params.tag}` : ''}${params.q ? `${params.level || params.tag ? '&' : '?'}q=${params.q}` : ''}`}>
                         <Button
-                          variant={!params.category || params.category === 'all' ? 'default' : 'outline'}
+                          variant={!params.category || params.category === 'all' ? 'secondary' : 'ghost'}
                           size="sm"
+                          className="w-full justify-start"
                         >
-                          All
+                          All Categories
                         </Button>
                       </Link>
-                      {categories.map((cat: string) => (
+                      {categories.map((cat: { id: string, name: string, slug: string }) => (
                         <Link
-                          key={cat}
-                          href={`/courses?category=${cat}${params.level ? `&level=${params.level}` : ''}${params.q ? `&q=${params.q}` : ''}`}
+                          key={cat.id}
+                          href={`/courses?category=${cat.slug}${params.level ? `&level=${params.level}` : ''}${params.tag ? `&tag=${params.tag}` : ''}${params.q ? `&q=${params.q}` : ''}`}
                         >
                           <Button
-                            variant={params.category === cat ? 'default' : 'outline'}
+                            variant={params.category === cat.slug ? 'secondary' : 'ghost'}
                             size="sm"
+                            className="w-full justify-start"
                           >
-                            {cat}
+                            {cat.name}
                           </Button>
                         </Link>
                       ))}
@@ -272,26 +308,27 @@ export default async function CoursesPage({
                   </div>
 
                   {/* Level Filter */}
-                  <div>
+                  <div className="mb-6">
                     <label className="text-sm font-medium text-foreground mb-3 block">Level</label>
-                    <div className="flex flex-wrap gap-2">
-                      <Link href={`/courses${params.category ? `?category=${params.category}` : ''}${params.q ? `${params.category ? '&' : '?'}q=${params.q}` : ''}`}>
+                    <div className="flex flex-col gap-1.5">
+                      <Link href={`/courses${params.category ? `?category=${params.category}` : ''}${params.tag ? `${params.category ? '&' : '?'}tag=${params.tag}` : ''}${params.q ? `${params.category || params.tag ? '&' : '?'}q=${params.q}` : ''}`}>
                         <Button
-                          variant={!params.level || params.level === 'all' ? 'default' : 'outline'}
+                          variant={!params.level || params.level === 'all' ? 'secondary' : 'ghost'}
                           size="sm"
+                          className="w-full justify-start"
                         >
-                          All
+                          All Levels
                         </Button>
                       </Link>
                       {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
                         <Link
                           key={level}
-                          href={`/courses?level=${level}${params.category ? `&category=${params.category}` : ''}${params.q ? `&q=${params.q}` : ''}`}
+                          href={`/courses?level=${level}${params.category ? `&category=${params.category}` : ''}${params.tag ? `&tag=${params.tag}` : ''}${params.q ? `&q=${params.q}` : ''}`}
                         >
                           <Button
-                            variant={params.level === level ? 'default' : 'outline'}
+                            variant={params.level === level ? 'secondary' : 'ghost'}
                             size="sm"
-                            className="capitalize"
+                            className="w-full justify-start capitalize"
                           >
                             {level}
                           </Button>
@@ -299,12 +336,62 @@ export default async function CoursesPage({
                       ))}
                     </div>
                   </div>
+
+                  {/* Tag Filter */}
+                  {tags.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-3 block">Skills & Tags</label>
+                      <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto pr-2">
+                        <Link href={`/courses${params.category ? `?category=${params.category}` : ''}${params.level ? `${params.category ? '&' : '?'}level=${params.level}` : ''}${params.q ? `${params.category || params.level ? '&' : '?'}q=${params.q}` : ''}`}>
+                          <Button
+                            variant={!params.tag || params.tag === 'all' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            className="w-full justify-start"
+                          >
+                            All Tags
+                          </Button>
+                        </Link>
+                        {tags.map((t: { id: string, name: string }) => (
+                          <Link
+                            key={t.id}
+                            href={`/courses?tag=${encodeURIComponent(t.name)}${params.category ? `&category=${params.category}` : ''}${params.level ? `&level=${params.level}` : ''}${params.q ? `&q=${params.q}` : ''}`}
+                          >
+                            <Button
+                              variant={params.tag === t.name ? 'secondary' : 'ghost'}
+                              size="sm"
+                              className="w-full justify-start"
+                            >
+                              {t.name}
+                            </Button>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </Card>
               </div>
             </div>
 
             {/* Courses Grid */}
             <div className="lg:col-span-3">
+              {/* Category Details & Count Card */}
+              <Card className="p-8 mb-8 bg-muted/40 border-primary/10">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-black text-foreground font-sans">
+                      All Courses
+                    </h2>
+                    <p className="text-sm sm:text-base text-muted-foreground mt-2 max-w-2xl">
+                      Browse our complete collection of courses designed to help you master new skills and advance your career. Use the filters to find exactly what you're looking for.
+                    </p>
+                  </div>
+                  <div className="bg-primary/10 px-6 py-4 rounded-xl text-center shrink-0 border border-primary/10">
+                    <span className="block text-3xl font-black text-primary font-sans">{courses.length}</span>
+                    <span className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1 block">Total Courses</span>
+                  </div>
+                </div>
+              </Card>
+
               {courses.length > 0 ? (
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
                   {courses.map((course: any) => (
@@ -312,17 +399,25 @@ export default async function CoursesPage({
                       key={course.id}
                       course={{
                         id: course.id,
+                        slug: course.slug || course.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                        categorySlug: course.category?.slug || (typeof course.category === 'string' ? course.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'uncategorized'),
                         title: course.title,
                         description: course.description,
-                        image_url: course.image_url,
-                        price: course.price,
-                        rating: course.rating,
-                        students: course.total_students,
-                        duration: course.duration_weeks ? `${course.duration_weeks} weeks` : 'Self-paced',
-                        level: course.level,
-                        category: course.category,
+                        image_url: course.thumbnail || course.image_url,
+                        price: course.price ? Number(course.price) : 49.99,
+                        discounted_price: course.discount ? Number(course.price) - Number(course.discount) : undefined,
+                        rating: course.avgRating || 0,
+                        students: course.studentNumber || 0,
+                        duration: course.duration || 'Self-paced',
+                        level: course.level || 'Beginner',
+                        category: course.category?.name || course.category || 'Uncategorized',
                         instructor: course.instructor?.full_name || 'Expert Instructor',
-                        has_certificate: true,
+                        has_certificate: course.hasCertificate ?? true,
+                        conducting_type: course.conductingType || 'Online',
+                        has_exam: course.hasExam || false,
+                        tags: course.tags?.map((t: any) => t.name) || [],
+                        reviews_count: course._count?.reviews || 0,
+                        updated_at: course.updatedAt,
                       }}
                     />
                   ))}

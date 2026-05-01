@@ -6,7 +6,7 @@ import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Mail, Phone, MapPin, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Loader2, Clock, Sparkles } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function ContactPage() {
@@ -51,11 +51,31 @@ export default function ContactPage() {
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      {/* Header */}
-      <section className="bg-primary/10 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-bold text-foreground mb-4">Contact Us</h1>
-          <p className="text-lg text-muted-foreground">We&apos;d love to hear from you. Get in touch with us today.</p>
+      {/* Hero Section - Glassmorphism Style */}
+      <section className="relative overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.pexels.com/photos/3182759/pexels-photo-3182759.jpeg?w=500&h=300&fit=crop"
+            alt="Contact us support"
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/60" />
+        </div>
+
+        <div className="relative px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 mb-8">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Get in Touch</span>
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl mb-6">
+              Contact <span className="text-primary">Us</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              We&apos;d love to hear from you. Whether you have a question about courses, pricing, or anything else, our team is ready to answer all your questions.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -94,10 +114,29 @@ export default function ContactPage() {
                   <MapPin className="h-8 w-8 text-primary mb-4" />
                   <h3 className="font-semibold text-foreground mb-2">Location</h3>
                   <p className="text-muted-foreground">
-                    Global Organization
+                    123 Learning Avenue, Suite 100
                     <br />
-                    Serving customers worldwide
+                    New York, NY 10001
                   </p>
+                </Card>
+
+                <Card className="p-6">
+                  <Clock className="h-8 w-8 text-primary mb-4" />
+                  <h3 className="font-semibold text-foreground mb-2">Opening Hours</h3>
+                  <div className="space-y-1 text-muted-foreground">
+                    <div className="flex justify-between">
+                      <span>Mon - Fri:</span>
+                      <span>9:00 AM - 6:00 PM</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Saturday:</span>
+                      <span>10:00 AM - 4:00 PM</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sunday:</span>
+                      <span>Closed</span>
+                    </div>
+                  </div>
                 </Card>
               </div>
             </div>
@@ -197,6 +236,25 @@ export default function ContactPage() {
                 </form>
               </Card>
             </div>
+          </div>
+          
+          {/* Map Section */}
+          <div className="mt-12">
+            <Card className="overflow-hidden p-2">
+              <div className="w-full h-[400px] rounded-lg overflow-hidden relative">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d193595.25280010994!2d-74.14448737380905!3d40.69763123330604!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY!5e0!3m2!1sen!2sus!4v1714571988941!5m2!1sen!2sus" 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={true} 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Office Location Map"
+                  className="absolute inset-0"
+                ></iframe>
+              </div>
+            </Card>
           </div>
         </div>
       </section>

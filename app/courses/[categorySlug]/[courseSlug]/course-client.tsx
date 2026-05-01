@@ -24,9 +24,16 @@ import {
   PlayCircle,
   Trophy,
   History,
+  ChevronDown,
+  Briefcase,
+  Target,
+  LineChart,
+  Quote,
+  DollarSign,
+  Check
 } from "lucide-react";
 
-const mockCourses = [
+export const mockCourses = [
   {
     id: "1",
     title: "Web Development Fundamentals",
@@ -628,14 +635,10 @@ const getAspectIcon = (text: string) => {
   return <Zap className="h-4 w-4" />; // Default icon
 };
 
-export default function CoursePage() {
-  const params = useParams();
+export default function CourseClient({ course }: { course: any }) {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("overview");
   const [scrollProgress, setScrollProgress] = useState(0);
-
-  const id = (params?.id as string) || "";
-  const course = getCourse(id);
 
   useEffect(() => {
     setMounted(true);
@@ -667,7 +670,7 @@ export default function CoursePage() {
       const res = await fetch("/api/enrollments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseId: id }),
+        body: JSON.stringify({ courseId: course?.id }),
       });
 
       if (res.ok) {
@@ -717,30 +720,33 @@ export default function CoursePage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-12">
             {/* Hero Section */}
-            <div className="relative min-h-[28rem] w-full overflow-hidden rounded-2xl bg-muted">
-              <div className="relative inset-0 bg-black/30" />
-              <div className="relative w-full overflow-hidden bg-muted">
-                <div className="bg-black/30 p-8 sm:p-12">
+            <div className="relative min-h-[28rem] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary/90 via-primary to-primary/80">
+              <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/3182750/pexels-photo-3182750.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')] opacity-20 bg-cover bg-center mix-blend-overlay" />
+              <div className="relative inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+              <div className="relative w-full overflow-hidden">
+                <div className="p-8 sm:p-12">
                   <div className="max-w-4xl mx-auto space-y-8">
-                    <div className="text-sm text-white/75">
-                      <Link href="/" className="hover:text-white">
+                    <div className="text-sm text-white/80 font-medium">
+                      <Link href="/" className="hover:text-white transition-colors">
                         Home
                       </Link>
                       <span className="mx-2">›</span>
                       <span>{course.category}</span>
                       <span className="mx-2">›</span>
-                      <span className="font-semibold text-white">
+                      <span className="font-bold text-white">
                         {course.title}
                       </span>
                     </div>
 
-                    <div className="space-y-4">
-                      <h1 className="text-4xl md:text-5xl font-bold text-white">
+                    <div className="space-y-4 relative z-10">
+                      <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-md leading-tight">
                         {course.title}
                       </h1>
-                      {/* <p className="max-w-3xl text-lg text-white/90">
-                        {course.description}
-                      </p> */}
+                      {course.description && (
+                        <p className="max-w-3xl text-lg text-white/90 leading-relaxed drop-shadow font-medium">
+                          {course.description}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-16 text-white">
@@ -822,99 +828,186 @@ export default function CoursePage() {
               </div>
             </div>
 
-            {/* Learning Outcomes Section */}
-            <section data-section="overview" className="scroll-mt-32">
-              <h2 className="text-3xl font-bold text-foreground mb-6">
-                What You&apos;ll Learn
+            {/* Learning Outcomes & Overview Section */}
+            <section data-section="overview" className="scroll-mt-32 pt-8">
+              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
+                Course Overview
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {course.learning_outcomes.map((outcome, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-                    <span className="text-foreground">{outcome}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
 
-            {/* Who Should Learn */}
-            <section className="bg-muted rounded-lg p-8">
-              <h3 className="text-xl font-bold text-foreground mb-3">
-                Who Should Learn This Course?
-              </h3>
-              <p className="text-foreground">{course.who_should_learn}</p>
+              {course.overview && (
+                <div className="bg-muted/30 rounded-2xl p-8 border border-border/50 mb-8">
+                  <p className="text-lg text-foreground/90 leading-relaxed font-medium">
+                    {course.overview}
+                  </p>
+                </div>
+              )}
+              
+              <div className="bg-white dark:bg-muted/50 rounded-2xl p-8 border shadow-sm mb-8">
+                <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <Target className="h-6 w-6 text-primary" /> What You&apos;ll Learn
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
+                  {course.learning_outcomes.map((outcome: string, idx: number) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-foreground/90 font-medium">{outcome}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Who Should Learn */}
+                <div className="bg-primary/5 rounded-2xl p-8 border border-primary/10">
+                  <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                    <Users className="h-6 w-6 text-primary" /> Who Should Learn
+                  </h3>
+                  <div className="space-y-4">
+                    {Array.isArray(course.who_should_learn) ? (
+                      course.who_should_learn.map((item: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-3">
+                          <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                          <span className="text-foreground/90 font-medium">{item}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex items-start gap-3">
+                        <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground/90 font-medium">{course.who_should_learn}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Career Opportunities */}
+                <div className="bg-muted rounded-2xl p-8 border shadow-sm">
+                  <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                    <Briefcase className="h-6 w-6 text-primary" /> Career Opportunities
+                  </h3>
+                  <div className="space-y-4">
+                    {Array.isArray(course.career_opportunities) ? (
+                      course.career_opportunities.map((item: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-3">
+                          <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                          <span className="text-foreground/90 font-medium">{item}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex items-start gap-3">
+                        <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground/90 font-medium">{course.career_opportunities}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Market Growth */}
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Card className="p-8 bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/20 shadow-sm relative overflow-hidden">
+                  <LineChart className="absolute -bottom-4 -right-4 h-32 w-32 text-green-500/10" />
+                  <h4 className="text-sm font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-2 relative z-10">Market Growth</h4>
+                  <div className="text-4xl font-black text-foreground mb-2 relative z-10">{course.market_growth}{typeof course.market_growth === 'number' ? '%' : ''}</div>
+                  <p className="text-muted-foreground font-medium relative z-10">Projected industry growth</p>
+                </Card>
+                <Card className="p-8 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border-blue-500/20 shadow-sm relative overflow-hidden">
+                  <DollarSign className="absolute -bottom-4 -right-4 h-32 w-32 text-blue-500/10" />
+                  <h4 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 relative z-10">Estimated Salary</h4>
+                  <div className="text-3xl font-black text-foreground mb-2 relative z-10">{course.estimated_salary || 'Competitive'}</div>
+                  <p className="text-muted-foreground font-medium relative z-10">Average potential earnings</p>
+                </Card>
+              </div>
             </section>
 
             {/* Syllabus */}
-            <section data-section="syllabus" className="scroll-mt-32">
-              <h2 className="text-3xl font-bold text-foreground mb-6">
+            <section data-section="syllabus" className="scroll-mt-32 pt-8">
+              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
                 Syllabus
               </h2>
               <div className="space-y-4">
-                {course.syllabus.map((module, idx) => (
-                  <Card key={idx} className="p-6">
-                    <h4 className="font-semibold text-foreground mb-2">
-                      {module.title}
-                    </h4>
-                    <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                      <span>{module.lessons} lessons</span>
-                      <span>{module.duration}</span>
+                {course.syllabus.map((module: any, idx: number) => (
+                  <details key={idx} className="group bg-white dark:bg-muted/30 rounded-xl border shadow-sm [&_summary::-webkit-details-marker]:hidden">
+                    <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold">
+                          {idx + 1}
+                        </div>
+                        <h4 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                          {module.title.startsWith('Module') ? module.title : `Module ${idx + 1}: ${module.title}`}
+                        </h4>
+                      </div>
+                      <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-open:rotate-180" />
+                    </summary>
+                    <div className="px-6 pb-6 pt-0 border-t mx-6 mt-2 border-border/50">
+                      {module.description ? (
+                        <p className="text-muted-foreground mt-4 leading-relaxed font-medium">{module.description}</p>
+                      ) : (
+                        <p className="text-muted-foreground mt-4 leading-relaxed font-medium">Detailed curriculum for this module will be available upon enrollment.</p>
+                      )}
+                      <div className="flex items-center gap-6 text-sm font-bold text-foreground mt-6 bg-muted p-3 rounded-lg w-fit">
+                        <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-primary" /> {module.lessons || 0} lessons</div>
+                        <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {module.duration || 'Self-paced'}</div>
+                      </div>
                     </div>
-                  </Card>
+                  </details>
                 ))}
               </div>
             </section>
 
-            {/* Career Opportunities */}
-            <section className="bg-primary/10 rounded-lg p-8 border border-primary/20">
-              <h3 className="text-xl font-bold text-foreground mb-3">
-                Career Opportunities
-              </h3>
-              <p className="text-foreground">{course.career_opportunities}</p>
-            </section>
-
-            {/* Market Growth */}
-            <section className="bg-muted rounded-lg p-8">
-              <h3 className="text-xl font-bold text-foreground mb-3">
-                Future Market Growth
-              </h3>
-              <p className="text-foreground">{course.market_growth}</p>
-            </section>
-
             {/* Certifications */}
-            <section data-section="certifications" className="scroll-mt-32">
-              <h2 className="text-3xl font-bold text-foreground mb-6">
+            <section data-section="certifications" className="scroll-mt-32 pt-8">
+              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
                 Certifications
               </h2>
-              <div className="space-y-3">
-                {course.certifications.map((cert, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <Award className="h-5 w-5 text-primary" />
-                    <span className="text-foreground">{cert}</span>
+              <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 rounded-2xl p-8 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-start gap-6 mb-6">
+                  <div className="p-4 bg-amber-500/20 rounded-2xl flex-shrink-0">
+                    <Trophy className="h-10 w-10 text-amber-600 dark:text-amber-400" />
                   </div>
-                ))}
+                  <div>
+                    <h3 className="text-2xl font-black text-foreground">Certification — 100% Included</h3>
+                    <p className="text-muted-foreground mt-2 font-medium text-lg">Stand out to employers with recognized credentials upon completion.</p>
+                  </div>
+                </div>
+                <div className="space-y-4 sm:ml-20">
+                  <div className="flex items-center gap-3 bg-white/50 dark:bg-muted/50 p-3 rounded-lg border border-amber-500/10">
+                    <CheckCircle2 className="h-6 w-6 text-amber-500 flex-shrink-0" />
+                    <span className="text-lg font-bold text-foreground">CPD Accredited PDF Certificate (Digital Certificate Included)</span>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white/50 dark:bg-muted/50 p-3 rounded-lg border border-amber-500/10">
+                    <CheckCircle2 className="h-6 w-6 text-amber-500 flex-shrink-0" />
+                    <span className="text-lg font-bold text-foreground">Endorsed QLS Certificate – PDF</span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-6 pt-6 border-t border-amber-500/20">
+                    <Star className="h-6 w-6 text-amber-500 flex-shrink-0 fill-amber-500" />
+                    <span className="text-xl font-black text-foreground uppercase tracking-wide">No Hidden Fees — ever</span>
+                  </div>
+                </div>
               </div>
             </section>
 
             {/* Learner Stories */}
-            <section data-section="stories" className="scroll-mt-32">
-              <h2 className="text-3xl font-bold text-foreground mb-6">
+            <section data-section="stories" className="scroll-mt-32 pt-8">
+              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
                 Learner Stories
               </h2>
-              <div className="space-y-6">
-                {course.learner_stories.map((story, idx) => (
-                  <Card key={idx} className="p-6">
-                    <div className="flex items-start gap-4">
-                      <MessageSquare className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-foreground mb-3 italic">
-                          &quot;{story.story}&quot;
-                        </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {course.learner_stories.map((story: any, idx: number) => (
+                  <Card key={idx} className="p-8 relative overflow-hidden group hover:shadow-md transition-shadow bg-white dark:bg-muted/20 border-primary/10">
+                    <Quote className="absolute top-4 right-4 h-24 w-24 text-primary/5 -z-10 rotate-12 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="flex flex-col h-full">
+                      <p className="text-foreground/90 mb-8 italic text-lg leading-relaxed relative z-10 flex-grow font-medium">
+                        &quot;{story.story}&quot;
+                      </p>
+                      <div className="flex items-center gap-4 mt-auto">
+                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center text-white font-bold text-xl shadow-inner border-2 border-white">
+                          {story.name.charAt(0)}
+                        </div>
                         <div>
-                          <p className="font-semibold text-foreground">
+                          <p className="font-bold text-foreground text-lg">
                             {story.name}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm font-bold text-primary">
                             {story.role}
                           </p>
                         </div>
@@ -926,23 +1019,26 @@ export default function CoursePage() {
             </section>
 
             {/* FAQs */}
-            <section data-section="faq" className="scroll-mt-32">
-              <h2 className="text-3xl font-bold text-foreground mb-6">
+            <section data-section="faq" className="scroll-mt-32 pt-8">
+              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
-                {course.faqs.map((faq, idx) => (
-                  <Card key={idx} className="p-6">
-                    <div className="flex items-start gap-4">
-                      <HelpCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-semibold text-foreground mb-2">
+                {course.faqs.map((faq: any, idx: number) => (
+                  <details key={idx} className="group bg-white dark:bg-muted/30 rounded-xl border shadow-sm [&_summary::-webkit-details-marker]:hidden">
+                    <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                      <div className="flex items-center gap-4 pr-4">
+                        <HelpCircle className="h-6 w-6 text-primary flex-shrink-0" />
+                        <h4 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
                           {faq.question}
                         </h4>
-                        <p className="text-muted-foreground">{faq.answer}</p>
                       </div>
+                      <ChevronDown className="h-6 w-6 text-muted-foreground transition-transform duration-300 group-open:rotate-180 flex-shrink-0" />
+                    </summary>
+                    <div className="px-6 pb-6 pt-0 border-t mx-6 mt-2 border-border/50">
+                      <p className="text-muted-foreground mt-4 text-lg leading-relaxed font-medium">{faq.answer}</p>
                     </div>
-                  </Card>
+                  </details>
                 ))}
               </div>
             </section>
@@ -1024,7 +1120,7 @@ export default function CoursePage() {
                   Key Aspects
                 </h3>
                 <div className="grid grid-cols-1 overflow-hidden border border-border">
-                  {course.key_aspects.map((aspect, idx) => (
+                  {course.key_aspects.map((aspect: string, idx: number) => (
                     <div
                       key={idx}
                       className={`

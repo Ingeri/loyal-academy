@@ -1,25 +1,62 @@
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { Card } from '@/components/ui/card';
-import { CheckCircle, Users, Award, Globe } from 'lucide-react';
+import { CheckCircle, Users, Award, Globe, Sparkles } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
 export const metadata = {
   title: 'About Us - Loyal Academy',
   description: 'Learn about Loyal Academy mission and values',
 };
 
-export default function AboutPage() {
+async function getStats() {
+  const coursesCount = await prisma.course.count({ where: { published: true } });
+  
+  const enrollmentsAgg = await prisma.course.aggregate({
+    _sum: { studentNumber: true }
+  });
+  const enrollmentsCount = enrollmentsAgg._sum.studentNumber || 0;
+  
+  return {
+    courses: coursesCount,
+    students: Math.floor(enrollmentsCount * 0.8) || 0,
+    instructors: 50, // mock
+    satisfaction: 95, // mock
+  };
+}
+
+export default async function AboutPage() {
+  const stats = await getStats();
+
   return (
     <main className="min-h-screen bg-background">
       <Navigation />
 
-      {/* Hero Section */}
-      <section className="bg-primary/10 px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-bold text-foreground mb-4">About Loyal Academy</h1>
-          <p className="text-lg text-muted-foreground">
-            Empowering learners worldwide with quality education and expert instruction
-          </p>
+      {/* Hero Section - Glassmorphism Style */}
+      <section className="relative overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?w=1920&h=1080&fit=crop"
+            alt="Students collaborating"
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/60" />
+        </div>
+
+        <div className="relative px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 mb-8">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Our Story</span>
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl mb-6">
+              About <span className="text-primary">Loyal Academy</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Empowering learners worldwide with quality education, expert instruction, and practical skills for the modern workforce.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -72,26 +109,28 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-card border-y px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">500+</div>
-              <p className="text-muted-foreground">Expert Courses</p>
+      <section className="relative -mt-16 z-10 px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <Card className="p-8 backdrop-blur-xl bg-white/80 border-white/20 shadow-2xl">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="text-center">
+                <div className="text-4xl font-black text-primary mb-2">{stats.courses}+</div>
+                <p className="font-medium text-muted-foreground">Expert Courses</p>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-black text-primary mb-2">{stats.students}+</div>
+                <p className="font-medium text-muted-foreground">Active Learners</p>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-black text-primary mb-2">{stats.instructors}+</div>
+                <p className="font-medium text-muted-foreground">Expert Instructors</p>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-black text-primary mb-2">{stats.satisfaction}%</div>
+                <p className="font-medium text-muted-foreground">Satisfaction Rate</p>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">100K+</div>
-              <p className="text-muted-foreground">Active Learners</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">50+</div>
-              <p className="text-muted-foreground">Expert Instructors</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">95%</div>
-              <p className="text-muted-foreground">Satisfaction Rate</p>
-            </div>
-          </div>
+          </Card>
         </div>
       </section>
 
