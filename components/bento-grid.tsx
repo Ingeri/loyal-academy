@@ -15,6 +15,7 @@ import {
   Cpu,
   Globe,
   Shield,
+  Folder,
 } from 'lucide-react';
 
 interface BentoItem {
@@ -27,7 +28,22 @@ interface BentoItem {
   courseCount?: number;
 }
 
-const categories: BentoItem[] = [
+const defaultStyles = [
+  { icon: <Code className="h-6 w-6" />, color: 'from-blue-500/20 to-blue-600/10', size: 'large' as const },
+  { icon: <Briefcase className="h-6 w-6" />, color: 'from-amber-500/20 to-amber-600/10', size: 'medium' as const },
+  { icon: <Scale className="h-6 w-6" />, color: 'from-indigo-500/20 to-indigo-600/10', size: 'medium' as const },
+  { icon: <Palette className="h-6 w-6" />, color: 'from-pink-500/20 to-pink-600/10', size: 'medium' as const },
+  { icon: <Database className="h-6 w-6" />, color: 'from-emerald-500/20 to-emerald-600/10', size: 'large' as const },
+  { icon: <Cloud className="h-6 w-6" />, color: 'from-sky-500/20 to-sky-600/10', size: 'small' as const },
+  { icon: <Monitor className="h-6 w-6" />, color: 'from-violet-500/20 to-violet-600/10', size: 'small' as const },
+  { icon: <BarChart3 className="h-6 w-6" />, color: 'from-teal-500/20 to-teal-600/10', size: 'small' as const },
+  { icon: <GraduationCap className="h-6 w-6" />, color: 'from-rose-500/20 to-rose-600/10', size: 'small' as const },
+  { icon: <Cpu className="h-6 w-6" />, color: 'from-cyan-500/20 to-cyan-600/10', size: 'medium' as const },
+  { icon: <Globe className="h-6 w-6" />, color: 'from-orange-500/20 to-orange-600/10', size: 'small' as const },
+  { icon: <Shield className="h-6 w-6" />, color: 'from-red-500/20 to-red-600/10', size: 'small' as const },
+];
+
+const fallbackCategories: BentoItem[] = [
   {
     title: 'Computer Science',
     description: 'Programming, algorithms, and software engineering',
@@ -47,15 +63,6 @@ const categories: BentoItem[] = [
     courseCount: 18,
   },
   {
-    title: 'Law',
-    description: 'Legal studies and professional law courses',
-    href: '/courses?category=Law',
-    icon: <Scale className="h-6 w-6" />,
-    color: 'from-indigo-500/20 to-indigo-600/10',
-    size: 'medium',
-    courseCount: 12,
-  },
-  {
     title: 'Design',
     description: 'UX/UI, graphic design, and creative arts',
     href: '/courses?category=Design',
@@ -73,69 +80,6 @@ const categories: BentoItem[] = [
     size: 'large',
     courseCount: 21,
   },
-  {
-    title: 'Cloud Computing',
-    description: 'AWS, Azure, and cloud architecture',
-    href: '/courses?category=Cloud',
-    icon: <Cloud className="h-6 w-6" />,
-    color: 'from-sky-500/20 to-sky-600/10',
-    size: 'small',
-    courseCount: 14,
-  },
-  {
-    title: 'Web Development',
-    description: 'Frontend, backend, and full-stack development',
-    href: '/courses?category=Web+Development',
-    icon: <Monitor className="h-6 w-6" />,
-    color: 'from-violet-500/20 to-violet-600/10',
-    size: 'small',
-    courseCount: 32,
-  },
-  {
-    title: 'Analytics',
-    description: 'Business intelligence and data visualization',
-    href: '/courses?category=Analytics',
-    icon: <BarChart3 className="h-6 w-6" />,
-    color: 'from-teal-500/20 to-teal-600/10',
-    size: 'small',
-    courseCount: 9,
-  },
-  {
-    title: 'Academics',
-    description: 'Higher education and research courses',
-    href: '/courses?category=Academics',
-    icon: <GraduationCap className="h-6 w-6" />,
-    color: 'from-rose-500/20 to-rose-600/10',
-    size: 'small',
-    courseCount: 16,
-  },
-  {
-    title: 'AI & ML',
-    description: 'Artificial intelligence and machine learning',
-    href: '/courses?category=AI+%26+ML',
-    icon: <Cpu className="h-6 w-6" />,
-    color: 'from-cyan-500/20 to-cyan-600/10',
-    size: 'medium',
-    courseCount: 19,
-  },
-  {
-    title: 'Languages',
-    description: 'Learn new languages and communication',
-    href: '/courses?category=Languages',
-    icon: <Globe className="h-6 w-6" />,
-    color: 'from-orange-500/20 to-orange-600/10',
-    size: 'small',
-    courseCount: 11,
-  },
-  {
-    title: 'Cybersecurity',
-    description: 'Security, compliance, and risk management',
-    href: '/courses?category=Cybersecurity',
-    icon: <Shield className="h-6 w-6" />,
-    color: 'from-red-500/20 to-red-600/10',
-    size: 'small',
-    courseCount: 8,
-  },
 ];
 
 const sizeClasses = {
@@ -144,14 +88,43 @@ const sizeClasses = {
   large: 'col-span-1 md:col-span-2 row-span-1',
 };
 
-interface BentoGridProps {
-  className?: string;
+interface CategoryData {
+  id: string;
+  name: string;
+  slug: string;
+  _count?: {
+    courses: number;
+  };
 }
 
-export function BentoGrid({ className }: BentoGridProps) {
+interface BentoGridProps {
+  className?: string;
+  categories?: CategoryData[];
+}
+
+export function BentoGrid({ className, categories = [] }: BentoGridProps) {
+  let displayItems: BentoItem[] = [];
+
+  if (categories && categories.length > 0) {
+    displayItems = categories.map((cat, index) => {
+      const style = defaultStyles[index % defaultStyles.length];
+      return {
+        title: cat.name,
+        description: `Explore courses in ${cat.name}`,
+        href: `/courses/${cat.slug}`,
+        icon: style.icon,
+        color: style.color,
+        size: style.size,
+        courseCount: cat._count?.courses || 0,
+      };
+    });
+  } else {
+    displayItems = fallbackCategories;
+  }
+
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4', className)}>
-      {categories.map((item) => (
+      {displayItems.map((item) => (
         <Link
           key={item.title}
           href={item.href}
@@ -196,7 +169,7 @@ export function BentoGrid({ className }: BentoGridProps) {
             </p>
 
             {/* Course Count */}
-            {item.courseCount && (
+            {item.courseCount !== undefined && (
               <p className="text-xs text-muted-foreground">
                 <span className="font-medium text-foreground">{item.courseCount}</span> courses
               </p>
@@ -236,3 +209,4 @@ export function BentoGridSkeleton() {
     </div>
   );
 }
+

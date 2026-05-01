@@ -1,8 +1,6 @@
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,38 +9,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { getCategories } from '@/lib/actions/categories';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const supabase = createClient();
+  const [categories, setCategories] = useState<{id: string, name: string, slug: string}[]>([]);
+  const { user, isLoading: loading, logout } = useAuth();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
-    };
-
-    checkUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    getCategories().then(setCategories);
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
+    await logout();
   };
 
   return (
@@ -55,13 +36,34 @@ export default function Navigation() {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden gap-8 md:flex">
+          <div className="hidden gap-8 md:flex md:items-center">
             <Link href="/" className="text-sm hover:text-primary transition">
               Home
             </Link>
-            <Link href="/courses" className="text-sm hover:text-primary transition">
-              Courses
-            </Link>
+            
+            <div className="relative group">
+              <button className="text-sm hover:text-primary transition flex items-center gap-1 py-4">
+                Categories
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <div className="absolute top-full left-0 hidden group-hover:block w-48 pt-2 z-50">
+                <div className="bg-background border rounded-md shadow-lg p-2 flex flex-col gap-1">
+                  {categories.map((cat) => (
+                    <Link 
+                      key={cat.id} 
+                      href={`/courses/${cat.slug}`} 
+                      className="px-4 py-2 text-sm hover:bg-muted rounded-md transition"
+                    >
+                      {cat.name}
+                    </Link>
+                  ))}
+                  {categories.length === 0 && (
+                    <div className="px-4 py-2 text-sm text-muted-foreground">No categories</div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <Link href="/about" className="text-sm hover:text-primary transition">
               About
             </Link>
@@ -88,7 +90,7 @@ export default function Navigation() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
-                      {user.email?.split('@')[0]}
+                      {user.name || user.email?.split('@')[0]}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -132,9 +134,26 @@ export default function Navigation() {
             <Link href="/" className="block text-sm hover:text-primary py-2">
               Home
             </Link>
-            <Link href="/courses" className="block text-sm hover:text-primary py-2">
-              Courses
-            </Link>
+            
+            <div className="space-y-2 py-2">
+              <div className="font-medium text-sm text-foreground/80 px-2">Categories</div>
+              <div className="pl-4 flex flex-col gap-2 border-l-2 ml-2">
+                {categories.map((cat) => (
+                  <Link 
+                    key={cat.id} 
+                    href={`/courses/${cat.slug}`} 
+                    className="block text-sm hover:text-primary"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+                {categories.length === 0 && (
+                  <div className="text-sm text-muted-foreground">No categories</div>
+                )}
+              </div>
+            </div>
+
             <Link href="/about" className="block text-sm hover:text-primary py-2">
               About
             </Link>

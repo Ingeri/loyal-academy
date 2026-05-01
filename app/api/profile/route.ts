@@ -1,39 +1,34 @@
-import { createClient } from '@/lib/supabase/server';
+import { getUser } from '@/lib/auth/session';
+import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Get user profile
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    const profile = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
-    if (error && error.code !== 'PGRST116') {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!profile) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // If user doesn't exist in users table, return auth user data
-    if (!data) {
-      return NextResponse.json({
-        id: user.id,
-        email: user.email,
-        full_name: user.user_metadata?.full_name || '',
-        avatar_url: user.user_metadata?.avatar_url || '',
-        bio: '',
-        role: 'student',
-      });
-    }
-
-    return NextResponse.json(data);
+    return NextResponse.json(profile);
   } catch (error) {
     console.error('Fetch profile error:', error);
     return NextResponse.json(
@@ -46,74 +41,32 @@ export async function GET(request: NextRequest) {
 // Update user profile
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { full_name, avatar_url, bio } = body;
+    const { name } = body;
 
-    // Check if user exists in users table
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('id', user.id)
-      .single();
-
-    let profileData;
-    if (existingUser) {
-      // Update existing user
-      const { data, error } = await supabase
-        .from('users')
-        .update({
-          full_name: full_name || '',
-          avatar_url: avatar_url || '',
-          bio: bio || '',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-      profileData = data;
-    } else {
-      // Create new user record
-      const { data, error } = await supabase
-        .from('users')
-        .insert([
-          {
-            id: user.id,
-            email: user.email,
-            full_name: full_name || '',
-            avatar_url: avatar_url || '',
-            bio: bio || '',
-            role: 'student',
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-      profileData = data;
-    }
-
-    // Also update auth user metadata
-    await supabase.auth.updateUser({
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
       data: {
-        full_name: full_name || '',
-        avatar_url: avatar_url || '',
+        name: name || null,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
-    return NextResponse.json(profileData);
+    return NextResponse.json(updatedUser);
   } catch (error) {
     console.error('Profile update error:', error);
     return NextResponse.json(
