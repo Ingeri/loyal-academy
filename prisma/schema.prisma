@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  //output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -46,6 +45,8 @@ model Course {
   faqs             FAQ[]
   learnerStories   LearnerStory[]
   syllabus         Module[]
+  quizzes          Quiz[]
+  quizSubmissions  QuizSubmission[]
   reviews          Review[]
   tags             Tag[]            @relation("CourseToTag")
 }
@@ -71,7 +72,9 @@ model Module {
   id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   courseId       String           @db.Uuid
   courseProgress CourseProgress[]
+  lessons        Lesson[]
   course         Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  Quiz           Quiz[]
 }
 
 model FAQ {
@@ -93,16 +96,17 @@ model LearnerStory {
 }
 
 model User {
-  id             String           @id @default(cuid())
-  email          String           @unique
-  name           String?
-  role           UserRole         @default(STUDENT)
-  isActive       Boolean          @default(true)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  passwordHash   String?
-  courseProgress CourseProgress[]
-  enrollments    Enrollment[]
+  id              String           @id @default(cuid())
+  email           String           @unique
+  name            String?
+  role            UserRole         @default(STUDENT)
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  passwordHash    String?
+  courseProgress  CourseProgress[]
+  enrollments     Enrollment[]
+  quizSubmissions QuizSubmission[]
 }
 
 model Enrollment {
@@ -123,9 +127,68 @@ model CourseProgress {
   updatedAt   DateTime @updatedAt
   courseId    String   @db.Uuid
   moduleId    String   @db.Uuid
+  lessonId    String?  @db.Uuid
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson      Lesson?  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Lesson {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String
+  slug      String           @unique
+  content   Json
+  order     Int
+  moduleId  String           @db.Uuid
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @default(now()) @updatedAt
+  progress  CourseProgress[]
+  module    Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  quizzes   Quiz[]
+}
+
+model Quiz {
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String
+  type         AssessmentType   @default(QUIZ)
+  passingScore Int              @default(70)
+  lessonId     String?          @db.Uuid
+  courseId     String           @db.Uuid
+  moduleId     String?          @db.Uuid
+  questions    Question[]
+  course       Course           @relation(fields: [courseId], references: [id])
+  lesson       Lesson?          @relation(fields: [lessonId], references: [id])
+  Module       Module?          @relation(fields: [moduleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  submissions  QuizSubmission[]
+}
+
+model Question {
+  id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  text    String
+  quizId  String   @db.Uuid
+  options Option[]
+  quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model Option {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  text       String
+  isCorrect  Boolean  @default(false)
+  questionId String   @db.Uuid
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model QuizSubmission {
+  id        String   @id @default(cuid())
+  score     Float
+  userId    String
+  quizId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  courseId  String?  @db.Uuid
+  course    Course?  @relation(fields: [courseId], references: [id])
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Level {
@@ -145,4 +208,11 @@ enum UserRole {
   INSTRUCTOR
   ADMIN
   CAREER_ADVISOR
+}
+
+enum AssessmentType {
+  EXERCISE
+  QUIZ
+  TEST
+  EXAM
 }
