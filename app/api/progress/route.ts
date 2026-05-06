@@ -1,84 +1,60 @@
-import { createClient } from '@/lib/supabase/server';
+import { prisma } from '@/lib/prisma';
+import { getUser } from '@/lib/auth/session';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Save progress for a lesson
+// POST /api/progress - Mark lesson as complete
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { enrollmentId, contentId, isCompleted, completionPercentage } = body;
+    const { courseId, moduleId, lessonId, isCompleted = true } = body;
+    
+    console.log('[Progress API] Request:', { userId: user.id, courseId, moduleId, lessonId, isCompleted });
 
-    if (!enrollmentId || !contentId) {
+    if (!courseId || !moduleId) {
+      console.log('[Progress API] Missing required fields:', { courseId, moduleId });
       return NextResponse.json(
-        { error: 'Enrollment ID and Content ID are required' },
+        { error: 'Course ID and Module ID are required' },
         { status: 400 }
       );
     }
 
-    // Check if progress record exists
-    const { data: existingProgress } = await supabase
-      .from('progress')
-      .select('id')
-      .eq('enrollment_id', enrollmentId)
-      .eq('content_id', contentId)
-      .single();
-
-    let progressData;
-    if (existingProgress) {
-      // Update existing progress
-      const { data, error } = await supabase
-        .from('progress')
-        .update({
-          is_completed: isCompleted,
-          completed_at: isCompleted ? new Date().toISOString() : null,
-        })
-        .eq('enrollment_id', enrollmentId)
-        .eq('content_id', contentId)
-        .select()
-        .single();
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-      progressData = data;
+    // Upsert progress record
+    const progressId = await getProgressId(user.id, courseId, moduleId, lessonId);
+    console.log('[Progress API] Existing progressId:', progressId);
+    let progress;
+    if (progressId) {
+      // Update existing
+      console.log('[Progress API] Updating existing progress');
+      progress = await prisma.courseProgress.update({
+        where: { id: progressId },
+        data: {
+          isCompleted: isCompleted,
+        },
+      });
     } else {
-      // Create new progress record
-      const { data, error } = await supabase
-        .from('progress')
-        .insert([
-          {
-            enrollment_id: enrollmentId,
-            content_id: contentId,
-            is_completed: isCompleted,
-            completed_at: isCompleted ? new Date().toISOString() : null,
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-      progressData = data;
+      // Create new
+      console.log('[Progress API] Creating new progress');
+      progress = await prisma.courseProgress.create({
+        data: {
+          userId: user.id,
+          courseId: courseId,
+          moduleId: moduleId,
+          lessonId: lessonId || null,
+          isCompleted: isCompleted,
+        },
+      });
     }
 
-    // Update enrollment completion percentage
-    if (completionPercentage !== undefined) {
-      await supabase
-        .from('enrollments')
-        .update({ completion_percentage: completionPercentage })
-        .eq('id', enrollmentId);
-    }
-
-    return NextResponse.json(progressData, { status: 201 });
+    console.log('[Progress API] Success:', progress.id);
+    return NextResponse.json(progress, { status: 200 });
   } catch (error) {
-    console.error('Progress error:', error);
+    console.error('[Progress API] Error:', error);
     return NextResponse.json(
       { error: 'Failed to save progress' },
       { status: 500 }
@@ -86,35 +62,66 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Get progress for an enrollment
+// Helper to find or generate progress ID
+async function getProgressId(
+  userId: string,
+  courseId: string,
+  moduleId: string,
+  lessonId: string | null
+) {
+  const existing = await prisma.courseProgress.findFirst({
+    where: {
+      userId,
+      courseId,
+      moduleId,
+      lessonId: lessonId || null,
+    },
+    select: { id: true },
+  });
+  return existing?.id || undefined;
+}
+
+// GET /api/progress?courseId=xxx - Get user's progress for a course
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const enrollmentId = request.nextUrl.searchParams.get('enrollmentId');
+    const courseId = request.nextUrl.searchParams.get('courseId');
 
-    if (!enrollmentId) {
+    if (!courseId) {
       return NextResponse.json(
-        { error: 'Enrollment ID is required' },
+        { error: 'Course ID is required' },
         { status: 400 }
       );
     }
 
-    const { data, error } = await supabase
-      .from('progress')
-      .select('*')
-      .eq('enrollment_id', enrollmentId);
+    const progress = await prisma.courseProgress.findMany({
+      where: {
+        userId: user.id,
+        courseId: courseId,
+      },
+      include: {
+        lesson: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+          },
+        },
+        module: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json(data);
+    return NextResponse.json(progress);
   } catch (error) {
     console.error('Fetch progress error:', error);
     return NextResponse.json(

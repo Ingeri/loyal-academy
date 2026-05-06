@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -635,14 +636,91 @@ const getAspectIcon = (text: string) => {
   return <Zap className="h-4 w-4" />; // Default icon
 };
 
-export default function CourseClient({ course }: { course: any }) {
+export default function CourseClient({ course, categorySlug, courseSlug, isDbCourse = false }: { course: any; categorySlug: string; courseSlug: string; isDbCourse?: boolean }) {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("overview");
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(true);
+  
+  // Debug state for enrollment
+  const [enrollDebug, setEnrollDebug] = useState<{
+    step: string;
+    status: 'idle' | 'loading' | 'success' | 'error';
+    message: string;
+    details?: any;
+  }>({ step: 'idle', status: 'idle', message: '' });
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Check if user is already enrolled
+    const checkEnrollment = async () => {
+      console.log('[DEBUG] Checking enrollment for course:', course?.id);
+      setEnrollDebug({ step: 'Checking enrollment status...', status: 'loading', message: 'Fetching your enrollments...' });
+      
+      try {
+        const res = await fetch('/api/enrollments');
+        console.log('[DEBUG] Enrollments API response status:', res.status);
+        
+        if (res.ok) {
+          const enrollments = await res.json();
+          console.log('[DEBUG] User enrollments:', enrollments);
+          
+          const enrolled = enrollments.some((e: any) => e.courseId === course?.id || e.course?.id === course?.id);
+          console.log('[DEBUG] Is enrolled in this course:', enrolled);
+          
+          setIsEnrolled(enrolled);
+          setEnrollDebug({ 
+            step: 'Enrollment check complete', 
+            status: 'success', 
+            message: enrolled ? 'You are already enrolled in this course' : 'You are not enrolled yet',
+            details: { totalEnrollments: enrollments.length, isEnrolledInThisCourse: enrolled }
+          });
+        } else {
+          // Try to parse error, fallback to status text if JSON fails
+          let errorMessage = `HTTP ${res.status}: ${res.statusText}`;
+          let errorData: any = {};
+          
+          try {
+            errorData = await res.json();
+            if (errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch (e) {
+            // Response body wasn't valid JSON
+            console.log('[DEBUG] Error response was not JSON');
+          }
+          
+          console.error('[DEBUG] Failed to fetch enrollments:', { status: res.status, statusText: res.statusText, errorData });
+          
+          // Handle 401 specifically
+          if (res.status === 401) {
+            setEnrollDebug({ 
+              step: 'Not authenticated', 
+              status: 'error', 
+              message: 'Please sign in to check enrollment status',
+              details: { status: res.status, error: errorMessage }
+            });
+          } else {
+            setEnrollDebug({ 
+              step: 'Error checking enrollment', 
+              status: 'error', 
+              message: errorMessage,
+              details: { status: res.status, statusText: res.statusText, errorData }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('[DEBUG] Error checking enrollment:', error);
+        setEnrollDebug({ step: 'Error', status: 'error', message: error instanceof Error ? error.message : 'Network error' });
+      } finally {
+        setIsCheckingEnrollment(false);
+      }
+    };
+    
+    checkEnrollment();
+  }, [course?.id]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -666,22 +744,132 @@ export default function CourseClient({ course }: { course: any }) {
   }, []);
 
   const handleEnroll = async () => {
+    // If already enrolled, redirect to learn page immediately
+    if (isEnrolled) {
+      toast.info("Already enrolled! Redirecting to course...");
+      window.location.href = `/learn/${courseSlug}`;
+      return;
+    }
+
+    setEnrollDebug({ step: 'Starting enrollment...', status: 'loading', message: 'Sending enrollment request...' });
+    toast.loading("Enrolling you in this course...", { id: 'enroll-toast' });
+
     try {
+      console.log('[DEBUG] Sending enrollment request:', { courseId: course?.id });
+      
       const res = await fetch("/api/enrollments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ courseId: course?.id }),
       });
 
+      console.log('[DEBUG] Enrollment response status:', res.status);
+      const data = await res.json();
+      console.log('[DEBUG] Enrollment response data:', data);
+
       if (res.ok) {
-        alert(
-          "Successfully enrolled! Head to your dashboard to start learning.",
+        // SUCCESS CASE
+        setEnrollDebug({ 
+          step: 'Enrollment successful!', 
+          status: 'success', 
+          message: `Enrolled in "${data.course?.title}"`,
+          details: { 
+            enrollmentId: data.id,
+            userId: data.userId,
+            courseId: data.courseId,
+            enrolledAt: data.createdAt,
+            courseTitle: data.course?.title
+          }
+        });
+        
+        toast.success(
+          <div className="space-y-1">
+            <p className="font-semibold">Successfully enrolled!</p>
+            <p className="text-sm text-gray-600">{data.course?.title}</p>
+            <p className="text-xs text-gray-500">Enrollment ID: {data.id}</p>
+          </div>, 
+          { id: 'enroll-toast', duration: 4000 }
         );
+        
+        // Update local state
+        setIsEnrolled(true);
+        
+        // Redirect after short delay
+        setTimeout(() => {
+          window.location.href = `/learn/${courseSlug}`;
+        }, 1500);
+        
+      } else if (res.status === 401) {
+        // NOT AUTHENTICATED
+        setEnrollDebug({ step: 'Authentication required', status: 'error', message: 'User not logged in' });
+        toast.error("Please sign in to enroll", { id: 'enroll-toast' });
+        
+        setTimeout(() => {
+          window.location.href = `/auth/login?redirect=/courses/${categorySlug}/${courseSlug}`;
+        }, 1000);
+        
+      } else if (res.status === 400) {
+        // BAD REQUEST - Already enrolled or other issue
+        if (data.error?.includes("Already enrolled")) {
+          setEnrollDebug({ 
+            step: 'Already enrolled', 
+            status: 'success', 
+            message: 'You were already enrolled in this course',
+            details: data 
+          });
+          toast.info("You're already enrolled! Redirecting...", { id: 'enroll-toast' });
+          setIsEnrolled(true);
+          
+          setTimeout(() => {
+            window.location.href = `/learn/${courseSlug}`;
+          }, 1500);
+        } else {
+          setEnrollDebug({ 
+            step: 'Enrollment failed', 
+            status: 'error', 
+            message: data.error || 'Unknown error',
+            details: data 
+          });
+          toast.error(
+            <div className="space-y-1">
+              <p className="font-semibold">Unable to enroll</p>
+              <p className="text-sm text-gray-600">{data.error}</p>
+            </div>,
+            { id: 'enroll-toast', duration: 5000 }
+          );
+        }
       } else {
-        alert("Please sign in to enroll in this course.");
+        // SERVER ERROR
+        setEnrollDebug({ 
+          step: 'Server error', 
+          status: 'error', 
+          message: data.error || 'Failed to enroll',
+          details: data 
+        });
+        toast.error(
+          <div className="space-y-1">
+            <p className="font-semibold">Enrollment failed</p>
+            <p className="text-sm text-gray-600">{data.error || 'Please try again later'}</p>
+            {data.details && <p className="text-xs text-gray-500">Details: {data.details}</p>}
+          </div>,
+          { id: 'enroll-toast', duration: 6000 }
+        );
       }
     } catch (error) {
-      console.error("Enrollment error:", error);
+      console.error('[DEBUG] Enrollment error:', error);
+      setEnrollDebug({ 
+        step: 'Network/Error', 
+        status: 'error', 
+        message: error instanceof Error ? error.message : 'Network error',
+        details: { error: String(error) }
+      });
+      toast.error(
+        <div className="space-y-1">
+          <p className="font-semibold">Network error</p>
+          <p className="text-sm text-gray-600">Please check your connection and try again</p>
+        </div>,
+        { id: 'enroll-toast', duration: 5000 }
+      );
     }
   };
 
@@ -1072,13 +1260,58 @@ export default function CourseClient({ course }: { course: any }) {
                   </div>
                 </div>
 
-                <Button
-                  onClick={handleEnroll}
-                  size="lg"
-                  className="w-full cursor-pointer hover:shadow-lg transition-all text-base font-bold"
-                >
-                  Join This Course
-                </Button>
+                {isDbCourse ? (
+                  <Button
+                    onClick={handleEnroll}
+                    size="lg"
+                    disabled={isCheckingEnrollment}
+                    className="w-full cursor-pointer hover:shadow-lg transition-all text-base font-bold"
+                  >
+                    {isCheckingEnrollment 
+                      ? "Checking..." 
+                      : isEnrolled 
+                        ? "Continue Learning" 
+                        : "Join This Course"}
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    disabled
+                    className="w-full text-base font-bold opacity-70 cursor-not-allowed"
+                    title="This is a demo course. Only database courses can be enrolled."
+                  >
+                    Demo Course (Not Enrollable)
+                  </Button>
+                )}
+
+                {/* Enrollment Debug Panel */}
+                {isDbCourse && (
+                  <Card className={`p-4 border-l-4 ${
+                    enrollDebug.status === 'error' ? 'border-l-red-500 bg-red-50/50' :
+                    enrollDebug.status === 'success' ? 'border-l-green-500 bg-green-50/50' :
+                    enrollDebug.status === 'loading' ? 'border-l-blue-500 bg-blue-50/50' :
+                    'border-l-gray-300 bg-gray-50/50'
+                  }`}>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        {enrollDebug.status === 'error' && <span className="text-red-600">⚠️ Status: Error</span>}
+                        {enrollDebug.status === 'success' && <span className="text-green-600">✅ Status: Success</span>}
+                        {enrollDebug.status === 'loading' && <span className="text-blue-600">⏳ Status: Loading...</span>}
+                        {enrollDebug.status === 'idle' && <span className="text-gray-600">ℹ️ Status: Idle</span>}
+                      </div>
+                      <p className="text-xs text-gray-600 font-medium">{enrollDebug.step}</p>
+                      <p className="text-xs text-gray-500">{enrollDebug.message}</p>
+                      {enrollDebug.details && (
+                        <details className="text-xs">
+                          <summary className="cursor-pointer text-primary hover:underline">View Details</summary>
+                          <pre className="mt-2 p-2 bg-gray-100 rounded text-[10px] overflow-auto max-h-40">
+                            {JSON.stringify(enrollDebug.details, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  </Card>
+                )}
 
                 <div className="space-y-4">
                   <h4 className="font-semibold text-foreground flex items-center gap-2">
@@ -1163,13 +1396,29 @@ export default function CourseClient({ course }: { course: any }) {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 py-4">
-                    <Button
-                      onClick={handleEnroll}
-                      size="lg"
-                      className="w-full cursor-pointer hover:shadow-lg transition-all py-8"
-                    >
-                      Enroll in Course{" "}
-                    </Button>
+                    {isDbCourse ? (
+                      <Button
+                        onClick={handleEnroll}
+                        size="lg"
+                        disabled={isCheckingEnrollment}
+                        className="w-full cursor-pointer hover:shadow-lg transition-all py-8"
+                      >
+                        {isCheckingEnrollment 
+                          ? "Checking..." 
+                          : isEnrolled 
+                            ? "Continue Learning" 
+                            : "Enroll in Course"}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="lg"
+                        disabled
+                        className="w-full py-8 opacity-70 cursor-not-allowed"
+                        title="This is a demo course. Only database courses can be enrolled."
+                      >
+                        Demo Course (Not Enrollable)
+                      </Button>
+                    )}
                   </div>
                 </div>
               </Card>
