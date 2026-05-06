@@ -1,30 +1,44 @@
-import { createClient } from '@/lib/supabase/server';
+import { prisma } from '@/lib/prisma';
+import { getUser } from '@/lib/auth/session';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Create a new enrollment
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const user = await getUser();
+
+    console.log('Enrollment POST - User:', user?.id);
+
     if (!user) {
+      console.log('Enrollment POST - No user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     const { courseId } = body;
 
+    console.log('Enrollment POST - CourseId:', courseId);
+
     if (!courseId) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
     }
 
+    // Check if course exists in DB
+    const courseExists = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { id: true, title: true },
+    });
+    console.log('Enrollment POST - Course exists:', courseExists);
+
     // Check if already enrolled
-    const { data: existingEnrollment } = await supabase
-      .from('enrollments')
-      .select('id')
-      .eq('student_id', user.id)
-      .eq('course_id', courseId)
-      .single();
+    const existingEnrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId: user.id,
+          courseId: courseId,
+        },
+      },
+    });
 
     if (existingEnrollment) {
       return NextResponse.json(
@@ -34,28 +48,62 @@ export async function POST(request: NextRequest) {
     }
 
     // Create enrollment
-    const { data, error } = await supabase
-      .from('enrollments')
-      .insert([
-        {
-          student_id: user.id,
-          course_id: courseId,
-          enrollment_date: new Date().toISOString(),
-          completion_percentage: 0,
+    const enrollment = await prisma.enrollment.create({
+      data: {
+        userId: user.id,
+        courseId: courseId,
+      },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            thumbnail: true,
+          },
         },
-      ])
-      .select()
-      .single();
+      },
+    });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    console.log('Enrollment POST - Created enrollment:', enrollment);
 
-    return NextResponse.json(data, { status: 201 });
+    // Verify the enrollment was saved by fetching it back
+    const verifyEnrollment = await prisma.enrollment.findUnique({
+      where: { id: enrollment.id },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            thumbnail: true,
+          },
+        },
+      },
+    });
+
+    console.log('Enrollment POST - Verified enrollment:', verifyEnrollment);
+
+    return NextResponse.json({
+      ...enrollment,
+      debug: {
+        savedToDatabase: !!verifyEnrollment,
+        enrollmentId: enrollment.id,
+        userId: user.id,
+        courseId: courseId,
+        enrolledAt: enrollment.createdAt,
+        verified: !!verifyEnrollment,
+      }
+    }, { status: 201 });
   } catch (error) {
     console.error('Enrollment error:', error);
+    // Log detailed error info
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return NextResponse.json(
-      { error: 'Failed to create enrollment' },
+      { error: 'Failed to create enrollment', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -64,24 +112,33 @@ export async function POST(request: NextRequest) {
 // Get user's enrollments
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data, error } = await supabase
-      .from('enrollments')
-      .select('*')
-      .eq('student_id', user.id)
-      .order('enrollment_date', { ascending: false });
+    const enrollments = await prisma.enrollment.findMany({
+      where: {
+        userId: user.id,
+      },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            thumbnail: true,
+            description: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json(data);
+    return NextResponse.json(enrollments);
   } catch (error) {
     console.error('Fetch enrollments error:', error);
     return NextResponse.json(

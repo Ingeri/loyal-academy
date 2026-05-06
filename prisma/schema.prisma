@@ -40,6 +40,7 @@ model Course {
   growthPercentage Float?
   hiringSectors    String[]         @default([])
   category         Category         @relation(fields: [categoryId], references: [id])
+  certificates     Certificate[]
   courseProgress   CourseProgress[]
   enrollments      Enrollment[]
   faqs             FAQ[]
@@ -104,6 +105,7 @@ model User {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   passwordHash    String?
+  certificates    Certificate[]
   courseProgress  CourseProgress[]
   enrollments     Enrollment[]
   quizSubmissions QuizSubmission[]
@@ -164,31 +166,57 @@ model Quiz {
 }
 
 model Question {
-  id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id      String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   text    String
-  quizId  String   @db.Uuid
+  quizId  String       @db.Uuid
+  answers QuizAnswer[]
   options Option[]
-  quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }
 
 model Option {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   text       String
-  isCorrect  Boolean  @default(false)
-  questionId String   @db.Uuid
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  isCorrect  Boolean      @default(false)
+  questionId String       @db.Uuid
+  answers    QuizAnswer[]
+  question   Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
 model QuizSubmission {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   score     Float
   userId    String
-  quizId    String   @db.Uuid
-  createdAt DateTime @default(now())
-  courseId  String?  @db.Uuid
-  course    Course?  @relation(fields: [courseId], references: [id])
-  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId    String       @db.Uuid
+  createdAt DateTime     @default(now())
+  courseId  String?      @db.Uuid
+  answers   QuizAnswer[]
+  course    Course?      @relation(fields: [courseId], references: [id])
+  quiz      Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model QuizAnswer {
+  id           String         @id @default(cuid())
+  submissionId String
+  questionId   String         @db.Uuid
+  optionId     String         @db.Uuid
+  isCorrect    Boolean
+  submission   QuizSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question     Question       @relation(fields: [questionId], references: [id])
+  option       Option         @relation(fields: [optionId], references: [id])
+}
+
+model Certificate {
+  id                String   @id @default(cuid())
+  userId            String
+  courseId          String   @db.Uuid
+  issueDate         DateTime @default(now())
+  certificateNumber String   @unique
+  grade             String
+  finalScore        Float
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course            Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
 enum Level {

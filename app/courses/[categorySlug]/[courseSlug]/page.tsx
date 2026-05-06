@@ -10,9 +10,10 @@ export default async function CourseDetailsPage({
 
   // 1. Try fetching from database
   let course = null;
+  let dbCourse = null;
   
   try {
-    const dbCourse = await prisma.course.findUnique({
+    dbCourse = await prisma.course.findUnique({
       where: { slug: courseSlug },
       include: { 
         category: true,
@@ -78,5 +79,7 @@ export default async function CourseDetailsPage({
   }
 
   // 3. Render client component with course data (or null if not found)
-  return <CourseClient course={course} />;
+  // Pass isDbCourse flag to indicate if this is real DB course (enrollable) or mock data
+  const isDbCourse = !!dbCourse;
+  return <CourseClient course={course} categorySlug={categorySlug} courseSlug={courseSlug} isDbCourse={isDbCourse} />;
 }
