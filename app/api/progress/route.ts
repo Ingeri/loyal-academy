@@ -3,6 +3,7 @@ import { getUser } from '@/lib/auth/session';
 import { NextRequest, NextResponse } from 'next/server';
 
 // POST /api/progress - Mark lesson as complete
+// POST /api/progress - Mark lesson as complete
 export async function POST(request: NextRequest) {
   try {
     const user = await getUser();
@@ -13,33 +14,23 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { courseId, moduleId, lessonId, isCompleted = true } = body;
-    
-    console.log('[Progress API] Request:', { userId: user.id, courseId, moduleId, lessonId, isCompleted });
 
     if (!courseId || !moduleId) {
-      console.log('[Progress API] Missing required fields:', { courseId, moduleId });
       return NextResponse.json(
         { error: 'Course ID and Module ID are required' },
         { status: 400 }
       );
     }
 
-    // Upsert progress record
+    // 1. Upsert progress record (Your existing logic)
     const progressId = await getProgressId(user.id, courseId, moduleId, lessonId);
-    console.log('[Progress API] Existing progressId:', progressId);
     let progress;
     if (progressId) {
-      // Update existing
-      console.log('[Progress API] Updating existing progress');
       progress = await prisma.courseProgress.update({
         where: { id: progressId },
-        data: {
-          isCompleted: isCompleted,
-        },
+        data: { isCompleted: isCompleted },
       });
     } else {
-      // Create new
-      console.log('[Progress API] Creating new progress');
       progress = await prisma.courseProgress.create({
         data: {
           userId: user.id,
@@ -51,8 +42,45 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log('[Progress API] Success:', progress.id);
-    return NextResponse.json(progress, { status: 200 });
+    // 🚀 2. CALCULATE AND UPDATE ENROLLMENT TABLE
+    // Get total number of lessons in the entire course
+    const totalLessonsCount = await prisma.lesson.count({
+      where: { module: { courseId: courseId } }
+    });
+
+    // Get number of lessons completed by this user for this course
+    const completedLessonsCount = await prisma.courseProgress.count({
+      where: {
+        userId: user.id,
+        courseId: courseId,
+        isCompleted: true,
+        lessonId: { not: null } // Only count actual lessons
+      }
+    });
+
+    // Calculate the percentage (0 - 100)
+    const percentage = totalLessonsCount > 0
+      ? (completedLessonsCount / totalLessonsCount) * 100
+      : 0;
+
+    // Update the Enrollment table
+    await prisma.enrollment.update({
+      where: {
+        userId_courseId: {
+          userId: user.id,
+          courseId: courseId
+        }
+      },
+      data: {
+        progress: percentage
+      }
+    });
+
+    return NextResponse.json({
+      ...progress,
+      totalCourseProgress: percentage
+    }, { status: 200 });
+
   } catch (error) {
     console.error('[Progress API] Error:', error);
     return NextResponse.json(

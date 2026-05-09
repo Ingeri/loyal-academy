@@ -39,8 +39,8 @@ model Course {
   expectedIncome   String?
   growthPercentage Float?
   hiringSectors    String[]         @default([])
-  category         Category         @relation(fields: [categoryId], references: [id])
   certificates     Certificate[]
+  category         Category         @relation(fields: [categoryId], references: [id])
   courseProgress   CourseProgress[]
   enrollments      Enrollment[]
   faqs             FAQ[]
@@ -115,7 +115,11 @@ model Enrollment {
   id        String   @id @default(cuid())
   userId    String
   createdAt DateTime @default(now())
+
+  updatedAt DateTime @default(now()) @updatedAt
+  
   courseId  String   @db.Uuid
+  progress  Float    @default(0)
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -169,9 +173,9 @@ model Question {
   id      String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   text    String
   quizId  String       @db.Uuid
-  answers QuizAnswer[]
   options Option[]
   quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers QuizAnswer[]
 }
 
 model Option {
@@ -179,8 +183,8 @@ model Option {
   text       String
   isCorrect  Boolean      @default(false)
   questionId String       @db.Uuid
-  answers    QuizAnswer[]
   question   Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers    QuizAnswer[]
 }
 
 model QuizSubmission {
@@ -202,21 +206,78 @@ model QuizAnswer {
   questionId   String         @db.Uuid
   optionId     String         @db.Uuid
   isCorrect    Boolean
-  submission   QuizSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  question     Question       @relation(fields: [questionId], references: [id])
   option       Option         @relation(fields: [optionId], references: [id])
+  question     Question       @relation(fields: [questionId], references: [id])
+  submission   QuizSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 }
 
 model Certificate {
   id                String   @id @default(cuid())
-  userId            String
-  courseId          String   @db.Uuid
-  issueDate         DateTime @default(now())
   certificateNumber String   @unique
-  grade             String
-  finalScore        Float
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course            Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  issueDate         DateTime @default(now())
+  grade             String // e.g., "Distinction" or "Pass"
+  finalScore        Float // The calculated weighted average
+
+  // Relations
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String @db.Uuid
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // CRITICAL ADDITION: Unique constraint
+  @@unique([userId, courseId])
+}
+
+model BlogCategory {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blogs     Blog[]
+}
+
+model Blog {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String
+  slug           String       @unique
+  description    String?
+  content        Json
+  authorName     String
+  readTime       Int
+  thumbnail      String?
+  published      Boolean      @default(false)
+  blogCategoryId String       @db.Uuid
+  avgRating      Float        @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  blogCategory   BlogCategory @relation(fields: [blogCategoryId], references: [id])
+  blogReviews    BlogReview[]
+  blogFaqs       BlogFaq[]
+}
+
+model BlogReview {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rating        Int      @default(5)
+  comment       String?
+  reviewerName  String?
+  reviewerEmail String?
+  blogId        String   @db.Uuid
+  createdAt     DateTime @default(now())
+  blog          Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+}
+
+model BlogFaq {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question String
+  answer   String @db.Text
+
+  // Link to specific blog
+  blogId String @db.Uuid
+  blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum Level {
