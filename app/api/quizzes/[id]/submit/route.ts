@@ -71,7 +71,7 @@ export async function POST(
       data: {
         userId: user.id,
         quizId: quizId,
-        courseId: courseId || null,
+        courseId: courseId || quiz.courseId || null,
         score: score,
       },
     });
@@ -112,7 +112,7 @@ export async function POST(
     const resultQuestions = quiz.questions.map(q => {
       const userAnswer = completeSubmission?.answers.find(a => a.questionId === q.id);
       const correctOption = q.options.find(o => o.isCorrect);
-      
+
       return {
         id: q.id,
         text: q.text,

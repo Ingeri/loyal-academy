@@ -1,88 +1,116 @@
-import { prisma } from '@/lib/prisma';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ArrowRight, BookOpen, Users, Award, TrendingUp, Play, Sparkles } from 'lucide-react';
-import Navigation from '@/components/navigation';
-import Footer from '@/components/footer';
-import { CourseCard } from '@/components/course-card';
-import { BentoGrid, BentoGridSkeleton } from '@/components/bento-grid';
-import { InstructorCard } from '@/components/instructor-card';
-import { Suspense } from 'react';
+import { prisma } from "@/lib/prisma";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  ArrowRight,
+  BookOpen,
+  Users,
+  Award,
+  TrendingUp,
+  Play,
+  Sparkles,
+} from "lucide-react";
+import Navigation from "@/components/navigation";
+import Footer from "@/components/footer";
+import { CourseCard } from "@/components/course-card";
+import { BentoGrid, BentoGridSkeleton } from "@/components/bento-grid";
+import { InstructorCard } from "@/components/instructor-card";
+import { FeaturedCoursesCarousel } from "@/components/featured-courses-carousel";
+import { Suspense } from "react";
 
 export const metadata = {
-  title: 'Loyal Academy - Online Learning Platform',
-  description: 'Transform your skills with industry-leading courses from expert instructors',
+  title: "Loyal Academy - Online Learning Platform",
+  description:
+    "Transform your skills with industry-leading courses from expert instructors",
 };
 
 async function getFeaturedCourses() {
-  const data = await prisma.course.findMany({
-    where: { published: true },
-    take: 6,
-    orderBy: { createdAt: 'desc' },
-    include: { category: true }
+  return await prisma.course.findMany({
+    where: {
+      published: true,
+      tags: {
+        some: {
+          name: "Featured",
+        },
+      },
+    },
+    take: 12,
+    orderBy: { createdAt: "desc" },
+    include: {
+      category: true,
+      tags: {
+        select: { name: true },
+      },
+      _count: {
+        select: { reviews: true },
+      },
+    },
   });
-  return data;
 }
 
 async function getStats() {
-  const coursesCount = await prisma.course.count({ where: { published: true } });
-  
-  const enrollmentsAgg = await prisma.course.aggregate({
-    _sum: { studentNumber: true }
+  const coursesCount = await prisma.course.count({
+    where: { published: true },
   });
-  const enrollmentsCount = enrollmentsAgg._sum.studentNumber || 0;
-  
+  const activeStudents = await prisma.user.count({
+    where: { role: "STUDENT", isActive: true },
+  });
+  const totalEnrollments = await prisma.enrollment.count();
+  const categoriesCount = await prisma.category.count();
+
   return {
     courses: coursesCount,
-    students: Math.floor(enrollmentsCount * 0.8) || 0,
-    enrollments: enrollmentsCount,
+    students: activeStudents,
+    enrollments: totalEnrollments,
+    categories: categoriesCount,
   };
 }
 
 async function getCategories() {
   return await prisma.category.findMany({
+    orderBy: { name: "asc" },
     include: {
       _count: {
-        select: { courses: true }
-      }
-    }
+        select: { courses: true },
+      },
+    },
   });
 }
 
 const mockInstructors = [
   {
-    id: '1',
-    name: 'Dr. Sarah Johnson',
-    bio: 'Senior web developer with 10+ years of experience in frontend technologies and modern frameworks.',
-    specialty: 'Web Development',
+    id: "1",
+    name: "Dr. Sarah Johnson",
+    bio: "Senior web developer with 10+ years of experience in frontend technologies and modern frameworks.",
+    specialty: "Web Development",
     rating: 4.9,
     students: 12540,
     courses: 8,
   },
   {
-    id: '2',
-    name: 'Prof. Michael Chen',
-    bio: 'React expert and software architect who has built multiple production applications at scale.',
-    specialty: 'React & Frontend',
+    id: "2",
+    name: "Prof. Michael Chen",
+    bio: "React expert and software architect who has built multiple production applications at scale.",
+    specialty: "React & Frontend",
     rating: 4.8,
     students: 8320,
     courses: 6,
   },
   {
-    id: '3',
-    name: 'Dr. Emily Rodriguez',
-    bio: 'PhD in Data Science with 8 years of industry experience in analytics and machine learning.',
-    specialty: 'Data Science',
+    id: "3",
+    name: "Dr. Emily Rodriguez",
+    bio: "PhD in Data Science with 8 years of industry experience in analytics and machine learning.",
+    specialty: "Data Science",
     rating: 4.9,
     students: 15600,
     courses: 12,
   },
   {
-    id: '4',
-    name: 'Alex Kim',
-    bio: 'Design director with 12 years of experience at leading tech companies and startups.',
-    specialty: 'UX/UI Design',
+    id: "4",
+    name: "Alex Kim",
+    bio: "Design director with 12 years of experience at leading tech companies and startups.",
+    specialty: "UX/UI Design",
     rating: 4.7,
     students: 9800,
     courses: 5,
@@ -118,16 +146,20 @@ export default async function Home() {
                 {/* Badge */}
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">Join 50,000+ learners worldwide</span>
+                  <span className="text-sm font-medium text-primary">
+                    Join {stats.students.toLocaleString()} learners worldwide
+                  </span>
                 </div>
 
                 <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-                  Transform Your Skills with{' '}
+                  Transform Your Skills with{" "}
                   <span className="text-primary">Expert-Led</span> Courses
                 </h1>
 
                 <p className="text-lg text-muted-foreground max-w-xl">
-                  Learn from industry experts and advance your career with our comprehensive online learning platform. Get certified and boost your resume.
+                  Learn from industry experts and advance your career with our
+                  comprehensive online learning platform. Get certified and
+                  boost your resume.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -168,8 +200,12 @@ export default async function Home() {
                           <BookOpen className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <p className="font-semibold text-foreground">500+ Expert Courses</p>
-                          <p className="text-sm text-muted-foreground">Across 12 categories</p>
+                          <p className="font-semibold text-foreground">
+                            {stats.courses}+ Expert Courses
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Across {categories.length} categories
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -177,8 +213,12 @@ export default async function Home() {
                           <Award className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <p className="font-semibold text-foreground">Industry Certificates</p>
-                          <p className="text-sm text-muted-foreground">Boost your career</p>
+                          <p className="font-semibold text-foreground">
+                            Industry Certificates
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Boost your career
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -186,8 +226,12 @@ export default async function Home() {
                           <Users className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <p className="font-semibold text-foreground">Expert Instructors</p>
-                          <p className="text-sm text-muted-foreground">Learn from the best</p>
+                          <p className="font-semibold text-foreground">
+                            Expert Instructors
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Learn from the best
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -209,8 +253,12 @@ export default async function Home() {
                   <BookOpen className="h-6 w-6 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-foreground">{stats.courses}+</p>
-                  <p className="text-sm text-muted-foreground">Expert Courses</p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {stats.courses}+
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Expert Courses
+                  </p>
                 </div>
               </div>
             </Card>
@@ -220,8 +268,12 @@ export default async function Home() {
                   <Users className="h-6 w-6 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-foreground">{stats.students}+</p>
-                  <p className="text-sm text-muted-foreground">Active Students</p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {stats.students}+
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Active Students
+                  </p>
                 </div>
               </div>
             </Card>
@@ -231,8 +283,12 @@ export default async function Home() {
                   <TrendingUp className="h-6 w-6 text-purple-500" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-foreground">{stats.enrollments}+</p>
-                  <p className="text-sm text-muted-foreground">Course Enrollments</p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {stats.enrollments}+
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Course Enrollments
+                  </p>
                 </div>
               </div>
             </Card>
@@ -244,13 +300,16 @@ export default async function Home() {
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Explore by Category</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Explore by Category
+            </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Discover courses across a wide range of subjects. From technology to business, find your perfect learning path.
+              Discover courses across a wide range of subjects. From technology
+              to business, find your perfect learning path.
             </p>
           </div>
           <Suspense fallback={<BentoGridSkeleton />}>
-            <BentoGrid />
+            <BentoGrid categories={categories} />
           </Suspense>
         </div>
       </section>
@@ -259,50 +318,79 @@ export default async function Home() {
       <section className="bg-muted/50 px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Why Choose Loyal Academy?</h2>
-            <p className="text-muted-foreground">Everything you need to advance your career</p>
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Why Choose Loyal Academy?
+            </h2>
+            <p className="text-muted-foreground">
+              Everything you need to advance your career
+            </p>
           </div>
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <BookOpen className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Comprehensive Curriculum</h3>
-              <p className="text-sm text-muted-foreground">Carefully designed courses covering industry standards and best practices.</p>
+              <h3 className="font-semibold text-foreground mb-2">
+                Comprehensive Curriculum
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Carefully designed courses covering industry standards and best
+                practices.
+              </p>
             </Card>
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <Users className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Expert Instructors</h3>
-              <p className="text-sm text-muted-foreground">Learn from experienced professionals with years of industry experience.</p>
+              <h3 className="font-semibold text-foreground mb-2">
+                Expert Instructors
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Learn from experienced professionals with years of industry
+                experience.
+              </p>
             </Card>
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <Award className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Recognized Certificates</h3>
-              <p className="text-sm text-muted-foreground">Earn certificates upon completion to boost your resume and LinkedIn.</p>
+              <h3 className="font-semibold text-foreground mb-2">
+                Recognized Certificates
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Earn certificates upon completion to boost your resume and
+                LinkedIn.
+              </p>
             </Card>
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Career Growth</h3>
-              <p className="text-sm text-muted-foreground">Advance your career with skills recognized by top companies worldwide.</p>
+              <h3 className="font-semibold text-foreground mb-2">
+                Career Growth
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Advance your career with skills recognized by top companies
+                worldwide.
+              </p>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* Featured Courses Section */}
+      {/* Featured Courses Section - Carousel */}
       {courses.length > 0 && (
         <section className="px-4 py-20 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-7xl">
             <div className="flex items-end justify-between mb-12">
               <div>
-                <h2 className="text-3xl font-bold text-foreground mb-4">Featured Courses</h2>
-                <p className="text-muted-foreground">Start learning from our most popular courses</p>
+                <h2 className="text-3xl font-bold text-foreground mb-4">
+                  Featured Courses
+                </h2>
+                <p className="text-muted-foreground">
+                  Start learning from our most popular courses. Use the arrows
+                  to browse through them.
+                </p>
               </div>
               <Link href="/courses" className="hidden sm:block">
                 <Button variant="outline" className="gap-2">
@@ -310,34 +398,28 @@ export default async function Home() {
                 </Button>
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {courses.map((course: any) => (
-                <CourseCard
-                  key={course.id}
-                  course={{
-                    id: course.id,
-                    title: course.title,
-                    description: course.description || '',
-                    slug: course.slug,
-                    image_url: course.thumbnail || undefined,
-                    price: Number(course.price),
-                    discounted_price: course.discount ? Number(course.price) - Number(course.discount) : undefined,
-                    category: course.category?.name,
-                    categorySlug: course.category?.slug || 'general',
-                    is_free: Number(course.price) === 0,
-                    instructor: 'Expert Instructor',
-                    students: course.studentNumber,
-                    level: course.level,
-                    has_certificate: course.hasCertificate,
-                    conducting_type: course.conductingType,
-                    has_exam: course.hasExam,
-                    rating: course.avgRating,
-                    reviews_count: 0,
-                    duration: course.duration || 'Self-paced',
-                  }}
-                />
-              ))}
-            </div>
+            <FeaturedCoursesCarousel
+              courses={courses.map((course: any) => ({
+                id: course.id,
+                title: course.title,
+                description: course.description,
+                slug: course.slug,
+                thumbnail: course.thumbnail,
+                price: Number(course.price),
+                discount: course.discount ? Number(course.discount) : undefined,
+                category: course.category?.name,
+                categorySlug: course.category?.slug || "general",
+                level: course.level,
+                hasCertificate: course.hasCertificate,
+                conductingType: course.conductingType,
+                hasExam: course.hasExam,
+                avgRating: course.avgRating,
+                reviews_count: course._count?.reviews || 0,
+                studentNumber: course.studentNumber,
+                duration: course.duration,
+                tags: course.tags?.map((tag: any) => tag.name) || [],
+              }))}
+            />
             <div className="mt-8 text-center sm:hidden">
               <Link href="/courses">
                 <Button variant="outline" className="gap-2">
@@ -353,8 +435,12 @@ export default async function Home() {
       <section className="bg-muted/50 px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Learn from the Best</h2>
-            <p className="text-muted-foreground">Our instructors are industry experts passionate about teaching</p>
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Learn from the Best
+            </h2>
+            <p className="text-muted-foreground">
+              Our instructors are industry experts passionate about teaching
+            </p>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {mockInstructors.map((instructor) => (
@@ -364,26 +450,33 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative overflow-hidden bg-primary text-primary-foreground px-4 py-20 sm:px-6 lg:px-8">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,white_1px,transparent_1px)] bg-[length:20px_20px]" />
-        </div>
+      {/* CTA Section - Improved Colors */}
+      <section className="relative overflow-hidden bg-slate-950 px-4 py-20 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[length:18px_18px]" />
 
         <div className="relative mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to Start Learning?</h2>
-          <p className="mb-8 text-lg opacity-90 max-w-2xl mx-auto">
-            Join thousands of students already improving their skills with Loyal Academy. Start your journey today.
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
+            Ready to Start Learning?
+          </h2>
+          <p className="mb-8 text-lg text-slate-300 max-w-2xl mx-auto">
+            Join thousands of students already improving their skills with Loyal
+            Academy. Start your journey today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signup">
-              <Button size="lg" variant="secondary" className="gap-2">
+              <Button
+                size="lg"
+                className="gap-2 bg-white text-slate-950 hover:bg-slate-100 font-semibold"
+              >
                 Get Started for Free <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/courses">
-              <Button size="lg" variant="outline" className="border-white/30 hover:bg-white/10 gap-2">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-slate-300 text-white hover:bg-white/10 gap-2 font-semibold"
+              >
                 Browse Courses
               </Button>
             </Link>

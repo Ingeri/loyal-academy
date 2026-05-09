@@ -10,7 +10,7 @@ export async function GET(
   try {
     const { id: quizId } = await params;
     console.log('[Quiz API] Fetching quiz:', quizId);
-    
+
     const user = await getUser();
     console.log('[Quiz API] User:', user?.id || 'none');
 
@@ -40,7 +40,7 @@ export async function GET(
       console.log('[Quiz API] Quiz not found:', quizId);
       return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
     }
-    
+
     console.log('[Quiz API] Found quiz:', quiz.title, 'Questions:', quiz.questions.length);
 
     // Get user's previous submissions

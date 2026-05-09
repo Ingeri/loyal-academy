@@ -136,6 +136,22 @@ export async function GET(
       },
     });
 
+    // Get course-level exams (EXAM type with no lesson or module)
+    const courseExams = await prisma.quiz.findMany({
+      where: {
+        courseId: course.id,
+        type: 'EXAM',
+        lessonId: null,
+        moduleId: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        passingScore: true,
+      },
+    });
+
     return NextResponse.json({
       course: course,
       enrollment: enrollment,
@@ -147,6 +163,7 @@ export async function GET(
       },
       quizScores: quizScores,
       certificate: certificate,
+      courseExams: courseExams,
     });
   } catch (error) {
     console.error('Fetch course learn data error:', error);

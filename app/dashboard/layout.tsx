@@ -1,0 +1,29 @@
+import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar';
+import { getSession } from '@/lib/auth/session';
+import { redirect } from 'next/navigation';
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await getSession();
+
+  if (!session) {
+    redirect('/auth/login?redirect=/dashboard');
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <aside className="hidden md:flex h-full w-64 flex-col fixed inset-y-0 z-50 border-r bg-card">
+        <DashboardSidebar />
+      </aside>
+      
+      <main className="md:pl-64 flex flex-col min-h-screen">
+        <div className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}
