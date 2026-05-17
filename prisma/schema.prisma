@@ -97,18 +97,23 @@ model LearnerStory {
 }
 
 model User {
-  id              String           @id @default(cuid())
-  email           String           @unique
-  name            String?
-  role            UserRole         @default(STUDENT)
-  isActive        Boolean          @default(true)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  passwordHash    String?
-  certificates    Certificate[]
-  courseProgress  CourseProgress[]
-  enrollments     Enrollment[]
-  quizSubmissions QuizSubmission[]
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  name                    String?
+  role                    UserRole                 @default(STUDENT)
+  isActive                Boolean                  @default(true)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  passwordHash            String?
+  certificates            Certificate[]
+  courseProgress          CourseProgress[]
+  enrollments             Enrollment[]
+  quizSubmissions         QuizSubmission[]
+  projectsAsCompany       Project[]                @relation("ProjectCompany")
+  projectsAsTalent        Project[]                @relation("ProjectTalent")
+  scholarships            Scholarship[]            @relation("ScholarshipDonor")
+  scholarshipApplications ScholarshipApplication[] @relation("ScholarshipApplicant")
+  reviewedApplications    ScholarshipApplication[] @relation("ScholarshipReviewer")
 }
 
 model Enrollment {
@@ -117,11 +122,11 @@ model Enrollment {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @default(now()) @updatedAt
-  
-  courseId  String   @db.Uuid
-  progress  Float    @default(0)
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  courseId String @db.Uuid
+  progress Float  @default(0)
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
 }
@@ -280,6 +285,95 @@ model BlogFaq {
   updatedAt DateTime @updatedAt
 }
 
+model Project {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title            String
+  slug             String        @unique
+  description      String
+  budget           Decimal       @db.Decimal(10, 2)
+  timeline         String
+  skillsRequired   String[]      @default([])
+  status           ProjectStatus @default(OPEN)
+  companyId        String
+  assignedTalentId String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  company        User       @relation("ProjectCompany", fields: [companyId], references: [id])
+  assignedTalent User?      @relation("ProjectTalent", fields: [assignedTalentId], references: [id])
+  caseStudy      CaseStudy?
+}
+
+model CaseStudy {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String
+  description    String
+  imageUrl       String?
+  clientName     String
+  projectOutcome String
+  projectId      String?  @unique @db.Uuid
+  featured       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  project Project? @relation(fields: [projectId], references: [id])
+}
+
+model Partnership {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyName     String
+  contactEmail    String
+  contactName     String
+  partnershipType PartnershipType
+  description     String
+  websiteUrl      String?
+  status          PartnershipStatus @default(PENDING)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Scholarship {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title               String
+  slug                String          @unique
+  description         String
+  amount              Decimal         @db.Decimal(10, 2)
+  type                ScholarshipType
+  eligibilityCriteria Json
+  applicationDeadline DateTime
+  maxAwards           Int
+  awardsGranted       Int             @default(0)
+  isActive            Boolean         @default(true)
+  donorId             String?
+  donorName           String
+  donorLogoUrl        String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  donor        User?                    @relation("ScholarshipDonor", fields: [donorId], references: [id])
+  applications ScholarshipApplication[]
+}
+
+model ScholarshipApplication {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scholarshipId       String            @db.Uuid
+  applicantId         String
+  motivationLetter    String            @db.Text
+  financialNeedProof  String?
+  additionalDocuments String[]          @default([])
+  status              ApplicationStatus @default(PENDING)
+  reviewNotes         String?           @db.Text
+  submittedAt         DateTime          @default(now())
+  reviewedAt          DateTime?
+  reviewedBy          String?
+
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+  applicant   User        @relation("ScholarshipApplicant", fields: [applicantId], references: [id])
+  reviewer    User?       @relation("ScholarshipReviewer", fields: [reviewedBy], references: [id])
+
+  @@unique([applicantId, scholarshipId])
+}
+
 enum Level {
   BEGINNER
   INTERMEDIATE
@@ -297,6 +391,8 @@ enum UserRole {
   INSTRUCTOR
   ADMIN
   CAREER_ADVISOR
+  CLIENT
+  DONOR
 }
 
 enum AssessmentType {
@@ -304,4 +400,37 @@ enum AssessmentType {
   QUIZ
   TEST
   EXAM
+}
+
+enum ProjectStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PartnershipType {
+  CONTENT_CREATION
+  TRAINING
+  BOTH
+}
+
+enum PartnershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ScholarshipType {
+  MERIT_BASED
+  NEED_BASED
+  WOMEN_IN_TECH
+  GENERAL
+}
+
+enum ApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
 }

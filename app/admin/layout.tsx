@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { prisma } from "@/lib/prisma"; // ✅ Use Prisma instead of Supabase client
 import { getSession } from "@/lib/auth/session"; // ✅ Use your session helper
+import { Toaster } from "@/components/ui/toaster";
 
 export default async function AdminLayout({
   children,
@@ -34,6 +35,7 @@ export default async function AdminLayout({
       <main className="flex-1 overflow-y-auto">
         <div className="p-6 lg:p-8">{children}</div>
       </main>
+      <Toaster />
     </div>
   );
 }

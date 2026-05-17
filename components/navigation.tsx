@@ -67,6 +67,12 @@ export default function Navigation() {
             <Link href="/about" className="text-sm hover:text-primary transition">
               About
             </Link>
+            <Link href="/outsourcing" className="text-sm hover:text-primary transition">
+              Outsourcing
+            </Link>
+            <Link href="/scholarships" className="text-sm hover:text-primary transition">
+              Scholarships
+            </Link>
             <Link href="/blog" className="text-sm hover:text-primary transition">
               Blog
             </Link>
@@ -156,6 +162,12 @@ export default function Navigation() {
 
             <Link href="/about" className="block text-sm hover:text-primary py-2">
               About
+            </Link>
+            <Link href="/outsourcing" className="block text-sm hover:text-primary py-2">
+              Outsourcing
+            </Link>
+            <Link href="/scholarships" className="block text-sm hover:text-primary py-2">
+              Scholarships
             </Link>
             <Link href="/blog" className="block text-sm hover:text-primary py-2">
               Blog
