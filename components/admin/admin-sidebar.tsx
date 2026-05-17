@@ -17,7 +17,12 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  GraduationCap,
+  FolderTree,
+  PenTool,
+  DollarSign,
+  Briefcase,
+  Handshake,
+  Home,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -28,19 +33,44 @@ const mainNavItems = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Courses',
-    href: '/admin/courses',
-    icon: BookOpen,
-  },
-  {
     title: 'Users',
     href: '/admin/users',
     icon: Users,
   },
   {
-    title: 'Instructors',
-    href: '/admin/instructors',
-    icon: GraduationCap,
+    title: 'Courses',
+    href: '/admin/courses',
+    icon: BookOpen,
+  },
+  {
+    title: 'Course Categories',
+    href: '/admin/categories',
+    icon: FolderTree,
+  },
+  {
+    title: 'Blogs',
+    href: '/admin/blogs',
+    icon: PenTool,
+  },
+  {
+    title: 'Blog Categories',
+    href: '/admin/blog-categories',
+    icon: FolderTree,
+  },
+  {
+    title: 'Scholarships',
+    href: '/admin/scholarships',
+    icon: DollarSign,
+  },
+  {
+    title: 'Projects',
+    href: '/admin/projects',
+    icon: Briefcase,
+  },
+  {
+    title: 'Partnerships',
+    href: '/admin/partnerships',
+    icon: Handshake,
   },
   {
     title: 'Certificates',
@@ -88,38 +118,39 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
     const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
 
     return (
-      <Link href={item.href}>
-        <Button
-          variant={isActive ? 'secondary' : 'ghost'}
-          className={cn(
-            'w-full justify-start gap-3 h-11',
-            collapsed && 'justify-center px-2',
-            isActive && 'bg-primary/10 text-primary hover:bg-primary/20'
-          )}
-        >
+      <Button
+        asChild
+        variant={isActive ? 'secondary' : 'ghost'}
+        className={cn(
+          'w-full justify-start gap-3 h-11 transition-all px-3',
+          collapsed && 'justify-center px-2',
+          isActive && 'bg-primary/10 text-primary hover:bg-primary/20 font-medium'
+        )}
+      >
+        <Link href={item.href}>
           <Icon className='h-5 w-5 flex-shrink-0' />
           {!collapsed && <span className='truncate'>{item.title}</span>}
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     );
   };
 
   return (
     <div
       className={cn(
-        'flex flex-col h-screen bg-card border-r transition-all duration-300',
+        'flex flex-col h-screen bg-card border-r transition-all duration-300 select-none',
         collapsed ? 'w-16' : 'w-64',
         className
       )}
     >
       {/* Header */}
-      <div className='flex items-center justify-between p-4 h-16 border-b'>
+      <div className='flex items-center justify-between p-4 h-16 border-b flex-shrink-0'>
         {!collapsed && (
-          <Link href='/admin' className='flex items-center gap-2'>
-            <div className='h-8 w-8 rounded-lg bg-primary flex items-center justify-center'>
+          <Link href='/admin' className='flex items-center gap-2 group'>
+            <div className='h-8 w-8 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-105'>
               <span className='text-primary-foreground font-bold text-sm'>LA</span>
             </div>
-            <span className='font-semibold text-foreground'>Admin</span>
+            <span className='font-semibold text-foreground tracking-tight'>Admin</span>
           </Link>
         )}
         <Button
@@ -136,54 +167,57 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
         </Button>
       </div>
 
-      {/* Navigation */}
-      <ScrollArea className='flex-1 py-4'>
-        <div className={cn('space-y-1 px-2', collapsed && 'px-1')}>
-          {mainNavItems.map((item) => (
-            <NavItem key={item.href} item={item} />
-          ))}
-        </div>
+      {/* Navigation Viewport with custom 2px scrollbar */}
+      <ScrollArea className='flex-1 h-[calc(100vh-8rem)] [&>div>div]:!block'>
+        <div className='py-4'>
+          {/* Main Navigation Group - space-y-2 spaces out the links */}
+          <div className={cn('space-y-2 px-2', collapsed && 'px-1')}>
+            {mainNavItems.map((item) => (
+              <NavItem key={item.href} item={item} />
+            ))}
+          </div>
 
-        {!collapsed && <Separator className='my-4 mx-4' />}
-        {collapsed && <Separator className='my-4 mx-2' />}
+          <Separator className={cn('my-4 mx-4', collapsed && 'mx-2')} />
 
-        <div className={cn('space-y-1 px-2', collapsed && 'px-1')}>
-          {!collapsed && (
-            <p className='text-xs font-medium text-muted-foreground px-2 mb-2'>
-              Analytics
-            </p>
-          )}
-          {analyticsNavItems.map((item) => (
-            <NavItem key={item.href} item={item} />
-          ))}
-        </div>
+          {/* Analytics Group */}
+          <div className={cn('space-y-2 px-2', collapsed && 'px-1')}>
+            {!collapsed && (
+              <p className='text-[11px] font-bold tracking-wider uppercase text-muted-foreground px-2 mb-2'>
+                Analytics
+              </p>
+            )}
+            {analyticsNavItems.map((item) => (
+              <NavItem key={item.href} item={item} />
+            ))}
+          </div>
 
-        {!collapsed && <Separator className='my-4 mx-4' />}
-        {collapsed && <Separator className='my-4 mx-2' />}
+          <Separator className={cn('my-4 mx-4', collapsed && 'mx-2')} />
 
-        <div className={cn('space-y-1 px-2', collapsed && 'px-1')}>
-          {settingsNavItems.map((item) => (
-            <NavItem key={item.href} item={item} />
-          ))}
+          {/* Settings Group */}
+          <div className={cn('space-y-2 px-2', collapsed && 'px-1')}>
+            {settingsNavItems.map((item) => (
+              <NavItem key={item.href} item={item} />
+            ))}
+          </div>
         </div>
       </ScrollArea>
 
       {/* Footer */}
-      <div className='p-4 border-t'>
-        <Link href='/'>
-          <Button
-            variant='ghost'
-            className={cn(
-              'w-full justify-start gap-3',
-              collapsed && 'justify-center px-2'
-            )}
-          >
-            {!collapsed && <span>Back to Site</span>}
-            <ChevronLeft className={cn('h-4 w-4', !collapsed && 'order-first')} />
-          </Button>
-        </Link>
+      <div className='p-4 border-t flex-shrink-0 bg-card'>
+        <Button
+          asChild
+          variant='ghost'
+          className={cn(
+            'w-full justify-start gap-3 h-11 text-muted-foreground hover:text-foreground px-3',
+            collapsed && 'justify-center px-2'
+          )}
+        >
+          <Link href='/'>
+            <Home className='h-5 w-5 flex-shrink-0' />
+            {!collapsed && <span className='font-medium'>Back to Site</span>}
+          </Link>
+        </Button>
       </div>
     </div>
   );
 }
-

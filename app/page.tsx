@@ -407,7 +407,7 @@ export default async function Home() {
                 thumbnail: course.thumbnail,
                 price: Number(course.price),
                 discount: course.discount ? Number(course.discount) : undefined,
-                category: course.category?.name,
+                category: course.category ? { name: course.category.name, slug: course.category.slug } : undefined,
                 categorySlug: course.category?.slug || "general",
                 level: course.level,
                 hasCertificate: course.hasCertificate,
@@ -466,7 +466,7 @@ export default async function Home() {
             <Link href="/auth/signup">
               <Button
                 size="lg"
-                className="gap-2 bg-white text-slate-950 hover:bg-slate-100 font-semibold"
+                className="border border-white bg-transparent text-white hover:bg-white hover:text-black gap-2 font-semibold"
               >
                 Get Started for Free <ArrowRight className="h-4 w-4" />
               </Button>
@@ -475,7 +475,7 @@ export default async function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-slate-300 text-white hover:bg-white/10 gap-2 font-semibold"
+                className="border-slate-300 text-black hover:bg-transparent hover:text-white gap-2 font-semibold"
               >
                 Browse Courses
               </Button>
