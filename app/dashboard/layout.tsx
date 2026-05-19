@@ -1,6 +1,7 @@
 import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar';
 import { getSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
 
 export default async function DashboardLayout({
   children,
@@ -9,8 +10,19 @@ export default async function DashboardLayout({
 }) {
   const session = await getSession();
 
+  // Check session exists
   if (!session) {
     redirect('/auth/login?redirect=/dashboard');
+  }
+
+  // Server-side role check - only STUDENT allowed
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { role: true },
+  });
+
+  if (!user || user.role !== 'STUDENT') {
+    redirect('/auth/login?error=unauthorized');
   }
 
   return (

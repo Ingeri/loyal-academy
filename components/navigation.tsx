@@ -18,6 +18,25 @@ export default function Navigation() {
   const [categories, setCategories] = useState<{id: string, name: string, slug: string}[]>([]);
   const { user, isLoading: loading, logout } = useAuth();
 
+  // Get the appropriate dashboard link based on user role
+  const getDashboardLink = () => {
+    if (!user) return '/student';
+    switch (user.role) {
+      case 'STUDENT':
+        return '/student';
+      case 'INSTRUCTOR':
+        return '/instructor';
+      case 'ADMIN':
+        return '/admin';
+      case 'CLIENT':
+        return '/client';
+      case 'DONOR':
+        return '/donor';
+      default:
+        return '/student';
+    }
+  };
+
   useEffect(() => {
     getCategories().then(setCategories);
   }, []);
@@ -87,7 +106,7 @@ export default function Navigation() {
               <div className="h-8 w-24 animate-pulse bg-muted rounded" />
             ) : user ? (
               <>
-                <Link href="/dashboard">
+                <Link href={getDashboardLink()}>
                   <Button variant="outline" size="sm" className="gap-2">
                     <LayoutDashboard className="h-4 w-4" />
                     Dashboard
@@ -180,7 +199,7 @@ export default function Navigation() {
                 <div className="h-8 w-full animate-pulse bg-muted rounded" />
               ) : user ? (
                 <>
-                  <Link href="/dashboard">
+                  <Link href={getDashboardLink()}>
                     <Button variant="outline" size="sm" className="w-full gap-2">
                       <LayoutDashboard className="h-4 w-4" />
                       Dashboard
