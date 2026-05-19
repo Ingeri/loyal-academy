@@ -55,11 +55,35 @@ export async function POST(request: NextRequest) {
     // Create session
     await createSession(user.id, user.email, user.role);
 
+    // Determine redirect URL based on role
+    let redirectUrl = '/student';
+    switch (user.role) {
+      case 'STUDENT':
+        redirectUrl = '/student';
+        break;
+      case 'INSTRUCTOR':
+        redirectUrl = '/instructor';
+        break;
+      case 'ADMIN':
+        redirectUrl = '/admin';
+        break;
+      case 'CLIENT':
+        redirectUrl = '/client';
+        break;
+      case 'DONOR':
+        redirectUrl = '/donor';
+        break;
+      default:
+        redirectUrl = '/student';
+        break;
+    }
+
     // Remove passwordHash from response
     const { passwordHash: _, ...userWithoutPassword } = user;
 
     return NextResponse.json({
       user: userWithoutPassword,
+      redirectUrl,
       message: 'Logged in successfully',
     });
   } catch (error) {

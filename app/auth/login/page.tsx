@@ -43,19 +43,12 @@ function LoginForm() {
         throw new Error(data.error || "Failed to log in");
       }
 
-      const userRole = data.user.role;
       const urlParams = new URLSearchParams(window.location.search);
       const manualRedirect = urlParams.get("redirect");
 
-      // Role-based routing logic
-      if (userRole === "ADMIN") {
-        router.push("/admin");
-      } else if (manualRedirect) {
-        router.push(manualRedirect);
-      } else {
-        router.push("/dashboard");
-      }
-
+      // Use redirectUrl from API response, or manual redirect, or default to dashboard
+      const redirectUrl = manualRedirect || data.redirectUrl || "/dashboard";
+      router.push(redirectUrl);
       router.refresh();
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");

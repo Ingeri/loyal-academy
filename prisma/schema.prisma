@@ -15,41 +15,45 @@ model Category {
 
 model Course {
   title            String
-  slug             String           @unique
+  slug             String         @unique
   description      String?
   thumbnail        String?
-  published        Boolean          @default(false)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  categoryId       String           @db.Uuid
-  avgRating        Float            @default(0)
-  discount         Decimal?         @db.Decimal(10, 2)
+  published        Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId       String         @db.Uuid
+  avgRating        Float          @default(0)
+  discount         Decimal?       @db.Decimal(10, 2)
   duration         String?
-  hasCertificate   Boolean          @default(true)
-  hasExam          Boolean          @default(false)
-  level            Level            @default(BEGINNER)
-  price            Decimal          @default(0) @db.Decimal(10, 2)
-  studentNumber    Int              @default(0)
-  careerFields     String[]         @default([])
-  learningOutcomes String[]         @default([])
+  hasCertificate   Boolean        @default(true)
+  hasExam          Boolean        @default(false)
+  level            Level          @default(BEGINNER)
+  price            Decimal        @default(0) @db.Decimal(10, 2)
+  studentNumber    Int            @default(0)
+  careerFields     String[]       @default([])
+  learningOutcomes String[]       @default([])
   overview         String?
-  conductingType   ConductingType   @default(Online)
+  conductingType   ConductingType @default(Online)
   estimatedSalary  String?
   expectedIncome   String?
   growthPercentage Float?
-  hiringSectors    String[]         @default([])
-  certificates     Certificate[]
-  category         Category         @relation(fields: [categoryId], references: [id])
-  courseProgress   CourseProgress[]
-  enrollments      Enrollment[]
-  faqs             FAQ[]
-  learnerStories   LearnerStory[]
-  syllabus         Module[]
-  quizzes          Quiz[]
-  quizSubmissions  QuizSubmission[]
-  reviews          Review[]
-  tags             Tag[]            @relation("CourseToTag")
+  hiringSectors    String[]       @default([])
+
+  instructorId String // Matches User id type (String/cuid)
+  instructor   User   @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+
+  certificates    Certificate[]
+  category        Category         @relation(fields: [categoryId], references: [id])
+  courseProgress  CourseProgress[]
+  enrollments     Enrollment[]
+  faqs            FAQ[]
+  learnerStories  LearnerStory[]
+  syllabus        Module[]
+  quizzes         Quiz[]
+  quizSubmissions QuizSubmission[]
+  reviews         Review[]
+  tags            Tag[]            @relation("CourseToTag")
 }
 
 model Tag {
@@ -97,14 +101,17 @@ model LearnerStory {
 }
 
 model User {
-  id                      String                   @id @default(cuid())
-  email                   String                   @unique
-  name                    String?
-  role                    UserRole                 @default(STUDENT)
-  isActive                Boolean                  @default(true)
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
-  passwordHash            String?
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  role         UserRole @default(STUDENT)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  passwordHash String?
+
+  createdCourses Course[]
+
   certificates            Certificate[]
   courseProgress          CourseProgress[]
   enrollments             Enrollment[]
@@ -149,7 +156,7 @@ model Lesson {
   id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title     String
   slug      String           @unique
-  content   Json
+  content   Json // Array of content blocks. Each block has a "type" field (ContentType enum) and type-specific fields. Examples: heading (text, level), paragraph (text), list (items[], ordered), image (url, alt, caption), video (url, title, duration), table (headers[], rows[][]), code (code, language), warning/notify (title, text, severity)
   order     Int
   moduleId  String           @db.Uuid
   createdAt DateTime         @default(now())
@@ -433,4 +440,22 @@ enum ApplicationStatus {
   UNDER_REVIEW
   APPROVED
   REJECTED
+}
+
+enum ContentType {
+  HEADING
+  PARAGRAPH
+  LIST
+  IMAGE
+  VIDEO
+  TABLE
+  CODE
+  WARNING
+  NOTIFY
+}
+
+enum BlockSeverity {
+  INFO
+  WARNING
+  DANGER
 }

@@ -102,9 +102,9 @@ export function useAuth() {
   const logout = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true }));
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const response = await fetch('/api/auth/logout', { method: 'POST' });
       setState({ user: null, isLoading: false, error: null });
-      router.push('/');
+      // Server handles redirect, but we refresh to clear client state
       router.refresh();
     } catch (error) {
       setState((prev) => ({ ...prev, isLoading: false, error: 'Logout failed' }));

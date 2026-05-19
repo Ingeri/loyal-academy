@@ -35,6 +35,7 @@ export function DashboardSidebar() {
 
       if (response.ok) {
         router.refresh();
+        // Server handles redirect, but we can also redirect as fallback
         router.push("/auth/login");
       }
     } catch (error) {

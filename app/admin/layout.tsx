@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { prisma } from "@/lib/prisma"; // ✅ Use Prisma instead of Supabase client
-import { getSession } from "@/lib/auth/session"; // ✅ Use your session helper
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth/session";
 import { Toaster } from "@/components/ui/toaster";
 
 export default async function AdminLayout({
@@ -9,24 +9,21 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // 1. Get the session (which contains the user ID/Email)
+  // Check session exists
   const session = await getSession();
 
   if (!session) {
     redirect("/auth/login?redirect=/admin");
   }
 
-  // 2. Fetch the user role using Prisma
+  // Server-side role check - only ADMIN allowed
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
     select: { role: true },
   });
 
-  // 3. Check the Role (Must match the Enum 'ADMIN')
-  // We use the uppercase 'ADMIN' because that is how it's defined in schema.prisma
-  if (user?.role !== "ADMIN") {
-    console.log("Access Denied for role:", user?.role); 
-    redirect("/dashboard");
+  if (!user || user.role !== "ADMIN") {
+    redirect("/auth/login?error=denied");
   }
 
   return (
