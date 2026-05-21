@@ -41,53 +41,133 @@ export async function POST(request: NextRequest) {
       conductingType,
       learningOutcomes,
       careerFields,
+      discount,
+      growthPercentage,
+      hiringSectors,
+      estimatedSalary,
+      expectedIncome,
     } = body;
 
-    // Validate required fields
-    if (!title || !description || !categoryId || !price) {
+    // Required: title, description, categoryId
+    if (!title || !description || !categoryId) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: title, description or categoryId' },
         { status: 400 }
       );
     }
 
-    // Generate slug from title
-    const slug = title
+    // Validate price only if provided
+    let parsedPrice: number | undefined = undefined;
+    if (price !== undefined && price !== null && String(price).trim() !== '') {
+      parsedPrice = Number(price);
+      if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+        return NextResponse.json(
+          { error: 'Invalid price' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate discount if provided
+    let parsedDiscount: number | undefined = undefined;
+    if (discount !== undefined && discount !== null && String(discount).trim() !== '') {
+      parsedDiscount = Number(discount);
+      if (Number.isNaN(parsedDiscount) || parsedDiscount < 0) {
+        return NextResponse.json({ error: 'Invalid discount' }, { status: 400 });
+      }
+    }
+
+    // Normalize growth percentage if provided
+    let parsedGrowth: number | undefined = undefined;
+    if (growthPercentage !== undefined && growthPercentage !== null && String(growthPercentage).trim() !== '') {
+      parsedGrowth = Number(growthPercentage);
+      if (Number.isNaN(parsedGrowth)) {
+        return NextResponse.json({ error: 'Invalid growthPercentage' }, { status: 400 });
+      }
+    }
+
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+
+    if (!category) {
+      return NextResponse.json(
+        { error: 'Selected category does not exist' },
+        { status: 400 }
+      );
+    }
+
+    const slugBase = title
+      .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
 
-    // Check if slug already exists
-    const existingCourse = await prisma.course.findUnique({
-      where: { slug },
-    });
+    let slug = slugBase;
+    let suffix = 1;
 
-    if (existingCourse) {
-      return NextResponse.json(
-        { error: 'A course with this title already exists' },
-        { status: 409 }
-      );
+    while (await prisma.course.findUnique({ where: { slug } })) {
+      slug = `${slugBase}-${suffix++}`;
     }
 
-    // Create the course
-    const course = await prisma.course.create({
-      data: {
-        title,
-        slug,
-        description,
-        overview,
-        thumbnail,
-        categoryId,
-        price: parseFloat(price),
-        level,
-        duration,
-        hasCertificate,
-        hasExam,
-        conductingType,
-        learningOutcomes: learningOutcomes || [],
-        careerFields: careerFields || [],
-      },
-    });
+    const normalizedLearningOutcomes = Array.isArray(learningOutcomes)
+      ? learningOutcomes.filter((item) => typeof item === 'string' && item.trim() !== '').map((item: string) => item.trim())
+      : [];
+
+    const normalizedCareerFields = Array.isArray(careerFields)
+      ? careerFields.filter((item) => typeof item === 'string' && item.trim() !== '').map((item: string) => item.trim())
+      : [];
+
+    const normalizedOverview = Array.isArray(overview)
+      ? overview.filter((item) => typeof item === 'string' && item.trim() !== '').map((item: string) => item.trim())
+      : (typeof overview === 'string' && overview.trim() !== '' ? [overview.trim()] : []);
+
+    const normalizedHiringSectors = Array.isArray(hiringSectors)
+      ? hiringSectors.filter((item) => typeof item === 'string' && item.trim() !== '').map((item: string) => item.trim())
+      : (typeof hiringSectors === 'string' && hiringSectors.trim() !== '' ? [hiringSectors.trim()] : []);
+
+    const data: any = {
+      title: title.trim(),
+      slug,
+      description: description.trim(),
+      overview: normalizedOverview,
+      thumbnail: thumbnail?.trim() || null,
+      categoryId,
+      level,
+      duration: duration?.trim() || null,
+      hasCertificate: Boolean(hasCertificate),
+      hasExam: Boolean(hasExam),
+      conductingType,
+      learningOutcomes: normalizedLearningOutcomes,
+      careerFields: normalizedCareerFields,
+      instructorId: session.userId,
+    };
+
+    if (parsedPrice !== undefined) {
+      data.price = parsedPrice;
+    }
+
+    if (parsedDiscount !== undefined) {
+      data.discount = parsedDiscount;
+    }
+
+    if (parsedGrowth !== undefined) {
+      data.growthPercentage = parsedGrowth;
+    }
+
+    if (normalizedHiringSectors.length > 0) {
+      data.hiringSectors = normalizedHiringSectors;
+    }
+
+    if (estimatedSalary && String(estimatedSalary).trim() !== '') {
+      data.estimatedSalary = String(estimatedSalary).trim();
+    }
+
+    if (expectedIncome && String(expectedIncome).trim() !== '') {
+      data.expectedIncome = String(expectedIncome).trim();
+    }
+
+    const course = await prisma.course.create({ data });
 
     return NextResponse.json({
       message: 'Course created successfully',
