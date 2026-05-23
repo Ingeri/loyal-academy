@@ -2,6 +2,41 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth/session';
 
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getSession();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { role: true },
+    });
+
+    if (!user || user.role !== 'INSTRUCTOR') {
+      return NextResponse.json({ error: 'Only instructors can view their courses' }, { status: 403 });
+    }
+
+    const courses = await prisma.course.findMany({
+      where: { instructorId: session.userId },
+      include: {
+        category: true,
+        instructor: { select: { name: true } },
+        tags: true,
+        _count: { select: { reviews: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json({ courses });
+  } catch (error) {
+    console.error('Failed to fetch instructor courses:', error);
+    return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();

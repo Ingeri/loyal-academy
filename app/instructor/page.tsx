@@ -12,20 +12,28 @@ export default async function InstructorPage() {
   const session = await getSession();
   const userId = session!.userId;
 
-  const [user, courses, enrollments] = await Promise.all([
+  const [user, courses, enrollments, certificates] = await Promise.all([
     prisma.user.findUnique({ 
       where: { id: userId }, 
       select: { name: true } 
     }),
     prisma.course.findMany({
-      where: { published: true },
+      where: { instructorId: userId },
       orderBy: { createdAt: 'desc' },
       take: 5
     }),
     prisma.enrollment.findMany({
+      where: {
+        course: { instructorId: userId }
+      },
       include: { course: true, user: true },
       orderBy: { createdAt: 'desc' },
       take: 10
+    }),
+    prisma.certificate.count({
+      where: {
+        course: { instructorId: userId }
+      }
     })
   ]);
 
@@ -52,8 +60,8 @@ export default async function InstructorPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Courses" value={courses.length} icon={<BookOpen className="text-blue-500 w-5 h-5"/>} color="bg-blue-500/10" />
         <StatCard label="Students" value={enrollments.length} icon={<Users className="text-amber-500 w-5 h-5"/>} color="bg-amber-500/10" />
-        <StatCard label="Active" value={courses.filter(c => c.published).length} icon={<TrendingUp className="text-green-500 w-5 h-5"/>} color="bg-green-500/10" />
-        <StatCard label="Certificates" value={0} icon={<Award className="text-purple-500 w-5 h-5"/>} color="bg-purple-500/10" />
+        <StatCard label="Published" value={courses.filter(c => c.published).length} icon={<TrendingUp className="text-green-500 w-5 h-5"/>} color="bg-green-500/10" />
+        <StatCard label="Certificates" value={certificates} icon={<Award className="text-purple-500 w-5 h-5"/>} color="bg-purple-500/10" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -90,6 +98,49 @@ export default async function InstructorPage() {
               </Card>
             )}
           </div>
+
+          <div className="flex items-center justify-between pt-4">
+            <h2 className="text-2xl font-bold">Your Courses</h2>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/instructor/courses" className="flex items-center gap-1">
+                View all <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid gap-4">
+            {courses.length > 0 ? courses.map((course) => (
+              <Card key={course.id} className="p-4 bg-card/50">
+                <div className="flex gap-5 items-center">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold truncate">{course.title}</h3>
+                      {course.published && (
+                        <span className="text-xs bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full font-medium">
+                          Published
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {course.studentNumber || 0} students enrolled
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium">${Number(course.price)}</div>
+                    <div className="text-xs text-muted-foreground">Price</div>
+                  </div>
+                </div>
+              </Card>
+            )) : (
+              <Card className="p-12 text-center border-dashed bg-muted/5">
+                <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No courses yet.</p>
+                <Button className="mt-4" asChild>
+                  <Link href="/instructor/courses/new">Create your first course</Link>
+                </Button>
+              </Card>
+            )}
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -102,6 +153,17 @@ export default async function InstructorPage() {
                 <p className="text-sm opacity-80">Active learners across all courses</p>
              </div>
              <Users className="absolute -right-6 -bottom-6 h-32 w-32 text-white/5 rotate-12" />
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-purple-600 to-indigo-600 text-white relative overflow-hidden border-none shadow-xl">
+             <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-2 opacity-80 text-xs font-bold uppercase tracking-wider">
+                  <Award className="h-4 w-4" /> Certificates Issued
+                </div>
+                <div className="text-5xl font-black mb-4">{certificates}</div>
+                <p className="text-sm opacity-80">Students who completed your courses</p>
+             </div>
+             <Award className="absolute -right-6 -bottom-6 h-32 w-32 text-white/5 rotate-12" />
           </Card>
         </div>
       </div>
