@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { 
-  LayoutDashboard, 
-  BookOpen, 
-  Award, 
-  UserCircle, 
-  Settings, 
+import {
+  LayoutDashboard,
+  BookOpen,
+  Award,
+  UserCircle,
+  Settings,
   LogOut,
   Sparkles,
   Loader2

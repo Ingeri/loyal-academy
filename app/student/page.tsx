@@ -7,23 +7,26 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { 
   BookOpen, CheckCircle, Award, PlayCircle, 
-  ArrowRight, Download, Sparkles, TrendingUp 
+  ArrowRight, Download, Sparkles, TrendingUp,
+  GraduationCap
 } from 'lucide-react';
+import { getScholarshipDashboardData } from '@/app/scholarships/actions';
 
 export default async function StudentPage() {
   const session = await getSession();
   const userId = session!.userId;
 
-  const [dbUser, enrollments, certificates] = await Promise.all([
+  const [dbUser, enrollments, certificates, scholarshipData] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
     prisma.enrollment.findMany({
       where: { userId },
-      include: { 
-        course: { include: { syllabus: { include: { lessons: true } } } } 
+      include: {
+        course: { include: { syllabus: { include: { lessons: true } } } }
       },
       orderBy: { updatedAt: 'desc' }
     }),
-    prisma.certificate.findMany({ where: { userId }, include: { course: true } })
+    prisma.certificate.findMany({ where: { userId }, include: { course: true } }),
+    getScholarshipDashboardData()
   ]);
 
   const firstName = dbUser?.name?.split(' ')[0] || 'Learner';
@@ -46,11 +49,12 @@ export default async function StudentPage() {
       </header>
 
       {/* Stats Bento Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard label="Enrolled" value={enrollments.length} icon={<BookOpen className="text-blue-500 w-5 h-5"/>} color="bg-blue-500/10" />
         <StatCard label="Active" value={active.length} icon={<PlayCircle className="text-amber-500 w-5 h-5"/>} color="bg-amber-500/10" />
         <StatCard label="Finished" value={completed.length} icon={<CheckCircle className="text-green-500 w-5 h-5"/>} color="bg-green-500/10" />
         <StatCard label="Badges" value={certificates.length} icon={<Award className="text-purple-500 w-5 h-5"/>} color="bg-purple-500/10" />
+        <StatCard label="Scholarships" value={scholarshipData.stats?.totalApplied || 0} icon={<GraduationCap className="text-pink-500 w-5 h-5"/>} color="bg-pink-500/10" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -122,6 +126,27 @@ export default async function StudentPage() {
               )) : (
                 <p className="text-xs text-muted-foreground text-center py-4 italic">Complete a course to earn your first certificate!</p>
               )}
+            </div>
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-pink-500/10 to-purple-500/10 border-pink-500/20">
+            <h3 className="font-bold mb-4 flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-pink-500" /> Scholarships
+            </h3>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                {scholarshipData.stats?.totalApplied || 0} scholarship{(scholarshipData.stats?.totalApplied || 0) !== 1 ? 's' : ''} applied
+              </p>
+              {scholarshipData.eligibleScholarships.length > 0 && (
+                <p className="text-xs text-green-600 font-medium">
+                  {scholarshipData.eligibleScholarships.length} eligible to apply
+                </p>
+              )}
+              <Button size="sm" className="w-full mt-2" asChild>
+                <Link href="/student/scholarships">
+                  View Scholarships <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
             </div>
           </Card>
         </div>
