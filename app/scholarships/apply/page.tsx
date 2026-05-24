@@ -2,13 +2,9 @@ import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { GraduationCap, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
+import { GraduationCap, CheckCircle } from 'lucide-react';
 import { getScholarships } from '../actions';
-import { submitScholarshipApplication } from '../actions';
-import { redirect } from 'next/navigation';
+import ScholarshipApplicationForm from '@/components/scholarship/scholarship-application-form';
 import Link from 'next/link';
 
 export const metadata = {
@@ -19,10 +15,17 @@ export const metadata = {
 export default async function ApplyPage({
   searchParams,
 }: {
-  searchParams: { scholarshipId?: string };
+  searchParams: Promise<{ scholarshipId?: string }>;
 }) {
   const { scholarships } = await getScholarships();
-  const selectedScholarshipId = searchParams.scholarshipId;
+  const resolvedSearchParams = await searchParams;
+  const selectedScholarshipId = resolvedSearchParams.scholarshipId;
+
+  // Convert scholarship data to match component interface
+  const formattedScholarships = scholarships.map((scholarship: any) => ({
+    ...scholarship,
+    amount: Number(scholarship.amount),
+  }));
 
   return (
     <main className="min-h-screen bg-background">
@@ -64,101 +67,10 @@ export default async function ApplyPage({
       {/* Application Form */}
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Scholarship Application Form</h2>
-            
-            <form action={async (formData: FormData) => {
-              'use server';
-              
-              const scholarshipId = formData.get('scholarshipId') as string;
-              const motivationLetter = formData.get('motivationLetter') as string;
-              const financialNeedProof = formData.get('financialNeedProof') as string;
-              
-              const result = await submitScholarshipApplication({
-                scholarshipId,
-                motivationLetter,
-                financialNeedProof,
-              });
-              
-              if (result.success) {
-                redirect('/dashboard?tab=scholarships');
-              }
-            }}>
-              <div className="space-y-6">
-                {/* Scholarship Selection */}
-                <div>
-                  <Label htmlFor="scholarshipId">Select Scholarship *</Label>
-                  <select
-                    id="scholarshipId"
-                    name="scholarshipId"
-                    required
-                    defaultValue={selectedScholarshipId}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
-                  >
-                    <option value="">Choose a scholarship...</option>
-                    {scholarships.map((scholarship: any) => (
-                      <option key={scholarship.id} value={scholarship.id}>
-                        {scholarship.title} - ${Number(scholarship.amount).toLocaleString()}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Motivation Letter */}
-                <div>
-                  <Label htmlFor="motivationLetter">Motivation Letter *</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Explain why you deserve this scholarship and how it will help you achieve your educational goals.
-                  </p>
-                  <Textarea
-                    id="motivationLetter"
-                    name="motivationLetter"
-                    required
-                    minLength={100}
-                    rows={8}
-                    placeholder="Write your motivation letter here (minimum 100 characters)..."
-                    className="mt-2"
-                  />
-                </div>
-
-                {/* Financial Need Proof */}
-                <div>
-                  <Label htmlFor="financialNeedProof">Financial Need Proof (Optional)</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Provide any documentation or explanation of your financial situation. This is required for need-based scholarships.
-                  </p>
-                  <Textarea
-                    id="financialNeedProof"
-                    name="financialNeedProof"
-                    rows={4}
-                    placeholder="Describe your financial situation or provide links to supporting documents..."
-                    className="mt-2"
-                  />
-                </div>
-
-                {/* Important Notice */}
-                <Card className="p-4 bg-muted/50 border-primary/20">
-                  <div className="flex gap-3">
-                    <AlertCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-muted-foreground">
-                      <p className="font-medium text-foreground mb-1">Before submitting:</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        <li>Ensure you meet all eligibility criteria</li>
-                        <li>Double-check your motivation letter for clarity and completeness</li>
-                        <li>Submit before the application deadline</li>
-                        <li>You can only apply once per scholarship</li>
-                      </ul>
-                    </div>
-                  </div>
-                </Card>
-
-                <Button type="submit" size="lg" className="w-full gap-2">
-                  Submit Application
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </form>
-          </Card>
+          <ScholarshipApplicationForm 
+            scholarships={formattedScholarships} 
+            initialScholarshipId={selectedScholarshipId} 
+          />
 
           {/* Help Section */}
           <Card className="p-6 mt-8 bg-primary/5">

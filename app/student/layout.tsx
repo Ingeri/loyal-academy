@@ -1,4 +1,4 @@
-import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar';
+import { StudentSidebar } from '@/components/student/student-sidebar';
 import { getSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
@@ -28,7 +28,7 @@ export default async function StudentLayout({
   return (
     <div className="min-h-screen bg-background">
       <aside className="hidden md:flex h-full w-64 flex-col fixed inset-y-0 z-50 border-r bg-card">
-        <DashboardSidebar />
+        <StudentSidebar />
       </aside>
       
       <main className="md:pl-64 flex flex-col min-h-screen">

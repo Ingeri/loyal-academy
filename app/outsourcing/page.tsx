@@ -124,7 +124,7 @@ export default async function OutsourcingPage() {
                       <DollarSign className="h-4 w-4" />
                       ${Number(project.budget).toLocaleString()}
                     </div>
-                    <Link href={`/outsourcing/projects/${project.id}`}>
+                    <Link href={`/outsourcing/projects/${project.slug}`}>
                       <Button variant="ghost" size="sm">View Details</Button>
                     </Link>
                   </div>

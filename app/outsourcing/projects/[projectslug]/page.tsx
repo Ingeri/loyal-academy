@@ -3,10 +3,12 @@ import Footer from '@/components/footer';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, DollarSign, Clock, Building2, User, ArrowLeft, Mail } from 'lucide-react';
-import { getProjectBySlug } from '../../actions';
+import { Textarea } from '@/components/ui/textarea';
+import { Briefcase, DollarSign, Clock, ArrowLeft } from 'lucide-react';
+import { getProjectBySlug, expressInterestInProject, hasUserAppliedToProject } from '../../actions';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 export const metadata = {
   title: 'Project Details - Loyal Academy',
@@ -15,11 +17,15 @@ export const metadata = {
 
 export default async function ProjectDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectslug: string }>;
+  searchParams: Promise<{ success?: string }>;
 }) {
   const { projectslug } = await params;
+  const { success } = await searchParams;
   const project = await getProjectBySlug(projectslug);
+  const hasApplied = await hasUserAppliedToProject(project.id);
 
   if (!project) {
     notFound();
@@ -32,6 +38,12 @@ export default async function ProjectDetailPage({
       {/* Header */}
       <section className="px-4 py-8 sm:px-6 lg:px-8 border-b">
         <div className="mx-auto max-w-6xl">
+          {success === 'true' && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 font-medium">Interest expressed successfully!</p>
+              <p className="text-green-700 text-sm">We'll review your application and get back to you soon.</p>
+            </div>
+          )}
           <Link href="/outsourcing/projects">
             <Button variant="ghost" size="sm" className="mb-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -82,38 +94,10 @@ export default async function ProjectDetailPage({
               </Card>
             )}
 
-            {project.assignedTalent && (
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold text-foreground mb-4">Assigned Talent</h2>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">{project.assignedTalent.name}</p>
-                    <p className="text-sm text-muted-foreground">{project.assignedTalent.email}</p>
-                  </div>
-                </div>
-              </Card>
-            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card className="p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4">Company Information</h2>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{project.company.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">{project.company.email}</span>
-                </div>
-              </div>
-            </Card>
-
             <Card className="p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Project Status</h2>
               <Badge variant="secondary" className="w-full justify-center py-2">
@@ -121,13 +105,42 @@ export default async function ProjectDetailPage({
               </Badge>
             </Card>
 
-            {!project.assignedTalent && project.status === 'OPEN' && (
+            {project.status === 'OPEN' && (
               <Card className="p-6">
                 <h2 className="text-lg font-semibold text-foreground mb-4">Interested?</h2>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Contact us to express your interest in this project.
-                </p>
-                <Button className="w-full">Express Interest</Button>
+                {hasApplied ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      You have already expressed interest in this project. We'll review your application and get back to you soon.
+                    </p>
+                    <Button disabled className="w-full">
+                      Application Submitted
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Express your interest in this project by submitting a cover letter.
+                    </p>
+                    <form action={async (formData) => {
+                      'use server';
+                      const coverLetter = formData.get('coverLetter') as string;
+                      const result = await expressInterestInProject(project.id, coverLetter);
+                      if (result.success) {
+                        redirect(`/outsourcing/projects/${projectslug}?success=true`);
+                      }
+                    }}>
+                      <Textarea
+                        name="coverLetter"
+                        placeholder="Tell us why you're interested in this project and highlight your relevant skills..."
+                        className="min-h-[120px] mb-4"
+                      />
+                      <Button type="submit" className="w-full">
+                        Express Interest
+                      </Button>
+                    </form>
+                  </div>
+                )}
               </Card>
             )}
           </div>

@@ -3,6 +3,10 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { getUser } from '@/lib/auth/session';
+import { z } from 'zod';
+import fs from 'fs';
+import path from 'path';
+import { DocumentType, ALLOWED_FILE_TYPES, MAX_FILE_SIZE, MAX_ADDITIONAL_DOCUMENTS, MIN_MOTIVATION_LENGTH, DOCUMENT_TYPE_LABELS } from '@/lib/constants/scholarship';
 
 /**
  * Utility function to generate slug from title
@@ -12,6 +16,79 @@ function generateSlug(title: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
+}
+
+/**
+ * Validation Schemas
+ */
+
+const documentSchema = z.object({
+  type: z.string().refine((val) => Object.values(DocumentType).includes(val as DocumentType), {
+    message: 'Invalid document type',
+  }),
+  name: z.string().min(1, 'Document name is required'),
+  url: z.string().min(1, 'Document URL is required'),
+});
+
+const scholarshipApplicationSchema = z.object({
+  scholarshipId: z.string().uuid('Invalid scholarship ID'),
+  motivationLetter: z.string().min(MIN_MOTIVATION_LENGTH, `Motivation letter must be at least ${MIN_MOTIVATION_LENGTH} characters`),
+  financialNeedProof: z.string().nullable().optional(),
+  additionalDocuments: z.array(documentSchema).max(MAX_ADDITIONAL_DOCUMENTS, `Maximum ${MAX_ADDITIONAL_DOCUMENTS} additional documents allowed`).optional(),
+});
+
+/**
+ * File Upload Action
+ */
+export async function uploadDocument(formData: FormData) {
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const file = formData.get('file') as File | null;
+
+    if (!file) {
+      return { success: false, error: 'No file provided' };
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      return { success: false, error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` };
+    }
+
+    // Validate file type
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!ALLOWED_FILE_TYPES.includes(fileExtension)) {
+      return { success: false, error: `Invalid file type. Allowed types: ${ALLOWED_FILE_TYPES.join(', ')}` };
+    }
+
+    // Read file buffer
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+
+    // Ensure uploads directory exists
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    // Generate unique filename
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${fileExtension}`;
+    const filePath = path.join(uploadsDir, fileName);
+
+    // Write file
+    fs.writeFileSync(filePath, buffer);
+
+    // Return URL
+    const url = `/uploads/${fileName}`;
+
+    return { success: true, url, fileName: file.name };
+  } catch (error) {
+    console.error('Upload error:', error);
+    return { success: false, error: 'Upload failed' };
+  }
 }
 
 /**
@@ -251,9 +328,10 @@ export async function submitScholarshipApplication(formData: {
   scholarshipId: string;
   motivationLetter: string;
   financialNeedProof?: string;
-  additionalDocuments?: string[];
+  additionalDocuments?: Array<{ type: DocumentType; name: string; url: string }>;
 }) {
   try {
+    console.log('Received formData:', JSON.stringify(formData, null, 2));
     const user = await getUser();
 
     if (!user) {
@@ -262,6 +340,35 @@ export async function submitScholarshipApplication(formData: {
 
     if (user.role !== 'STUDENT') {
       return { success: false, error: 'Unauthorized. Only students can apply for scholarships' };
+    }
+
+    // Fetch scholarship to check type for conditional validation
+    const scholarship = await prisma.scholarship.findUnique({
+      where: { id: formData.scholarshipId },
+    });
+
+    if (!scholarship) {
+      return { success: false, error: 'Scholarship not found' };
+    }
+
+    // Validate input data
+    const validationResult = scholarshipApplicationSchema.safeParse(formData);
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(err => ({
+        path: err.path.join('.'),
+        message: err.message,
+      }));
+      return { success: false, error: 'Validation failed', errors };
+    }
+
+    // Conditional validation for NEED_BASED scholarships
+    if (scholarship.type === 'NEED_BASED' && !formData.financialNeedProof) {
+      return {
+        success: false,
+        error: 'Validation failed',
+        errors: [{ path: 'financialNeedProof', message: 'Financial need proof is required for need-based scholarships' }]
+      };
     }
 
     // Check if user has already applied
@@ -289,8 +396,8 @@ export async function submitScholarshipApplication(formData: {
         scholarshipId: formData.scholarshipId,
         applicantId: user.id,
         motivationLetter: formData.motivationLetter,
-        financialNeedProof: formData.financialNeedProof,
-        additionalDocuments: formData.additionalDocuments || [],
+        financialNeedProof: formData.financialNeedProof || null,
+        additionalDocuments: formData.additionalDocuments as any || [],
       },
     });
 
@@ -330,8 +437,8 @@ export async function getUserApplications(userId: string) {
           },
         },
       },
-      orderBy: { 
-        submittedAt: 'desc' 
+      orderBy: {
+        submittedAt: 'desc'
       },
     });
 
@@ -339,6 +446,95 @@ export async function getUserApplications(userId: string) {
   } catch (error) {
     console.error("Error fetching user applications:", error);
     return { applications: [] };
+  }
+}
+
+/**
+ * Get scholarship dashboard data for student
+ */
+export async function getScholarshipDashboardData() {
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return { eligibleScholarships: [], myApplications: [], stats: null };
+    }
+
+    if (user.role !== 'STUDENT') {
+      return { eligibleScholarships: [], myApplications: [], stats: null };
+    }
+
+    // Fetch user's applications
+    const applications = await prisma.scholarshipApplication.findMany({
+      where: { applicantId: user.id },
+      include: {
+        scholarship: {
+          include: {
+            donor: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        submittedAt: 'desc'
+      },
+    });
+
+    // Get scholarship IDs user has already applied to
+    const appliedScholarshipIds = applications.map(app => app.scholarshipId);
+
+    // Fetch active scholarships
+    const activeScholarships = await prisma.scholarship.findMany({
+      where: {
+        isActive: true,
+        applicationDeadline: {
+          gte: new Date(),
+        },
+        id: {
+          notIn: appliedScholarshipIds,
+        },
+      },
+      include: {
+        donor: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        applicationDeadline: 'asc',
+      },
+    });
+
+    // Check eligibility for each scholarship
+    const eligibleScholarships = [];
+    for (const scholarship of activeScholarships) {
+      const eligibility = await checkEligibility(scholarship.id, user.id);
+      if (eligibility.eligible) {
+        eligibleScholarships.push(scholarship);
+      }
+    }
+
+    // Calculate stats
+    const stats = {
+      totalApplied: applications.length,
+      pending: applications.filter(app => app.status === 'PENDING').length,
+      underReview: applications.filter(app => app.status === 'UNDER_REVIEW').length,
+      approved: applications.filter(app => app.status === 'APPROVED').length,
+      rejected: applications.filter(app => app.status === 'REJECTED').length,
+    };
+
+    return {
+      eligibleScholarships,
+      myApplications: applications,
+      stats,
+    };
+  } catch (error) {
+    console.error("Error fetching scholarship dashboard data:", error);
+    return { eligibleScholarships: [], myApplications: [], stats: null };
   }
 }
 

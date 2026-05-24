@@ -1,4 +1,4 @@
-import { PortalSidebar } from '@/components/portal/portal-sidebar';
+import { ClientSidebar } from '@/components/client/client-sidebar';
 import { getSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
@@ -28,9 +28,9 @@ export default async function ClientLayout({
   return (
     <div className="min-h-screen bg-background">
       <aside className="hidden md:flex h-full w-64 flex-col fixed inset-y-0 z-50 border-r bg-card">
-        <PortalSidebar />
+        <ClientSidebar />
       </aside>
-      
+
       <main className="md:pl-64 flex flex-col min-h-screen">
         <div className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
           {children}

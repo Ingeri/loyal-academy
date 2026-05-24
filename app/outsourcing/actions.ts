@@ -27,15 +27,6 @@ export async function getProjects() {
       where: { 
         status: 'OPEN' 
       },
-      include: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
       orderBy: { 
         createdAt: 'desc' 
       },
@@ -60,22 +51,6 @@ export async function getProjectById(id: string) {
   try {
     const project = await prisma.project.findUnique({
       where: { id },
-      include: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        assignedTalent: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
     });
 
     return project;
@@ -97,22 +72,6 @@ export async function getProjectBySlug(slug: string) {
   try {
     const project = await prisma.project.findUnique({
       where: { slug },
-      include: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        assignedTalent: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
     });
 
     return project;
@@ -174,18 +133,7 @@ export async function getCaseStudies() {
   try {
     const caseStudies = await prisma.caseStudy.findMany({
       where: {
-        OR: [
-          { featured: true },
-          { projectId: { not: null } },
-        ],
-      },
-      include: {
-        project: {
-          select: {
-            title: true,
-            status: true,
-          },
-        },
+        featured: true,
       },
       orderBy: [
         { featured: 'desc' },
@@ -373,20 +321,6 @@ export async function assignProjectToTalent(projectId: string, talentId: string)
       data: {
         assignedTalentId: talentId,
         status: 'IN_PROGRESS',
-      },
-      include: {
-        company: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-        assignedTalent: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
       },
     });
 
@@ -577,6 +511,142 @@ export async function rejectPartnership(id: string) {
   } catch (error) {
     console.error("Error rejecting partnership:", error);
     return { success: false, error: 'Failed to reject partnership' };
+  }
+}
+
+/**
+ * Check if user has already applied to a project
+ */
+export async function hasUserAppliedToProject(projectId: string) {
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return false;
+    }
+
+    const existingApplication = await prisma.projectApplication.findUnique({
+      where: {
+        projectId_applicantId: {
+          projectId,
+          applicantId: user.id,
+        },
+      },
+    });
+
+    return !!existingApplication;
+  } catch (error) {
+    console.error("Error checking application status:", error);
+    return false;
+  }
+}
+
+/**
+ * Get user's project applications
+ */
+export async function getUserProjectApplications() {
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return { applications: [] };
+    }
+
+    const applications = await prisma.projectApplication.findMany({
+      where: {
+        applicantId: user.id,
+      },
+      include: {
+        project: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            budget: true,
+            timeline: true,
+            status: true,
+            slug: true,
+            skillsRequired: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return { applications };
+  } catch (error) {
+    console.error("Error fetching user project applications:", error);
+    return { applications: [] };
+  }
+}
+
+/**
+ * Get client's projects
+ */
+export async function getClientProjects() {
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return { projects: [] };
+    }
+
+    const projects = await prisma.project.findMany({
+      where: {
+        companyId: user.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return { projects };
+  } catch (error) {
+    console.error("Error fetching client projects:", error);
+    return { projects: [] };
+  }
+}
+
+/**
+ * Express interest in a project
+ */
+export async function expressInterestInProject(projectId: string, coverLetter?: string) {
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Check if user has already applied
+    const existingApplication = await prisma.projectApplication.findUnique({
+      where: {
+        projectId_applicantId: {
+          projectId,
+          applicantId: user.id,
+        },
+      },
+    });
+
+    if (existingApplication) {
+      return { success: false, error: 'You have already expressed interest in this project' };
+    }
+
+    const application = await prisma.projectApplication.create({
+      data: {
+        projectId,
+        applicantId: user.id,
+        coverLetter,
+      },
+    });
+
+    revalidatePath('/outsourcing/projects');
+    return { success: true, application };
+  } catch (error) {
+    console.error("Error expressing interest in project:", error);
+    return { success: false, error: 'Failed to express interest' };
   }
 }
 

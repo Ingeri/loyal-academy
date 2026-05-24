@@ -23,10 +23,20 @@ const routes = [
   { label: 'Settings', icon: Settings, href: '/portal/settings' },
 ];
 
+const donorRoutes = [
+  { label: 'Overview', icon: LayoutDashboard, href: '/donor' },
+  { label: 'Scholarships', icon: HandHeart, href: '/donor/scholarships' },
+  { label: 'Profile', icon: UserCircle, href: '/donor/profile' },
+  { label: 'Settings', icon: Settings, href: '/donor/settings' },
+];
+
 export function PortalSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const isDonorRoute = pathname.startsWith('/donor');
+  const currentRoutes = isDonorRoute ? donorRoutes : routes;
 
   const onLogout = async () => {
     try {
@@ -59,7 +69,7 @@ export function PortalSidebar() {
       </div>
 
       <nav className="flex-1 px-4 space-y-1">
-        {routes.map((route) => {
+        {currentRoutes.map((route) => {
           const isActive = pathname === route.href;
           return (
             <Link

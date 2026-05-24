@@ -79,9 +79,6 @@ export default async function ProjectsPage() {
                       <DollarSign className="h-4 w-4" />
                       ${Number(project.budget).toLocaleString()}
                     </div>
-                    <span className="text-sm text-muted-foreground">
-                      {project.company.name}
-                    </span>
                   </div>
                   
                   <Link href={`/outsourcing/projects/${project.slug}`}>
