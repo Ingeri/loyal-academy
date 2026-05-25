@@ -192,7 +192,7 @@ export default async function ScholarshipPage({ params }: ScholarshipPageProps) 
                       </div>
                     </div>
                   )}
-                  {criteria.additionalRequirements && criteria.additionalRequirements.length > 0 && (
+                  {criteria.additionalRequirements && Array.isArray(criteria.additionalRequirements) && criteria.additionalRequirements.length > 0 && (
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                       <div>
