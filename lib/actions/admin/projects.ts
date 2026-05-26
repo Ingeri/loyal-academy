@@ -17,23 +17,6 @@ export async function getProjects(status?: ProjectStatus) {
 
   const projects = await prisma.project.findMany({
     where,
-    include: {
-      company: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      assignedTalent: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      caseStudy: true,
-    },
     orderBy: { createdAt: 'desc' },
   });
 
@@ -56,15 +39,6 @@ export async function createProject(data: {
 
   const project = await prisma.project.create({
     data,
-    include: {
-      company: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-    },
   });
 
   return project;
@@ -80,22 +54,6 @@ export async function updateProject(id: string, data: any) {
   const project = await prisma.project.update({
     where: { id: validatedId },
     data,
-    include: {
-      company: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      assignedTalent: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-    },
   });
 
   return project;
@@ -125,22 +83,6 @@ export async function updateProjectStatus(id: string, status: ProjectStatus) {
   const project = await prisma.project.update({
     where: { id: validatedId },
     data: { status },
-    include: {
-      company: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      assignedTalent: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-    },
   });
 
   return project;
@@ -160,22 +102,6 @@ export async function assignProject(projectId: string, talentId: string) {
       assignedTalentId: validatedTalentId,
       status: ProjectStatus.IN_PROGRESS,
     },
-    include: {
-      company: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      assignedTalent: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-    },
   });
 
   return project;
@@ -190,23 +116,6 @@ export async function getProjectDetails(id: string) {
 
   const project = await prisma.project.findUnique({
     where: { id: validatedId },
-    include: {
-      company: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      assignedTalent: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      caseStudy: true,
-    },
   });
 
   return project;

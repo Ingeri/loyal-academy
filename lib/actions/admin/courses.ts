@@ -10,19 +10,21 @@ import { Level } from '@prisma/client';
  * @param published - Filter by published status
  * @param level - Filter by course level
  * @param search - Search by title or description
+ * @param instructorId - Filter by instructor ID
  */
 export async function getCourses(
   categoryId?: string,
   published?: boolean,
   level?: Level,
-  search?: string
+  search?: string,
+  instructorId?: string
 ) {
   await checkAdminAccess();
 
   const where: any = {};
 
   if (categoryId) {
-    where.categoryId = validateUUID(categoryId);
+    where.categoryId = await validateUUID(categoryId);
   }
 
   if (published !== undefined) {
@@ -31,6 +33,10 @@ export async function getCourses(
 
   if (level) {
     where.level = level;
+  }
+
+  if (instructorId) {
+    where.instructorId = instructorId;
   }
 
   if (search) {
@@ -50,6 +56,13 @@ export async function getCourses(
           slug: true,
         },
       },
+      instructor: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
       _count: {
         select: {
           enrollments: true,
@@ -67,7 +80,7 @@ export async function getCourses(
  */
 export async function getCourseDetails(courseId: string) {
   await checkAdminAccess();
-  const validatedId = validateUUID(courseId);
+  const validatedId = await validateUUID(courseId);
 
   const course = await prisma.course.findUnique({
     where: { id: validatedId },
@@ -115,7 +128,7 @@ export async function getCourseDetails(courseId: string) {
  */
 export async function updateCourse(courseId: string, data: any) {
   await checkAdminAccess();
-  const validatedId = teUUID(courseId);
+  const validatedId = await validateUUID(courseId);
 
   const course = await prisma.course.update({
     where: { id: validatedId },
@@ -133,7 +146,7 @@ export async function updateCourse(courseId: string, data: any) {
  */
 export async function deleteCourse(courseId: string) {
   await checkAdminAccess();
-  const validatedId =ateUUID(courseId);
+  const validatedId = await validateUUID(courseId);
 
   await prisma.course.delete({
     where: { id: validatedId },
@@ -147,7 +160,7 @@ export async function deleteCourse(courseId: string) {
  */
 export async function approveCourse(courseId: string) {
   await checkAdminAccess();
-  const validatedId = validateUUID(courseId);
+  const validatedId = await validateUUID(courseId);
 
   const course = await prisma.course.update({
     where: { id: validatedId },
@@ -218,4 +231,28 @@ export async function deleteCourseReview(reviewId: string) {
   });
 
   return { success: true, message: 'Review deleted successfully' };
+}
+
+/**
+ * Get instructors who have created courses
+ */
+export async function getCourseInstructors() {
+  await checkAdminAccess();
+
+  const instructors = await prisma.user.findMany({
+    where: {
+      role: 'INSTRUCTOR',
+      createdCourses: {
+        some: {},
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+    orderBy: { name: 'asc' },
+  });
+
+  return instructors;
 }

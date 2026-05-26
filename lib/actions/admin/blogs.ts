@@ -134,3 +134,114 @@ export async function deleteBlogReview(reviewId: string) {
 
   return { success: true, message: 'Blog review deleted successfully' };
 }
+
+/**
+ * Create new blog
+ */
+export async function createBlog(data: {
+  title: string;
+  slug?: string;
+  description: string;
+  content: any;
+  authorName: string;
+  readTime: number;
+  thumbnail?: string;
+  blogCategoryId: string;
+  published?: boolean;
+  avgRating?: number;
+}) {
+  await checkAdminAccess();
+
+  const validatedCategoryId = await validateUUID(data.blogCategoryId);
+
+  // Generate slug if not provided
+  let slug = data.slug;
+  if (!slug) {
+    const slugBase = data.title
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    slug = slugBase;
+    let suffix = 1;
+
+    while (await prisma.blog.findUnique({ where: { slug } })) {
+      slug = `${slugBase}-${suffix++}`;
+    }
+  }
+
+  const blog = await prisma.blog.create({
+    data: {
+      title: data.title,
+      slug,
+      description: data.description,
+      content: data.content,
+      authorName: data.authorName,
+      readTime: data.readTime,
+      thumbnail: data.thumbnail || null,
+      blogCategoryId: validatedCategoryId,
+      published: data.published || false,
+      avgRating: data.avgRating || 0,
+    },
+    include: {
+      blogCategory: true,
+    },
+  });
+
+  return blog;
+}
+
+/**
+ * Create blog FAQ
+ */
+export async function createBlogFaq(data: {
+  question: string;
+  answer: string;
+  blogId: string;
+}) {
+  await checkAdminAccess();
+  const validatedBlogId = await validateUUID(data.blogId);
+
+  const faq = await prisma.blogFaq.create({
+    data: {
+      question: data.question,
+      answer: data.answer,
+      blogId: validatedBlogId,
+    },
+  });
+
+  return faq;
+}
+
+/**
+ * Update blog FAQ
+ */
+export async function updateBlogFaq(faqId: string, data: {
+  question?: string;
+  answer?: string;
+}) {
+  await checkAdminAccess();
+  const validatedId = await validateUUID(faqId);
+
+  const faq = await prisma.blogFaq.update({
+    where: { id: validatedId },
+    data,
+  });
+
+  return faq;
+}
+
+/**
+ * Delete blog FAQ
+ */
+export async function deleteBlogFaq(faqId: string) {
+  await checkAdminAccess();
+  const validatedId = await validateUUID(faqId);
+
+  await prisma.blogFaq.delete({
+    where: { id: validatedId },
+  });
+
+  return { success: true, message: 'FAQ deleted successfully' };
+}
