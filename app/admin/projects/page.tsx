@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, Eye, Briefcase, DollarSign, Clock, User } from 'lucide-react';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -140,6 +141,12 @@ async function ProjectsPage() {
 
                 {/* Actions */}
                 <div className='flex items-center gap-2 lg:justify-end'>
+                  <Link href={`/admin/projects/${project.id}/applications`}>
+                    <Button variant='outline' size='sm' className='gap-2'>
+                      <Eye className='h-4 w-4' />
+                      Applications
+                    </Button>
+                  </Link>
                   <Select onValueChange={async (value) => {
                     'use server';
                     await updateProjectStatus(project.id, value as ProjectStatus);

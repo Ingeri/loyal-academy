@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Trash2, Eye, DollarSign, Users, Calendar } from 'lucide-react';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -156,10 +157,12 @@ async function ScholarshipsPage() {
 
                 {/* Actions */}
                 <div className='flex items-center gap-2 lg:justify-end'>
-                  <Button variant='outline' size='sm' className='gap-2'>
-                    <Eye className='h-4 w-4' />
-                    Applications
-                  </Button>
+                  <Link href={`/admin/scholarships/${scholarship.id}/applications`}>
+                    <Button variant='outline' size='sm' className='gap-2'>
+                      <Eye className='h-4 w-4' />
+                      Applications
+                    </Button>
+                  </Link>
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant='outline' size='sm' className='gap-2'>

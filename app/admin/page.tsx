@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { BarChart3, Users, BookOpen, TrendingUp, Plus, ArrowRight, Award, Clock, PenTool, DollarSign, Briefcase, Handshake, FileText } from 'lucide-react';
 
 async function getAdminStats() {
-  const [courses, users, enrollments, blogs, blogCategories, scholarships, projects, partnerships, certificates, activeStudents] = await Promise.all([
+  const [courses, users, enrollments, blogs, blogCategories, scholarships, projects, partnerships, certificates, activeStudents, pendingScholarshipApplications, pendingProjectApplications] = await Promise.all([
     prisma.course.count(),
     prisma.user.count(),
     prisma.enrollment.count(),
@@ -18,6 +18,8 @@ async function getAdminStats() {
     prisma.partnership.count(),
     prisma.certificate.count(),
     prisma.enrollment.count({ where: { progress: { gt: 0 } } }),
+    prisma.scholarshipApplication.count({ where: { status: 'PENDING' } }),
+    prisma.projectApplication.count({ where: { status: 'PENDING' } }),
   ]);
 
   const usersByRole = await prisma.user.groupBy({
@@ -37,6 +39,8 @@ async function getAdminStats() {
     certificates,
     activeStudents,
     usersByRole,
+    pendingScholarshipApplications,
+    pendingProjectApplications,
   };
 }
 
@@ -264,6 +268,40 @@ export default async function AdminPage() {
               </div>
             </div>
           </Card>
+        </div>
+      </div>
+
+      {/* Pending Applications */}
+      <div>
+        <h2 className='text-lg font-semibold text-foreground mb-4'>Pending Applications</h2>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+          <Link href='/admin/scholarships'>
+            <Card className='p-6 hover:shadow-md transition-shadow cursor-pointer group border-l-4 border-l-emerald-500'>
+              <div className='flex items-center justify-between'>
+                <div>
+                  <p className='text-sm text-muted-foreground'>Scholarship Applications</p>
+                  <p className='text-3xl font-bold text-foreground mt-1'>{stats.pendingScholarshipApplications}</p>
+                </div>
+                <div className='h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors'>
+                  <DollarSign className='h-6 w-6 text-emerald-500' />
+                </div>
+              </div>
+            </Card>
+          </Link>
+
+          <Link href='/admin/projects'>
+            <Card className='p-6 hover:shadow-md transition-shadow cursor-pointer group border-l-4 border-l-cyan-500'>
+              <div className='flex items-center justify-between'>
+                <div>
+                  <p className='text-sm text-muted-foreground'>Project Applications</p>
+                  <p className='text-3xl font-bold text-foreground mt-1'>{stats.pendingProjectApplications}</p>
+                </div>
+                <div className='h-12 w-12 rounded-xl bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors'>
+                  <Briefcase className='h-6 w-6 text-cyan-500' />
+                </div>
+              </div>
+            </Card>
+          </Link>
         </div>
       </div>
 

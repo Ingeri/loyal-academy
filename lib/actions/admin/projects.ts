@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess, validateUUID } from '../admin';
-import { ProjectStatus } from '@prisma/client';
+import { ProjectStatus, ApplicationStatus } from '@prisma/client';
 
 /**
  * Get all projects
@@ -119,4 +119,97 @@ export async function getProjectDetails(id: string) {
   });
 
   return project;
+}
+
+/**
+ * Get project applications
+ */
+export async function getProjectApplications(projectId: string) {
+  await checkAdminAccess();
+  const validatedId = await validateUUID(projectId);
+
+  const applications = await prisma.projectApplication.findMany({
+    where: { projectId: validatedId },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  // Manually fetch applicants since there's no relation in schema
+  const applicantIds = applications.map((app) => app.applicantId);
+  const applicants = await prisma.user.findMany({
+    where: { id: { in: applicantIds } },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  });
+
+  // Map applicants to applications
+  const applicantMap = new Map(applicants.map((a) => [a.id, a]));
+  const applicationsWithApplicants = applications.map((app) => ({
+    ...app,
+    applicant: applicantMap.get(app.applicantId),
+  }));
+
+  return applicationsWithApplicants;
+}
+
+/**
+ * Review project application
+ */
+export async function reviewProjectApplication(
+  applicationId: string,
+  status: ApplicationStatus,
+  reviewNotes?: string,
+  reviewerId?: string
+) {
+  await checkAdminAccess();
+  const validatedId = await validateUUID(applicationId);
+
+  const application = await prisma.projectApplication.findUnique({
+    where: { id: validatedId },
+    include: {
+      project: true,
+    },
+  });
+
+  if (!application) {
+    throw new Error('Application not found');
+  }
+
+  // Update application
+  const updatedApplication = await prisma.projectApplication.update({
+    where: { id: validatedId },
+    data: {
+      status,
+      reviewNotes,
+      updatedAt: new Date(),
+    },
+  });
+
+  // Manually fetch applicant
+  const applicant = await prisma.user.findUnique({
+    where: { id: application.applicantId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  });
+
+  // If approved, assign applicant to project and update project status
+  if (status === ApplicationStatus.APPROVED) {
+    await prisma.project.update({
+      where: { id: application.projectId },
+      data: {
+        assignedTalentId: application.applicantId,
+        status: ProjectStatus.IN_PROGRESS,
+      },
+    });
+  }
+
+  return {
+    ...updatedApplication,
+    applicant,
+  };
 }
