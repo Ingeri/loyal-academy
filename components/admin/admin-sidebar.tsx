@@ -23,6 +23,7 @@ import {
   Briefcase,
   Handshake,
   Home,
+  LogOut,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -115,7 +116,8 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
 
   const NavItem = ({ item }: { item: typeof mainNavItems[0] }) => {
     const Icon = item.icon;
-    const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+    // Fix dashboard highlighting - only highlight when exactly on /admin, not when it starts with /admin/
+    const isActive = item.href === '/admin' ? pathname === '/admin' : pathname === item.href || pathname?.startsWith(item.href + '/');
 
     return (
       <Button
@@ -146,11 +148,18 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       {/* Header */}
       <div className='flex items-center justify-between p-4 h-16 border-b flex-shrink-0'>
         {!collapsed && (
-          <Link href='/admin' className='flex items-center gap-2 group'>
+          <Link href='/' className='flex items-center gap-2 group'>
             <div className='h-8 w-8 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-105'>
               <span className='text-primary-foreground font-bold text-sm'>LA</span>
             </div>
-            <span className='font-semibold text-foreground tracking-tight'>Admin</span>
+            <span className='font-semibold text-foreground tracking-tight'>Back to Site</span>
+          </Link>
+        )}
+        {collapsed && (
+          <Link href='/' className='mx-auto'>
+            <div className='h-8 w-8 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-105'>
+              <span className='text-primary-foreground font-bold text-sm'>LA</span>
+            </div>
           </Link>
         )}
         <Button
@@ -167,8 +176,8 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
         </Button>
       </div>
 
-      {/* Navigation Viewport with custom 2px scrollbar */}
-      <ScrollArea className='flex-1 h-[calc(100vh-8rem)] [&>div>div]:!block'>
+      {/* Navigation Viewport with hidden scrollbar */}
+      <ScrollArea className='flex-1 h-[calc(100vh-8rem)] [&>div>div]:!block [&>div>div]:scrollbar-hide'>
         <div className='py-4'>
           {/* Main Navigation Group - space-y-2 spaces out the links */}
           <div className={cn('space-y-2 px-2', collapsed && 'px-1')}>
@@ -204,19 +213,19 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
 
       {/* Footer */}
       <div className='p-4 border-t flex-shrink-0 bg-card'>
-        <Button
-          asChild
-          variant='ghost'
-          className={cn(
-            'w-full justify-start gap-3 h-11 text-muted-foreground hover:text-foreground px-3',
-            collapsed && 'justify-center px-2'
-          )}
-        >
-          <Link href='/'>
-            <Home className='h-5 w-5 flex-shrink-0' />
-            {!collapsed && <span className='font-medium'>Back to Site</span>}
-          </Link>
-        </Button>
+        <form action='/api/auth/logout' method='POST'>
+          <Button
+            type='submit'
+            variant='ghost'
+            className={cn(
+              'w-full justify-start gap-3 h-11 text-muted-foreground hover:text-destructive hover:bg-destructive/10 px-3',
+              collapsed && 'justify-center px-2'
+            )}
+          >
+            <LogOut className='h-5 w-5 flex-shrink-0' />
+            {!collapsed && <span className='font-medium'>Logout</span>}
+          </Button>
+        </form>
       </div>
     </div>
   );
