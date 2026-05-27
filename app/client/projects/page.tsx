@@ -6,6 +6,8 @@ import { Briefcase, DollarSign, Clock, Plus, ArrowRight, Edit, Trash2 } from 'lu
 import Link from 'next/link';
 import { deleteProject } from '@/app/outsourcing/actions';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'My Projects - Client Portal',
   description: 'Manage your posted projects',

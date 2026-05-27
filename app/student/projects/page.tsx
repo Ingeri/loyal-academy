@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Briefcase, DollarSign, Clock, ArrowRight, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Project Applications - Student Portal',
   description: 'View and follow up on your project applications',

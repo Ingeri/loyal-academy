@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { getScholarshipDashboardData } from '../../scholarships/actions';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ScholarshipsPage() {
   const { eligibleScholarships, myApplications, stats } = await getScholarshipDashboardData();
 

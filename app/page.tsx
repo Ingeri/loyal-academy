@@ -19,6 +19,8 @@ import { InstructorCard } from "@/components/instructor-card";
 import { FeaturedCoursesCarousel } from "@/components/featured-courses-carousel";
 import { Suspense } from "react";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Loyal Academy - Online Learning Platform",
   description:
