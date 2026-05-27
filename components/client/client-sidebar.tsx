@@ -16,8 +16,8 @@ import {
 const routes = [
   { label: 'Overview', icon: LayoutDashboard, href: '/client' },
   { label: 'Projects', icon: Briefcase, href: '/client/projects' },
-  { label: 'Profile', icon: UserCircle, href: '/client/profile' },
-  { label: 'Settings', icon: Settings, href: '/client/settings' },
+  { label: 'Profile', icon: UserCircle, href: '/dashboard/profile' },
+  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ];
 
 export function ClientSidebar() {

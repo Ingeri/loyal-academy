@@ -20,8 +20,8 @@ const routes = [
   { label: 'My Courses', icon: BookOpen, href: '/instructor/courses' },
   { label: 'Create Course', icon: Award, href: '/instructor/courses/new' },
   { label: 'Students', icon: Users, href: '/instructor/students' },
-  { label: 'Profile', icon: UserCircle, href: '/instructor/profile' },
-  { label: 'Settings', icon: Settings, href: '/instructor/settings' },
+  { label: 'Profile', icon: UserCircle, href: '/dashboard/profile' },
+  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ];
 
 export function InstructorSidebar() {

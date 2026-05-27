@@ -24,6 +24,7 @@ import {
   Handshake,
   Home,
   LogOut,
+  UserCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -100,8 +101,13 @@ const analyticsNavItems = [
 
 const settingsNavItems = [
   {
+    title: 'Profile',
+    href: '/dashboard/profile',
+    icon: UserCircle,
+  },
+  {
     title: 'Settings',
-    href: '/admin/settings',
+    href: '/dashboard/settings',
     icon: Settings,
   },
 ];

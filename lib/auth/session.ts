@@ -65,8 +65,9 @@ export async function getUser() {
       name: true,
       role: true,
       isActive: true,
+      avatarUrl: true,
     },
-  });
+  } as any);
 
   return user;
 }

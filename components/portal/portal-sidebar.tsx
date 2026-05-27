@@ -19,15 +19,15 @@ const routes = [
   { label: 'Overview', icon: LayoutDashboard, href: '/portal' },
   { label: 'Projects', icon: Users, href: '/portal/projects' },
   { label: 'Scholarships', icon: HandHeart, href: '/portal/scholarships' },
-  { label: 'Profile', icon: UserCircle, href: '/portal/profile' },
-  { label: 'Settings', icon: Settings, href: '/portal/settings' },
+  { label: 'Profile', icon: UserCircle, href: '/dashboard/profile' },
+  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ];
 
 const donorRoutes = [
   { label: 'Overview', icon: LayoutDashboard, href: '/donor' },
   { label: 'Scholarships', icon: HandHeart, href: '/donor/scholarships' },
-  { label: 'Profile', icon: UserCircle, href: '/donor/profile' },
-  { label: 'Settings', icon: Settings, href: '/donor/settings' },
+  { label: 'Profile', icon: UserCircle, href: '/dashboard/profile' },
+  { label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ];
 
 export function PortalSidebar() {
