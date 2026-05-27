@@ -9,6 +9,7 @@ export type User = {
   name: string | null;
   role: string;
   isActive: boolean;
+  avatarUrl?: string | null;
 };
 
 type AuthState = {
