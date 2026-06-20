@@ -47,7 +47,7 @@ function LoginForm() {
       const manualRedirect = urlParams.get("redirect");
 
       // Use redirectUrl from API response, or manual redirect, or default to dashboard
-      const redirectUrl = manualRedirect || data.redirectUrl || "/dashboard";
+      const redirectUrl = manualRedirect || data.redirectUrl || "/";
       router.push(redirectUrl);
       router.refresh();
     } catch (error: unknown) {
