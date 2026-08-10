@@ -1,5 +1,3 @@
-import Navigation from '@/components/navigation';
-import Footer from '@/components/footer';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, CheckCircle } from 'lucide-react';
@@ -28,8 +26,7 @@ export default async function ApplyPage({
   }));
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background pt-20">
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
@@ -85,7 +82,6 @@ export default async function ApplyPage({
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 }

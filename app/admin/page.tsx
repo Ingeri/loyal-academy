@@ -380,7 +380,7 @@ export default async function AdminPage() {
             {activity.recentEnrollments.length > 0 ? (
               activity.recentEnrollments.map((enrollment: any, index: number) => (
                 <div key={index} className='flex items-start gap-3 pb-4 border-b last:border-0 last:pb-0'>
-                  <div className='h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0'>
+                  <div className='h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0'>
                     <Users className='h-4 w-4 text-blue-500' />
                   </div>
                   <div className='flex-1 min-w-0'>

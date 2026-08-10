@@ -1,54 +1,57 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
-
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+import { Navigation } from '@/components/navigation'
+import Footer from '@/components/footer'
+import { WebsiteAssistant } from '@/components/website-assistant'
 
 export const metadata: Metadata = {
-  title: 'Loyal Academy - Online Learning Platform',
-  description: 'Learn from industry experts with comprehensive online courses from Loyal Academy. Affordable, flexible, and career-focused learning.',
-  generator: 'v0.app',
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://loyalacademy.com',
-    title: 'Loyal Academy - Online Learning Platform',
-    description: 'Transform your skills with expert-led courses',
-    siteName: 'Loyal Academy',
-  },
+  title: 'LOYAL Leadership Institute',
+  description:
+    'Developing Africa’s next generation of leaders through leadership and professional excellence.',
+
+  // Browser Tab Icons (Favicon)
   icons: {
-    icon: [
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/apple-icon.png',
+  },
+
+  openGraph: {
+    title: 'LOYAL Leadership Institute',
+    description:
+      'Developing Africa’s next generation of leaders through leadership and professional excellence.',
+    type: 'website',
+    images: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: '/lli-logo.png',
+        alt: 'LOYAL Leadership Institute Logo',
+        width: 1200,
+        height: 630,
       },
     ],
-    apple: '/apple-icon.png',
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LOYAL Leadership Institute',
+    description:
+      'Developing Africa’s next generation of leaders through leadership and professional excellence.',
+    images: ['/lli-logo.png'],
   },
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
+      <body>
+        <Navigation />
         {children}
-        <Toaster position="top-center" richColors />
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <Footer />
+        <WebsiteAssistant />
       </body>
     </html>
   )

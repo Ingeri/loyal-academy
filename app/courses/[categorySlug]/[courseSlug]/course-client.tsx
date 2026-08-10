@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -929,8 +927,7 @@ export default function CourseClient({
 
   if (!course) {
     return (
-      <main className="min-h-screen bg-background">
-        <Navigation />
+      <main className="min-h-screen bg-background pt-20">
         <div className="flex items-center justify-center min-h-screen">
           <Card className="p-8 text-center">
             <h1 className="text-2xl font-bold text-foreground mb-2">
@@ -944,14 +941,12 @@ export default function CourseClient({
             </Button>
           </Card>
         </div>
-        <Navigation />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background pt-20">
       {/* Content Sections */}
       <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -1580,7 +1575,6 @@ export default function CourseClient({
         </div>
       </div>
 
-      <Footer />
     </main>
   );
 }

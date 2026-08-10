@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -431,8 +429,7 @@ export default function LearnPage() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-background">
-        <Navigation />
+      <main className="min-h-screen bg-background pt-20">
         <div className="flex items-center justify-center min-h-[60vh]">
           <Card className="p-8 text-center max-w-md">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -450,7 +447,6 @@ export default function LearnPage() {
             </div>
           </Card>
         </div>
-        <Footer />
       </main>
     );
   }
@@ -461,8 +457,7 @@ export default function LearnPage() {
   const activeExam = getActiveExam();
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background pt-20">
 
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-40">
@@ -819,7 +814,6 @@ export default function LearnPage() {
         </main>
       </div>
 
-      <Footer />
     </main>
   );
 }

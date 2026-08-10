@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import Navigation from '@/components/navigation';
-import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -38,8 +36,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background pt-20">
 
       <section className="px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
@@ -179,7 +176,6 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 }
