@@ -3,8 +3,6 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Navigation from '@/components/navigation';
-import Footer from '@/components/footer';
 import { CourseCard } from '@/components/course-card';
 import { Search, Filter, X, ChevronRight } from 'lucide-react';
 
@@ -104,8 +102,7 @@ export default async function CategoryCoursesPage({
   const currentCategoryName = categories.find((c: any) => c.slug === categorySlug)?.name || (categorySlug?.replace(/-/g, ' ') || 'All Courses');
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background pt-20">
 
       {/* Breadcrumbs */}
       <section className="px-4 py-3 sm:px-6 lg:px-8 bg-gradient-to-r from-background to-muted/20 border-b border-border/50">
@@ -323,7 +320,6 @@ export default async function CategoryCoursesPage({
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 }

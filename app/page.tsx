@@ -1,30 +1,34 @@
 import { prisma } from "@/lib/prisma";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { QuotesMarquee } from "@/components/quotes-marquee";
 import {
   ArrowRight,
   BookOpen,
   Users,
   Award,
   TrendingUp,
-  Play,
   Sparkles,
+  Briefcase,
+  GraduationCap,
+  Newspaper,
+  Mail,
+  Phone,
+  MapPin,
+  Handshake,
+  ShieldCheck,
 } from "lucide-react";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
-import { CourseCard } from "@/components/course-card";
-import { BentoGrid, BentoGridSkeleton } from "@/components/bento-grid";
 import { InstructorCard } from "@/components/instructor-card";
 import { FeaturedCoursesCarousel } from "@/components/featured-courses-carousel";
-import { Suspense } from "react";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Loyal Academy - Online Learning Platform",
+  title: "LOYAL Leadership Institute",
   description:
-    "Transform your skills with industry-leading courses from expert instructors",
+    "Empowering minds and inspiring leadership through professional courses, career development, and leadership transformation.",
 };
 
 async function getFeaturedCourses() {
@@ -55,37 +59,37 @@ async function getStats() {
   const coursesCount = await prisma.course.count({
     where: { published: true },
   });
+
   const activeStudents = await prisma.user.count({
     where: { role: "STUDENT", isActive: true },
   });
+
   const totalEnrollments = await prisma.enrollment.count();
-  const categoriesCount = await prisma.category.count();
 
   return {
     courses: coursesCount,
     students: activeStudents,
     enrollments: totalEnrollments,
-    categories: categoriesCount,
   };
 }
 
-async function getCategories() {
-  return await prisma.category.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      _count: {
-        select: { courses: true },
-      },
+async function getFeaturedQuotes() {
+  return await prisma.quote.findMany({
+    where: {
+      status: "APPROVED",
+      featured: true,
     },
+    take: 6,
+    orderBy: { createdAt: "desc" },
   });
 }
 
 const mockInstructors = [
   {
     id: "1",
-    name: "Dr. Sarah Johnson",
-    bio: "Senior web developer with 10+ years of experience in frontend technologies and modern frameworks.",
-    specialty: "Web Development",
+    name: "Counsel Bagabo Faustin",
+    bio: "Founder and visionary leader committed to developing ethical, competent, and purpose-driven African leaders.",
+    specialty: "Leadership Development",
     rating: 4.9,
     students: 12540,
     courses: 8,
@@ -93,8 +97,8 @@ const mockInstructors = [
   {
     id: "2",
     name: "Prof. Michael Chen",
-    bio: "React expert and software architect who has built multiple production applications at scale.",
-    specialty: "React & Frontend",
+    bio: "Leadership and professional development trainer with experience in institutional growth and career transformation.",
+    specialty: "Career Growth",
     rating: 4.8,
     students: 8320,
     courses: 6,
@@ -102,8 +106,8 @@ const mockInstructors = [
   {
     id: "3",
     name: "Dr. Emily Rodriguez",
-    bio: "PhD in Data Science with 8 years of industry experience in analytics and machine learning.",
-    specialty: "Data Science",
+    bio: "Expert in emotional intelligence, personal development, and professional communication.",
+    specialty: "Emotional Intelligence",
     rating: 4.9,
     students: 15600,
     courses: 12,
@@ -111,8 +115,8 @@ const mockInstructors = [
   {
     id: "4",
     name: "Alex Kim",
-    bio: "Design director with 12 years of experience at leading tech companies and startups.",
-    specialty: "UX/UI Design",
+    bio: "Trainer in entrepreneurship, innovation, creativity, and practical workplace excellence.",
+    specialty: "Entrepreneurship",
     rating: 4.7,
     students: 9800,
     courses: 5,
@@ -122,284 +126,348 @@ const mockInstructors = [
 export default async function Home() {
   const courses = await getFeaturedCourses();
   const stats = await getStats();
-  const categories = await getCategories();
+  const featuredQuotes = await getFeaturedQuotes();
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
-
-      {/* Hero Section - Glassmorphism Style */}
+    <main className="min-h-screen bg-background pt-20">
+      {/* HERO */}
       <section className="relative overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <img
-            src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?w=1920&h=1080&fit=crop"
-            alt="Students learning"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/60" />
-        </div>
+        <Image
+          src="/hero-bg.png"
+          alt="LOYAL Leadership Institute Background"
+          fill
+          priority
+          className="absolute inset-0 object-cover object-center"
+        />
 
-        <div className="relative px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
-          <div className="mx-auto max-w-6xl">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Left Content */}
-              <div className="space-y-8">
-                {/* Badge */}
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">
-                    Join {stats.students.toLocaleString()} learners worldwide
-                  </span>
-                </div>
+        <div className="absolute inset-0 bg-white/10" />
 
-                <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-                  Transform Your Skills with{" "}
-                  <span className="text-primary">Expert-Led</span> Courses
-                </h1>
+        <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32">
+          <div className="text-center md:text-left">
+            <div className="mb-8 flex items-center justify-center gap-4 md:justify-start">
+              <span className="h-px w-16 bg-accent" />
+              <p className="font-serif text-6xl italic font-light tracking-wide text-accent">
+                welcome to
+              </p>
+              <span className="h-px w-16 bg-accent" />
+            </div>
 
-                <p className="text-lg text-muted-foreground max-w-xl">
-                  Learn from industry experts and advance your career with our
-                  comprehensive online learning platform. Get certified and
-                  boost your resume.
-                </p>
+            <h1 className="font-serif text-6xl font-bold leading-[0.95] tracking-wide text-primary md:text-7xl">
+              LOYAL LEADERSHIP <br />
+              INSTITUTE
+            </h1>
 
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/courses">
-                    <Button size="lg" className="gap-2">
-                      Explore Courses <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Link href="/auth/signup">
-                    <Button size="lg" variant="outline" className="gap-2">
-                      <Play className="h-4 w-4" /> Watch Demo
-                    </Button>
-                  </Link>
-                </div>
+            <p className="mt-3 text-center font-serif text-xl italic tracking-[0.25em] text-accent md:text-left">
+              Empowering minds. Inspiring leadership.
+            </p>
 
-                {/* Trust Indicators */}
-                <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="h-8 w-8 rounded-full border-2 border-background bg-primary/20"
-                      />
-                    ))}
-                  </div>
-                  <p>Trusted by students from 100+ countries</p>
-                </div>
-              </div>
+            <div className="my-6 flex items-center justify-center gap-4 md:justify-start">
+              <span className="h-px w-44 bg-accent" />
+              <span className="h-3 w-3 rotate-45 bg-accent" />
+              <span className="h-px w-44 bg-accent" />
+            </div>
 
-              {/* Right Content - Glassmorphism Card */}
-              <div className="hidden lg:block">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary/5 rounded-3xl blur-2xl" />
-                  <Card className="relative p-8 backdrop-blur-xl bg-white/80 border-white/20 shadow-2xl">
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <BookOpen className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-foreground">
-                            {stats.courses}+ Expert Courses
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Across {categories.length} categories
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <Award className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-foreground">
-                            Industry Certificates
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Boost your career
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <Users className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-foreground">
-                            Expert Instructors
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Learn from the best
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              </div>
+            <p className="mx-auto max-w-xl text-lg leading-8 text-black/85 md:mx-0">
+              Welcome to Loyal Leadership Institute (LLI) — a transformative
+              learning hub committed to developing ethical leaders, employable
+              professionals, and impactful institutions.
+            </p>
+
+            <div className="mt-10 flex flex-wrap justify-center gap-4 md:justify-start">
+              <Button asChild className="px-8 py-6 text-base font-semibold">
+                <Link href="/courses">
+                  Explore Courses <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                className="px-8 py-6 text-base font-semibold"
+              >
+                <Link href="/about">About Us</Link>
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section - Glassmorphism Cards */}
+      {/* STATS */}
       <section className="relative -mt-8 z-10 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-6 backdrop-blur-sm bg-white/90 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-blue-500" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {[
+              {
+                icon: BookOpen,
+                number: `${stats.courses}+`,
+                label: "Expert Courses",
+              },
+              {
+                icon: Users,
+                number: `${stats.students}+`,
+                label: "Active Students",
+              },
+              {
+                icon: TrendingUp,
+                number: `${stats.enrollments}+`,
+                label: "Course Enrollments",
+              },
+            ].map((item) => (
+              <Card
+                key={item.label}
+                className="bg-white/90 p-6 backdrop-blur-sm transition-shadow hover:shadow-lg"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                    <item.icon className="h-6 w-6 text-primary" />
+                  </div>
+
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">
+                      {item.number}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.label}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {stats.courses}+
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Expert Courses
-                  </p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-6 backdrop-blur-sm bg-white/90 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {stats.students}+
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Active Students
-                  </p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-6 backdrop-blur-sm bg-white/90 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {stats.enrollments}+
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Course Enrollments
-                  </p>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Category Bento-Grid Section */}
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Explore by Category
+      {/* ABOUT US */}
+      <section className="bg-[#faf8f3] px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
+          <div>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-accent">
+              About Us
+            </p>
+
+            <h2 className="font-serif text-4xl font-bold text-primary md:text-5xl">
+              Developing Leaders for{" "}
+              <span className="italic text-accent">Impact</span>
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Discover courses across a wide range of subjects. From technology
-              to business, find your perfect learning path.
+
+            <p className="mt-6 text-lg leading-8 text-slate-700">
+              LOYAL Leadership Institute is a leadership and soft-skills
+              development center committed to nurturing ethical, confident, and
+              impactful leaders. We equip learners, professionals, and
+              institutions with practical skills for personal growth, workplace
+              excellence, and national transformation.
+            </p>
+
+            <div className="mt-8">
+              <Button asChild className="rounded-xl px-8 py-6">
+                <Link href="/about">
+                  Read More About Us <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <Card className="rounded-3xl bg-white p-8 shadow-xl">
+            <div className="grid gap-6">
+              {[
+                {
+                  icon: ShieldCheck,
+                  title: "Integrity",
+                  text: "We believe leadership begins with character.",
+                },
+                {
+                  icon: Award,
+                  title: "Excellence",
+                  text: "We design practical programmes that create measurable growth.",
+                },
+                {
+                  icon: Users,
+                  title: "Impact",
+                  text: "We prepare people to lead, serve, and transform communities.",
+                },
+              ].map((item) => (
+                <div key={item.title} className="flex gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-accent">
+                    <item.icon className="h-6 w-6" />
+                  </div>
+
+                  <div>
+                    <h3 className="font-serif text-xl font-bold text-primary">
+                      {item.title}
+                    </h3>
+                    <p className="mt-1 text-slate-700">{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      {/* TEAM */}
+      <section
+        className="relative overflow-hidden bg-cover bg-center px-4 py-20 sm:px-6 lg:px-8"
+        style={{
+          backgroundImage: "url('/Team-bg.png')",
+        }}
+      >
+        <div className="absolute inset-0 bg-linear-to-r from-[#08152f]/85 via-[#08152f]/65 to-[#08152f]/80" />
+
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <div className="mb-14 text-center">
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.35em] text-[#d4af37]">
+              Our Leadership Team
+            </p>
+
+            <h2 className="font-serif text-5xl font-bold text-white md:text-6xl">
+              Meet Our <span className="italic text-[#d4af37]">Team</span>
+            </h2>
+
+            <p className="mx-auto mt-6 max-w-3xl text-xl leading-9 text-white/90">
+              Passionate professionals dedicated to empowering leaders and
+              shaping the future through excellence, integrity, and impact.
             </p>
           </div>
-          <Suspense fallback={<BentoGridSkeleton />}>
-            <BentoGrid categories={categories} />
-          </Suspense>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                initials: "BF",
+                name: "Counsel Bagabo Faustin",
+                role: "Founder & Executive Director",
+              },
+              {
+                initials: "GM",
+                name: "Grace Michael",
+                role: "Program Director",
+              },
+              {
+                initials: "JE",
+                name: "John Emmanuel",
+                role: "Training Lead",
+              },
+              {
+                initials: "MI",
+                name: "Maryam Ibrahim",
+                role: "Operations Manager",
+              },
+            ].map((member) => (
+              <Card
+                key={member.name}
+                className="rounded-3xl bg-white p-8 text-center shadow-2xl transition-all duration-500 hover:-translate-y-3"
+              >
+                <div className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full bg-primary text-3xl font-black text-accent shadow-lg">
+                  {member.initials}
+                </div>
+
+                <h3 className="font-serif text-2xl font-bold text-primary">
+                  {member.name}
+                </h3>
+
+                <p className="mt-2 font-bold text-accent">{member.role}</p>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <Button asChild className="rounded-2xl px-8 py-7 text-lg">
+              <Link href="/team">
+                View All Members <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* WHY CHOOSE US */}
       <section className="bg-muted/50 px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Why Choose Loyal Academy?
-            </h2>
-            <p className="text-muted-foreground">
-              Everything you need to advance your career
+          <div className="mb-12 text-center">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-accent">
+              Why Choose Us
             </p>
+
+            <h2 className="text-3xl font-bold text-foreground">
+              Why Choose{" "}
+              <span className="italic text-accent">
+                LOYAL Leadership Institute?
+              </span>
+            </h2>
           </div>
+
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <BookOpen className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">
-                Comprehensive Curriculum
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Carefully designed courses covering industry standards and best
-                practices.
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">
-                Expert Instructors
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Learn from experienced professionals with years of industry
-                experience.
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Award className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">
-                Recognized Certificates
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Earn certificates upon completion to boost your resume and
-                LinkedIn.
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <TrendingUp className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">
-                Career Growth
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Advance your career with skills recognized by top companies
-                worldwide.
-              </p>
-            </Card>
+            {[
+              {
+                icon: BookOpen,
+                title: "Comprehensive Curriculum",
+                text: "Leadership, soft skills, career growth, and workplace excellence.",
+              },
+              {
+                icon: Users,
+                title: "Expert Instructors",
+                text: "Learn from trainers, lecturers, and experienced professionals.",
+              },
+              {
+                icon: Award,
+                title: "Recognized Certificates",
+                text: "Earn certificates that strengthen your professional profile.",
+              },
+              {
+                icon: TrendingUp,
+                title: "Career Growth",
+                text: "Develop confidence, competence, and professional direction.",
+              },
+            ].map((feature) => (
+              <Card key={feature.title} className="p-6 transition hover:shadow-lg">
+                <feature.icon className="mb-4 h-8 w-8 text-primary" />
+                <h3 className="mb-2 font-semibold text-foreground">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-muted-foreground">{feature.text}</p>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Courses Section - Carousel */}
+      {/* FEATURED COURSES */}
       {courses.length > 0 && (
-        <section className="px-4 py-20 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="flex items-end justify-between mb-12">
+        <section
+          className="relative overflow-hidden px-4 py-20 sm:px-6 lg:px-8"
+          style={{
+            backgroundImage: "url('/course-books.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="absolute inset-0 bg-linear-to-r from-[#08152f]/85 via-[#08152f]/65 to-[#08152f]/80" />
+
+          <div className="relative z-10 mx-auto max-w-7xl">
+            <div className="mb-12 flex flex-col items-center text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
               <div>
-                <h2 className="text-3xl font-bold text-foreground mb-4">
+                <p className="mb-4 text-sm font-bold uppercase tracking-[0.35em] text-[#d4af37]">
                   Featured Courses
+                </p>
+
+                <h2 className="font-serif text-5xl font-bold text-white md:text-6xl">
+                  Featured{" "}
+                  <span className="italic text-[#d4af37]">Courses</span>
                 </h2>
-                <p className="text-muted-foreground">
-                  Start learning from our most popular courses. Use the arrows
-                  to browse through them.
+
+                <p className="mt-6 max-w-3xl text-xl leading-10 text-white/90">
+                  Start learning from our most impactful leadership,
+                  communication, entrepreneurship, and career development
+                  programmes.
                 </p>
               </div>
-              <Link href="/courses" className="hidden sm:block">
-                <Button variant="outline" className="gap-2">
-                  View All Courses <ArrowRight className="h-4 w-4" />
+
+              <Link href="/courses" className="mt-8 lg:mt-0">
+                <Button className="gap-2 rounded-xl px-7 py-6 text-base">
+                  View All Courses <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
             </div>
+
             <FeaturedCoursesCarousel
               courses={courses.map((course: any) => ({
                 id: course.id,
@@ -409,7 +477,12 @@ export default async function Home() {
                 thumbnail: course.thumbnail,
                 price: Number(course.price),
                 discount: course.discount ? Number(course.discount) : undefined,
-                category: course.category ? { name: course.category.name, slug: course.category.slug } : undefined,
+                category: course.category
+                  ? {
+                    name: course.category.name,
+                    slug: course.category.slug,
+                  }
+                  : undefined,
                 categorySlug: course.category?.slug || "general",
                 level: course.level,
                 hasCertificate: course.hasCertificate,
@@ -422,71 +495,279 @@ export default async function Home() {
                 tags: course.tags?.map((tag: any) => tag.name) || [],
               }))}
             />
-            <div className="mt-8 text-center sm:hidden">
-              <Link href="/courses">
-                <Button variant="outline" className="gap-2">
-                  View All Courses <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
           </div>
         </section>
       )}
 
-      {/* Instructor Spotlight */}
-      <section className="bg-muted/50 px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Learn from the Best
-            </h2>
-            <p className="text-muted-foreground">
-              Our instructors are industry experts passionate about teaching
+      {/* OUTSOURCING */}
+      <section className="bg-[#faf8f3] px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
+          <div>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-accent">
+              Outsourcing
             </p>
+
+            <h2 className="font-serif text-4xl font-bold text-primary md:text-5xl">
+              Hire Trained{" "}
+              <span className="italic text-accent">Talent</span>
+            </h2>
+
+            <p className="mt-6 text-lg leading-8 text-slate-700">
+              Connect with skilled graduates and trained professionals from LLI
+              for projects, research, communication, digital support, training,
+              and institutional assignments.
+            </p>
+
+            <Button asChild className="mt-8 rounded-xl px-8 py-6">
+              <Link href="/outsourcing">
+                Explore Outsourcing <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {mockInstructors.map((instructor) => (
-              <InstructorCard key={instructor.id} instructor={instructor} />
+
+          <Card className="rounded-3xl bg-white p-8 shadow-xl">
+            <Briefcase className="mb-5 h-12 w-12 text-accent" />
+            <h3 className="font-serif text-2xl font-bold text-primary">
+              Project Support & Talent Matching
+            </h3>
+            <p className="mt-4 leading-7 text-slate-700">
+              Submit your project, browse trained talent, and partner with our
+              institute for professional service delivery.
+            </p>
+          </Card>
+        </div>
+      </section>
+
+      {/* SCHOLARSHIPS */}
+      <section className="bg-white px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl text-center">
+          <GraduationCap className="mx-auto mb-5 h-12 w-12 text-accent" />
+
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-accent">
+            Scholarships
+          </p>
+
+          <h2 className="font-serif text-4xl font-bold text-primary md:text-5xl">
+            Expanding Access to{" "}
+            <span className="italic text-accent">Learning</span>
+          </h2>
+
+          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-slate-700">
+            Our scholarship opportunities help committed learners access
+            leadership, career development, and professional training
+            programmes.
+          </p>
+
+          <Button asChild className="mt-8 rounded-xl px-8 py-6">
+            <Link href="/scholarships">
+              View Scholarships <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* BLOGS */}
+      <section className="bg-[#faf8f3] px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div>
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-accent">
+                Blog
+              </p>
+
+              <h2 className="font-serif text-4xl font-bold text-primary md:text-5xl">
+                Leadership{" "}
+                <span className="italic text-accent">Insights</span>
+              </h2>
+
+              <p className="mt-4 max-w-2xl text-slate-700">
+                Read practical reflections on leadership, career growth, soft
+                skills, communication, and personal development.
+              </p>
+            </div>
+
+            <Button asChild variant="outline" className="rounded-xl px-8 py-6">
+              <Link href="/blog">
+                View All Blogs <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {[
+              "Why Soft Skills Matter in Career Growth",
+              "How to Build Confidence as a Young Professional",
+              "Leadership Begins With Personal Discipline",
+            ].map((title) => (
+              <Card key={title} className="rounded-3xl bg-white p-8 shadow-lg">
+                <Newspaper className="mb-5 h-9 w-9 text-accent" />
+                <h3 className="font-serif text-2xl font-bold text-primary">
+                  {title}
+                </h3>
+                <p className="mt-4 leading-7 text-slate-700">
+                  Practical insights to help learners, professionals, and
+                  institutions grow with purpose.
+                </p>
+                <Link
+                  href="/blog"
+                  className="mt-6 inline-flex font-semibold text-accent"
+                >
+                  Read More <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section - Improved Colors */}
-      <section className="relative overflow-hidden bg-slate-950 px-4 py-20 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[length:18px_18px]" />
+      {/* QUOTES */}
+      {featuredQuotes.length > 0 && (
+        <section className="bg-white px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-12 text-center">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-accent">
+                Member Voices
+              </p>
 
-        <div className="relative mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
-            Ready to Start Learning?
-          </h2>
-          <p className="mb-8 text-lg text-slate-300 max-w-2xl mx-auto">
-            Join thousands of students already improving their skills with Loyal
-            Academy. Start your journey today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/signup">
-              <Button
-                size="lg"
-                className="border border-white bg-transparent text-white hover:bg-white hover:text-black gap-2 font-semibold"
-              >
-                Get Started for Free <ArrowRight className="h-4 w-4" />
+              <h2 className="font-serif text-4xl font-bold text-primary md:text-5xl">
+                Quotes from Our{" "}
+                <span className="italic text-accent">Community</span>
+              </h2>
+
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-700">
+                Insights and reflections shared by members, instructors, and
+                alumni of LOYAL Leadership Institute.
+              </p>
+            </div>
+
+            <QuotesMarquee quotes={featuredQuotes} />
+
+            <div className="mt-12 flex flex-wrap justify-center gap-4">
+              <Button asChild className="rounded-xl px-8 py-6">
+                <Link href="/quotes">
+                  View All Quotes <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
-            </Link>
-            <Link href="/courses">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-slate-300 text-black hover:bg-transparent hover:text-white gap-2 font-semibold"
-              >
-                Browse Courses
+
+              <Button asChild variant="outline" className="rounded-xl px-8 py-6">
+                <Link href="/quotes/submit">Share Your Quote</Link>
               </Button>
-            </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* INSTRUCTORS */}
+      <section className="bg-muted/50 px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 text-center">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-accent">
+              Instructors
+            </p>
+
+            <h2 className="text-3xl font-bold text-foreground">
+              Learn from the <span className="italic text-accent">Best</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {mockInstructors.map((instructor) => (
+              <InstructorCard key={instructor.id} instructor={instructor} />
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <Button asChild className="rounded-xl px-8 py-6">
+              <Link href="/team">
+                Meet All Instructors <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
 
-      <Footer />
+      {/* CONTACT */}
+      <section className="bg-white px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
+          <div>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-accent">
+              Contact Us
+            </p>
+
+            <h2 className="font-serif text-4xl font-bold text-primary md:text-5xl">
+              We Are Ready to{" "}
+              <span className="italic text-accent">Support You</span>
+            </h2>
+
+            <p className="mt-6 text-lg leading-8 text-slate-700">
+              Reach out for courses, admissions, scholarships, outsourcing,
+              partnerships, or general information about LOYAL Leadership
+              Institute.
+            </p>
+
+            <Button asChild className="mt-8 rounded-xl px-8 py-6">
+              <Link href="/contact">
+                Open Contact Page <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
+
+          <Card className="rounded-3xl bg-[#faf8f3] p-8 shadow-xl">
+            <div className="space-y-5">
+              <div className="flex gap-4">
+                <Mail className="h-6 w-6 text-accent" />
+                <span className="text-primary">
+                  info@loyalleadershipinstitute.org
+                </span>
+              </div>
+
+              <div className="flex gap-4">
+                <Phone className="h-6 w-6 text-accent" />
+                <span className="text-primary">+250 000 000 000</span>
+              </div>
+
+              <div className="flex gap-4">
+                <MapPin className="h-6 w-6 text-accent" />
+                <span className="text-primary">Kigali, Rwanda</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section
+        className="relative overflow-hidden bg-cover bg-center py-24"
+        style={{
+          backgroundImage: "url('/learn-bg.png')",
+        }}
+      >
+        <div className="absolute inset-0 bg-black/45" />
+
+        <div className="relative mx-auto max-w-4xl px-4 text-center">
+          <h2 className="mb-4 font-serif text-4xl font-bold text-white sm:text-5xl">
+            Ready to Start{" "}
+            <span className="italic text-[#f4c542]">Learning?</span>
+          </h2>
+
+          <p className="mx-auto mb-8 max-w-2xl text-lg text-white/90">
+            Join learners who are transforming their skills, mindset, career,
+            and leadership capacity with LOYAL Leadership Institute.
+          </p>
+
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
+            <Button asChild size="lg" className="gap-2 bg-accent font-semibold text-primary hover:bg-accent/90">
+              <Link href="/auth/signup">
+                Get Started <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+
+            <Button asChild size="lg" variant="outline" className="gap-2 border-white bg-white/10 text-white hover:bg-white hover:text-primary">
+              <Link href="/courses">Browse Courses</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

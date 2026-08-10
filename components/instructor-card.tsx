@@ -40,7 +40,7 @@ export function InstructorCard({ instructor, className }: InstructorCardProps) {
               className="h-24 w-24 rounded-full object-cover mx-auto ring-4 ring-primary/10 group-hover:ring-primary/20 transition-all"
             />
           ) : (
-            <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mx-auto ring-4 ring-primary/10">
+            <div className="h-24 w-24 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center mx-auto ring-4 ring-primary/10">
               <span className="text-2xl font-bold text-white">
                 {instructor.name.split(' ').map(n => n[0]).join('')}
               </span>

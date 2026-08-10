@@ -2,8 +2,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, Sparkles, Zap, Building2 } from 'lucide-react';
-import Navigation from '@/components/navigation';
-import Footer from '@/components/footer';
 
 const plans = [
   {
@@ -81,8 +79,7 @@ export const metadata = {
 
 export default function PricingPage() {
   return (
-    <main className='min-h-screen bg-background'>
-      <Navigation />
+    <main className='min-h-screen bg-background pt-20'>
 
       {/* Hero */}
       <section className='px-4 py-20 sm:px-6 lg:px-8 text-center'>
@@ -189,7 +186,6 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 }

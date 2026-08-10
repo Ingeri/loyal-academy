@@ -1,5 +1,3 @@
-import Navigation from '@/components/navigation';
-import Footer from '@/components/footer';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,8 +14,7 @@ export default async function ProjectsPage() {
   const { projects } = await getProjects();
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background pt-20">
 
       {/* Header */}
       <section className="px-4 py-12 sm:px-6 lg:px-8 border-b">
@@ -94,7 +91,6 @@ export default async function ProjectsPage() {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 }

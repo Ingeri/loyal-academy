@@ -5,8 +5,6 @@ import { useParams } from 'next/navigation';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Link from 'next/link';
-import Navigation from '@/components/navigation';
-import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Download, Share2, ArrowLeft } from 'lucide-react';
@@ -82,8 +80,7 @@ export default function CertificatePage() {
 
   if (!course) {
     return (
-      <main className="min-h-screen bg-background">
-        <Navigation />
+      <main className="min-h-screen bg-background pt-20">
         <div className="flex items-center justify-center min-h-screen">
           <Card className="p-8 text-center">
             <h1 className="text-2xl font-bold text-foreground mb-2">Certificate Not Found</h1>
@@ -93,7 +90,6 @@ export default function CertificatePage() {
             </Button>
           </Card>
         </div>
-        <Footer />
       </main>
     );
   }
@@ -143,8 +139,7 @@ export default function CertificatePage() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background pt-20">
 
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Header */}
@@ -259,7 +254,6 @@ export default function CertificatePage() {
         </Card>
       </div>
 
-      <Footer />
     </main>
   );
 }

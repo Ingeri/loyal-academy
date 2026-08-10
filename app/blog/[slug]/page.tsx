@@ -1,7 +1,5 @@
 import { getBlogBySlug } from "../actions";
 import { notFound } from "next/navigation";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
 import { Calendar, User, Clock, Star, HelpCircle } from "lucide-react";
 import BlogReviewForm from "@/components/ui/blog-review-form";
 import ContentRenderer from "@/components/ui/content-renderer";
@@ -29,8 +27,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background pt-20">
 
       {/* Hero Header */}
       <header className="relative h-[60vh] min-h-[400px] w-full">
@@ -148,7 +145,6 @@ export default async function BlogDetailPage({ params }: PageProps) {
         )}
       </article>
 
-      <Footer />
     </main>
   );
 }

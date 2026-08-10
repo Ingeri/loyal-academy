@@ -1,8 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Navigation from '@/components/navigation';
-import Footer from '@/components/footer';
 import { Card } from '@/components/ui/card';
 import { Calendar, User, ArrowRight, Star } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -37,8 +35,7 @@ export default function BlogPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background pt-20">
 
       {/* Header */}
       <section className="bg-primary/5 px-4 py-12 sm:px-6 lg:px-8 border-b border-primary/10">
@@ -183,7 +180,6 @@ export default function BlogPage() {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 }
