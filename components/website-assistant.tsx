@@ -263,7 +263,7 @@ export function WebsiteAssistant() {
 
         <SheetContent
           side="right"
-          className="flex h-screen w-[94vw] max-w-md flex-col border-l border-accent/20 bg-[#faf8f3]"
+          className="flex h-screen w-[94vw] max-w-md overflow-y-auto flex-col border-l border-accent/20 bg-[#faf8f3]"
         >
           <SheetHeader className="space-y-3 border-b pb-5">
             <div className="flex items-center gap-2 text-primary">
@@ -283,7 +283,7 @@ export function WebsiteAssistant() {
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2 px-4">
             {quickActions.map((item) => (
               <button
                 key={item.label}
@@ -296,7 +296,7 @@ export function WebsiteAssistant() {
             ))}
           </div>
 
-          <div className="mt-4 flex-1 space-y-4 overflow-y-auto rounded-2xl bg-white/80 p-4 shadow-inner">
+          <div className="mt-4 flex-1 space-y-4 rounded-2xl bg-white/80 p-4 shadow-inner">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -305,13 +305,13 @@ export function WebsiteAssistant() {
                 }`}
               >
                 {message.role === 'assistant' && (
-                  <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-accent">
+                  <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded bg-primary text-accent">
                     <Bot className="h-4 w-4" />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
+                  className={`max-w-[85%] rounded px-4 py-3 text-sm leading-6 shadow-sm ${
                     message.role === 'assistant'
                       ? 'bg-[#f8f5ee] text-slate-800'
                       : 'bg-primary text-white'
@@ -345,7 +345,7 @@ export function WebsiteAssistant() {
             ))}
           </div>
 
-          <div className="mt-4 flex gap-2 border-t pt-4">
+          <div className="mt-4 flex gap-2 border-t p-4">
             <Input
               value={input}
               onChange={(event) => setInput(event.target.value)}
