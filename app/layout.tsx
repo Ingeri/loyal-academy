@@ -5,6 +5,9 @@ import Footer from '@/components/footer'
 import { WebsiteAssistant } from '@/components/website-assistant'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
+  ),
   title: 'LOYAL Leadership Institute',
   description:
     'Developing Africa’s next generation of leaders through leadership and professional excellence.',
@@ -46,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         <Navigation />
         {children}

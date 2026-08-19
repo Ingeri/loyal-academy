@@ -14,27 +14,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import RichTextEditor from "./rich-text-editor";
-
-type ContentBlock =
-  | { type: "heading"; text: string; level: 2 | 3 }
-  | { type: "paragraph"; text: string }
-  | { type: "image"; url: string; alt: string; caption?: string }
-  | { type: "list"; items: string[]; ordered: boolean }
-  | { type: "table"; headers: string[]; rows: string[][] }
-  | { type: "video"; url: string; title: string; duration: string }
-  | { type: "code"; code: string; language: string };
+import { LessonEditor } from "./lesson-editor";
+import { EMPTY_LESSON_CONTENT } from "@/lib/lesson-content/types";
+import type { LessonContent } from "@/lib/lesson-content/types";
 
 interface LessonFormProps {
   courseId: string;
   moduleId: string;
   courseSlug: string;
+  lesson?: {
+    id: string;
+    title: string;
+    content: LessonContent | unknown;
+  };
 }
 
 export default function LessonForm({
   courseId,
   moduleId,
   courseSlug,
+  lesson,
 }: LessonFormProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -42,8 +41,8 @@ export default function LessonForm({
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    title: "",
-    content: [] as ContentBlock[],
+    title: lesson?.title ?? "",
+    content: lesson?.content ?? EMPTY_LESSON_CONTENT,
   });
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -52,10 +51,13 @@ export default function LessonForm({
     setError(null);
 
     try {
+      const endpoint = lesson
+        ? `/api/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lesson.id}`
+        : `/api/instructor/courses/${courseId}/modules/${moduleId}/lessons`;
       const response = await fetch(
-        `/api/instructor/courses/${courseId}/modules/${moduleId}/lessons`,
+        endpoint,
         {
-          method: "POST",
+          method: lesson ? "PUT" : "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -68,10 +70,10 @@ export default function LessonForm({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create lesson");
+        throw new Error(data.error || `Failed to ${lesson ? "update" : "create"} lesson`);
       }
 
-      toast({ title: "Lesson created successfully" });
+      toast({ title: `Lesson ${lesson ? "updated" : "created"} successfully` });
       router.push(`/instructor/courses/${courseSlug}/modules/${moduleId}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "An error occurred";
@@ -85,9 +87,9 @@ export default function LessonForm({
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Add Lesson</h1>
+        <h1 className="text-3xl font-bold">{lesson ? "Edit Lesson" : "Add Lesson"}</h1>
         <p className="text-muted-foreground mt-2">
-          Create a new lesson for this module
+          {lesson ? "Update this lesson's content" : "Create a new lesson for this module"}
         </p>
       </div>
 
@@ -118,7 +120,7 @@ export default function LessonForm({
             </div>
 
             <div className="space-y-2">
-              <RichTextEditor
+              <LessonEditor
                 value={formData.content}
                 onChange={(content) =>
                   setFormData((prev) => ({ ...prev, content }))
@@ -134,7 +136,7 @@ export default function LessonForm({
                     Creating...
                   </>
                 ) : (
-                  "Create Lesson"
+                  lesson ? "Save Changes" : "Create Lesson"
                 )}
               </Button>
               <Button
