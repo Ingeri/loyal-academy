@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 // 🚀 New Imports for Icons
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { notifyAuthChange } from '@/hooks/use-auth'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -53,6 +54,8 @@ export default function SignUpPage() {
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create account')
       }
+
+      notifyAuthChange(data.user)
 
       router.push('/dashboard')
       router.refresh()

@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ChevronDown, LayoutDashboard, LogOut, Settings } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,22 +12,34 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/use-auth'
+
+const dashboardPathByRole: Record<string, string> = {
+  ADMIN: '/admin',
+  INSTRUCTOR: '/instructor',
+  STUDENT: '/student',
+  CLIENT: '/client',
+  DONOR: '/donor',
+  CAREER_ADVISOR: '/student',
+}
 
 export function Navigation() {
   const [showNav, setShowNav] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
+  const lastScrollY = useRef(0)
+  const router = useRouter()
+  const { user, isLoading, logout } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
 
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
         setShowNav(false)
       } else {
         setShowNav(true)
       }
 
-      setLastScrollY(currentScrollY)
+      lastScrollY.current = currentScrollY
     }
 
     window.addEventListener('scroll', handleScroll)
@@ -34,7 +47,13 @@ export function Navigation() {
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [lastScrollY])
+  }, [])
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/')
+    router.refresh()
+  }
 
   const linkClass =
     'text-[16px] font-medium text-primary transition-all duration-300 hover:text-accent'
@@ -144,18 +163,76 @@ export function Navigation() {
           </Link>
         </div>
 
-        {/* Buttons */}
-        <div className="hidden items-center gap-4 md:flex">
-          <Button variant="ghost" asChild className="text-[15px] font-medium">
-            <Link href="/auth/login">Log In</Link>
-          </Button>
+        {/* Account */}
+        <div className="flex items-center gap-4">
+          {isLoading ? null : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-xl border border-accent/30 px-4 py-2 text-[15px] font-medium text-primary transition-colors hover:bg-accent/10"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-accent">
+                    {(user.name?.[0] ?? user.email[0] ?? 'U').toUpperCase()}
+                  </span>
+                  <span className="max-w-28 truncate sm:max-w-48">{user.name || user.email}</span>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
 
-          <Button
-            asChild
-            className="rounded-xl px-6 py-5 text-[15px] font-semibold"
-          >
-            <Link href="/auth/signup">Sign Up</Link>
-          </Button>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={10}
+                className="w-56 rounded-xl border border-accent/20 bg-white p-2 shadow-2xl"
+              >
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={dashboardPathByRole[user.role] ?? '/student'}
+                    className="flex items-center gap-2 rounded-lg px-4 py-3 text-[15px] font-medium hover:bg-accent/10 hover:text-accent"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/dashboard/settings"
+                    className="flex items-center gap-2 rounded-lg px-4 py-3 text-[15px] font-medium hover:bg-accent/10 hover:text-accent"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-left text-[15px] font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                asChild
+                className="hidden text-[15px] font-medium md:inline-flex"
+              >
+                <Link href="/auth/login">Log In</Link>
+              </Button>
+
+              <Button
+                asChild
+                className="hidden rounded-xl px-6 py-5 text-[15px] font-semibold md:inline-flex"
+              >
+                <Link href="/auth/signup">Sign Up</Link>
+              </Button>
+            </>
+          )}
         </div>
       </nav>
     </header>
