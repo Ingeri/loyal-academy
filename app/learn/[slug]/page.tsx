@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { checkAndIssueCertificate } from "../actions";
+import { TiptapLessonContentRenderer } from '@/components/lesson-content-renderer';
 import {
   ChevronLeft,
   CheckCircle,
@@ -60,7 +61,7 @@ interface ContentBlock {
 interface Lesson {
   id: string;
   title: string;
-  content: string | ContentBlock[] | null;
+  content: unknown;
   duration: number | null;
   order: number;
   quizzes: Quiz[];
@@ -299,10 +300,10 @@ export default function LearnPage() {
     setActiveExamId(examId);
   };
 
-  const markLessonComplete = async () => {
-    if (!activeLessonId || !data || !activeModuleId) {
+  const markLessonComplete = async (lessonId = activeLessonId, moduleId = activeModuleId) => {
+    if (!lessonId || !data || !moduleId) {
       toast.error("Cannot save progress: Missing module or lesson");
-      return;
+      return false;
     }
 
     try {
@@ -311,15 +312,27 @@ export default function LearnPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           courseId: data.course.id,
-          lessonId: activeLessonId,
-          moduleId: activeModuleId,
+          lessonId,
+          moduleId,
           isCompleted: true,
         }),
       });
 
       if (res.ok) {
-        toast.success("Lesson completed!");
-        fetchLearningData(); // Refresh data
+        const result = await res.json();
+        setData((current) => {
+          if (!current) return current;
+          const syllabus = current.course.syllabus.map((module) => {
+            const lessons = module.lessons.map((lesson) => lesson.id === lessonId ? { ...lesson, isCompleted: true } : lesson);
+            const completed = lessons.filter((lesson) => lesson.isCompleted).length;
+            return { ...module, lessons, progress: lessons.length ? Math.round((completed / lessons.length) * 100) : 0 };
+          });
+          const completedCount = syllabus.flatMap((module) => module.lessons).filter((lesson) => lesson.isCompleted).length;
+          const totalLessons = current.progress.totalLessons;
+          return { ...current, course: { ...current.course, syllabus }, progress: { ...current.progress, completedCount, completedLessons: [...new Set([...current.progress.completedLessons, lessonId])], percentage: Math.round(result.totalCourseProgress ?? (totalLessons ? completedCount / totalLessons * 100 : 0)) } };
+        });
+        toast.success("Lesson marked as complete");
+        return true;
       } else {
         const errorData = await res.json().catch(() => ({}));
         console.error("Progress save error:", res.status, errorData);
@@ -331,6 +344,7 @@ export default function LearnPage() {
       console.error("Progress save exception:", err);
       toast.error("Failed to save progress");
     }
+    return false;
   };
 
   const handleCheckAndIssueCertificate = async () => {
@@ -393,11 +407,16 @@ export default function LearnPage() {
     );
   };
 
-  const goToNext = () => {
+  const goToNext = async () => {
     if (!data) return;
 
     const currentModule = getActiveModule();
     if (!currentModule) return;
+
+    if (activeLessonId && !currentModule.lessons.find((lesson) => lesson.id === activeLessonId)?.isCompleted) {
+      const saved = await markLessonComplete(activeLessonId, currentModule.id);
+      if (!saved) return;
+    }
 
     const currentLessonIndex = currentModule.lessons.findIndex(
       (l) => l.id === activeLessonId,
@@ -932,12 +951,15 @@ function ContentRenderer({
   courseId,
   onQuizComplete,
 }: {
-  content: string | ContentBlock[] | null;
+  content: unknown;
   lessonQuizzes: Quiz[];
   courseId?: string;
   onQuizComplete: () => void;
 }) {
   // Parse content if it's a string
+  if (content && typeof content === 'object' && !Array.isArray(content) && (content as { type?: string }).type === 'doc') {
+    return <TiptapLessonContentRenderer content={content as import('@tiptap/core').JSONContent} />;
+  }
   let blocks: ContentBlock[] = [];
   if (typeof content === "string") {
     try {

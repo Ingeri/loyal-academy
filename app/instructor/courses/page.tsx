@@ -4,10 +4,12 @@ import { getSession } from "@/lib/auth/session";
 import { CourseCard } from "@/components/course-card";
 import CourseItem from "@/components/instructor/course-item";
 import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 
 export default async function InstructorCoursesPage() {
   const session = await getSession();
-  const userId = session!.userId;
+  if (!session) redirect('/auth/login?redirect=/instructor/courses');
+  const userId = session.userId;
 
   const courses = await prisma.course.findMany({
     where: { instructorId: userId },
