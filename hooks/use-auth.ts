@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 export type User = {
@@ -11,6 +11,14 @@ export type User = {
   isActive: boolean;
   avatarUrl?: string | null;
 };
+
+const AUTH_CHANGE_EVENT = 'auth-change';
+
+export function notifyAuthChange(user: User | null) {
+  window.dispatchEvent(
+    new CustomEvent<User | null>(AUTH_CHANGE_EVENT, { detail: user })
+  );
+}
 
 type AuthState = {
   user: User | null;
@@ -25,10 +33,15 @@ export function useAuth() {
     isLoading: true,
     error: null,
   });
+  const authRequestVersion = useRef(0);
 
   const fetchUser = useCallback(async () => {
+    const requestVersion = ++authRequestVersion.current;
+
     try {
       const response = await fetch('/api/auth/me');
+      if (requestVersion !== authRequestVersion.current) return;
+
       if (response.ok) {
         const data = await response.json();
         setState({ user: data.user, isLoading: false, error: null });
@@ -36,12 +49,22 @@ export function useAuth() {
         setState({ user: null, isLoading: false, error: null });
       }
     } catch (error) {
+      if (requestVersion !== authRequestVersion.current) return;
       setState({ user: null, isLoading: false, error: 'Failed to fetch user' });
     }
   }, []);
 
   useEffect(() => {
     fetchUser();
+
+    const handleAuthChange = (event: Event) => {
+      const { detail } = event as CustomEvent<User | null>;
+      authRequestVersion.current += 1;
+      setState({ user: detail, isLoading: false, error: null });
+    };
+
+    window.addEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
+    return () => window.removeEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
   }, [fetchUser]);
 
   const login = useCallback(
@@ -61,6 +84,7 @@ export function useAuth() {
         }
 
         setState({ user: data.user, isLoading: false, error: null });
+        notifyAuthChange(data.user);
         router.refresh();
         return data.user;
       } catch (error) {
@@ -89,6 +113,7 @@ export function useAuth() {
         }
 
         setState({ user: data.user, isLoading: false, error: null });
+        notifyAuthChange(data.user);
         router.refresh();
         return data.user;
       } catch (error) {
@@ -105,6 +130,7 @@ export function useAuth() {
     try {
       const response = await fetch('/api/auth/logout', { method: 'POST' });
       setState({ user: null, isLoading: false, error: null });
+      notifyAuthChange(null);
       // Server handles redirect, but we refresh to clear client state
       router.refresh();
     } catch (error) {

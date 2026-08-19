@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 // 🚀 Modern Icons
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { notifyAuthChange } from "@/hooks/use-auth";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -42,6 +43,8 @@ function LoginForm() {
       if (!response.ok) {
         throw new Error(data.error || "Failed to log in");
       }
+
+      notifyAuthChange(data.user);
 
       const urlParams = new URLSearchParams(window.location.search);
       const manualRedirect = urlParams.get("redirect");
