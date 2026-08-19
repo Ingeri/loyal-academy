@@ -30,7 +30,19 @@ function LessonNode({ node }: { node: JSONContent }) {
     case 'blockquote': return <blockquote className="my-6 border-l-4 border-primary pl-4 italic text-muted-foreground">{text(node)}</blockquote>
     case 'horizontalRule': return <hr className="my-8 border-border" />
     case 'codeBlock': return <pre className="my-6 overflow-x-auto rounded-xl bg-slate-950 p-5 text-sm text-slate-100"><code>{text(node)}</code></pre>
-    case 'table': return <div className="my-6 overflow-x-auto rounded-lg border"><table className="w-full min-w-[540px] border-collapse">{text(node)}</table></div>
+    case 'table': {
+      const rows = node.content ?? []
+      const headerRows = rows.filter((row) => row.content?.some((cell) => cell.type === 'tableHeader'))
+      const bodyRows = rows.filter((row) => !headerRows.includes(row))
+      return (
+        <div className="my-6 overflow-x-auto rounded-lg border">
+          <table className="w-full min-w-[540px] border-collapse">
+            {headerRows.length > 0 && <thead>{headerRows.map((row, index) => <LessonNode key={index} node={row} />)}</thead>}
+            <tbody>{bodyRows.map((row, index) => <LessonNode key={index} node={row} />)}</tbody>
+          </table>
+        </div>
+      )
+    }
     case 'tableRow': return <tr className="even:bg-muted/30">{text(node)}</tr>
     case 'tableHeader': return <th className="border border-border bg-muted px-4 py-3 text-left font-semibold">{text(node)}</th>
     case 'tableCell': return <td className="border border-border px-4 py-3 align-top">{text(node)}</td>
