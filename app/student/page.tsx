@@ -73,7 +73,7 @@ export default async function StudentPage() {
               <Link key={e.id} href={`/learn/${e.course.slug}`}>
                 <Card className="p-4 hover:border-primary/50 hover:shadow-md transition-all group bg-card/50">
                   <div className="flex gap-5 items-center">
-                    <div className="w-20 h-14 rounded-lg bg-muted flex-shrink-0 overflow-hidden relative">
+                    <div className="w-20 h-14 rounded-lg bg-muted shrink-0 overflow-hidden relative">
                       {e.course.thumbnail && <img src={e.course.thumbnail} className="object-cover w-full h-full" alt="" />}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -129,7 +129,7 @@ export default async function StudentPage() {
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-pink-500/10 to-purple-500/10 border-pink-500/20">
+          <Card className="p-6 bg-linear-to-br from-pink-500/10 to-purple-500/10 border-pink-500/20">
             <h3 className="font-bold mb-4 flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-pink-500" /> Scholarships
             </h3>

@@ -155,7 +155,7 @@ export default async function InstructorPage() {
              <Users className="absolute -right-6 -bottom-6 h-32 w-32 text-white/5 rotate-12" />
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-purple-600 to-indigo-600 text-white relative overflow-hidden border-none shadow-xl">
+          <Card className="p-6 bg-linear-to-br from-purple-600 to-indigo-600 text-white relative overflow-hidden border-none shadow-xl">
              <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-2 opacity-80 text-xs font-bold uppercase tracking-wider">
                   <Award className="h-4 w-4" /> Certificates Issued
