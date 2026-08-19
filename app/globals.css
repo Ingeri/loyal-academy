@@ -311,3 +311,21 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 90px;
 }
+
+.lesson-editor-content h1 { @apply my-5 text-3xl font-bold; }
+.lesson-editor-content h2 { @apply my-4 text-2xl font-bold; }
+.lesson-editor-content h3 { @apply my-3 text-xl font-semibold; }
+.lesson-editor-content p { @apply my-3 leading-7; }
+.lesson-editor-content ul { @apply my-4 list-disc space-y-2 pl-6; }
+.lesson-editor-content ol { @apply my-4 list-decimal space-y-2 pl-6; }
+.lesson-editor-content blockquote { @apply my-5 border-l-4 border-primary pl-4 italic text-muted-foreground; }
+.lesson-editor-content pre { @apply my-5 overflow-x-auto rounded-lg bg-slate-950 p-4 text-sm text-white; }
+.lesson-editor-content .tableWrapper { @apply my-5 overflow-x-auto; }
+.lesson-editor-content table { @apply w-full min-w-[540px] border-collapse; }
+.lesson-editor-content th { @apply border border-border bg-muted px-3 py-2 text-left font-semibold; }
+.lesson-editor-content td { @apply border border-border px-3 py-2 align-top; }
+.lesson-editor-content figure[data-lesson-image] img { @apply my-5 max-h-96 w-full rounded-xl object-contain; }
+.lesson-editor-content figure[data-lesson-video] { @apply my-5; }
+.lesson-editor-content figure[data-lesson-video] iframe { @apply aspect-video w-full rounded-xl bg-black; }
+.lesson-editor-content aside[data-callout] { @apply my-5 border-l-4 border-blue-400 bg-blue-50 p-4; }
+.lesson-editor-content a[data-resource] { @apply my-5 block rounded-lg border p-4 font-medium text-primary; }
