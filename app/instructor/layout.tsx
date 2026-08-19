@@ -26,8 +26,8 @@ export default async function InstructorLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <aside className="hidden md:flex h-full w-64 flex-col fixed inset-y-0 z-50 border-r bg-card">
+    <div className="min-h-screen mt-20 bg-background">
+      <aside className="hidden md:flex h-full w-64 flex-col fixed inset-y-0 border-r bg-card">
         <InstructorSidebar />
       </aside>
       
