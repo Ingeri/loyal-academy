@@ -53,7 +53,7 @@ export function InstructorSidebar() {
           className="flex items-center gap-2 group transition-all duration-300 hover:opacity-80 active:scale-95 w-fit"
         >
           <span className="font-bold text-xl tracking-tight group-hover:text-primary transition-colors">
-            Loyal Academy
+            Loyal Leadership Institute
           </span>
         </Link>
       </div>

@@ -1,57 +1,42 @@
 import type { Metadata } from 'next'
-import './globals.css'
+import "./globals.css";
 import { Navigation } from '@/components/navigation'
-import Footer from '@/components/footer'
-import { WebsiteAssistant } from '@/components/website-assistant'
+import { ConditionalFooter } from '@/components/conditional-footer'
+import { getSession } from '@/lib/auth/session'
+import { prisma } from '@/lib/prisma'
 
 export const metadata: Metadata = {
   title: 'LOYAL Leadership Institute',
   description:
     'Developing Africa’s next generation of leaders through leadership and professional excellence.',
-
-  // Browser Tab Icons (Favicon)
-  icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
-    apple: '/apple-icon.png',
-  },
-
-  openGraph: {
-    title: 'LOYAL Leadership Institute',
-    description:
-      'Developing Africa’s next generation of leaders through leadership and professional excellence.',
-    type: 'website',
-    images: [
-      {
-        url: '/lli-logo.png',
-        alt: 'LOYAL Leadership Institute Logo',
-        width: 1200,
-        height: 630,
-      },
-    ],
-  },
-
-  twitter: {
-    card: 'summary_large_image',
-    title: 'LOYAL Leadership Institute',
-    description:
-      'Developing Africa’s next generation of leaders through leadership and professional excellence.',
-    images: ['/lli-logo.png'],
-  },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await getSession();
+
+  let navUser = null;
+
+  if (session) {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { name: true, role: true },
+    });
+
+    if (dbUser) {
+      navUser = { name: dbUser.name, role: dbUser.role };
+    }
+  }
+
   return (
     <html lang="en">
       <body>
-        <Navigation />
+        <Navigation user={navUser} />
         {children}
-        <Footer />
-        <WebsiteAssistant />
+        <ConditionalFooter />
       </body>
     </html>
   )

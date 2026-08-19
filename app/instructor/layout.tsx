@@ -10,12 +10,10 @@ export default async function InstructorLayout({
 }) {
   const session = await getSession();
 
-  // Check session exists
   if (!session) {
     redirect('/auth/login?redirect=/instructor');
   }
 
-  // Server-side role check - only INSTRUCTOR allowed
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
     select: { role: true },
@@ -26,16 +24,18 @@ export default async function InstructorLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <aside className="hidden md:flex h-full w-64 flex-col fixed inset-y-0 z-50 border-r bg-card">
-        <InstructorSidebar />
-      </aside>
-      
-      <main className="md:pl-64 flex flex-col min-h-screen">
-        <div className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
-          {children}
-        </div>
-      </main>
+    <div className="min-h-screen bg-background pt-20">
+      <div className="flex">
+        <aside className="hidden md:flex w-64 flex-col border-r bg-card sticky top-20 self-start h-[calc(100vh-5rem)]">
+          <InstructorSidebar />
+        </aside>
+
+        <main className="flex-1 flex flex-col">
+          <div className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

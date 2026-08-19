@@ -97,7 +97,7 @@ export default function InstructorStudentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -105,7 +105,7 @@ export default function InstructorStudentsPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-100 space-y-4">
         <p className="text-destructive">{error}</p>
         <Button onClick={fetchStudents}>Retry</Button>
       </div>
@@ -114,7 +114,7 @@ export default function InstructorStudentsPage() {
 
   if (students.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-100 space-y-4">
         <Users className="h-12 w-12 text-muted-foreground" />
         <p className="text-muted-foreground">No students enrolled in your courses yet</p>
       </div>

@@ -742,6 +742,7 @@ export default async function Home() {
           backgroundImage: "url('/learn-bg.png')",
         }}
       >
+        
         <div className="absolute inset-0 bg-black/45" />
 
         <div className="relative mx-auto max-w-4xl px-4 text-center">

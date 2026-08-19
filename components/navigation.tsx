@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, LayoutDashboard } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,19 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 
-export function Navigation() {
+type NavUser = {
+  name: string | null
+  role: string
+} | null
+
+const DASHBOARD_PATH_BY_ROLE: Record<string, string> = {
+  ADMIN: '/admin',
+  INSTRUCTOR: '/instructor',
+  STUDENT: '/student',
+  DONOR: '/donor',
+}
+
+export function Navigation({ user }: { user?: NavUser }) {
   const [showNav, setShowNav] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
 
@@ -38,6 +50,8 @@ export function Navigation() {
 
   const linkClass =
     'text-[16px] font-medium text-primary transition-all duration-300 hover:text-accent'
+
+  const dashboardPath = user ? DASHBOARD_PATH_BY_ROLE[user.role] ?? '/' : '/'
 
   return (
     <header
@@ -146,16 +160,57 @@ export function Navigation() {
 
         {/* Buttons */}
         <div className="hidden items-center gap-4 md:flex">
-          <Button variant="ghost" asChild className="text-[15px] font-medium">
-            <Link href="/auth/login">Log In</Link>
-          </Button>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-xl border border-accent/30 px-4 py-2 text-[15px] font-medium text-primary transition-colors hover:bg-accent/10">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-accent">
+                    {(user.name?.[0] ?? "U").toUpperCase()}
+                  </div>
+                  {user.name ?? "My Account"}
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
 
-          <Button
-            asChild
-            className="rounded-xl px-6 py-5 text-[15px] font-semibold"
-          >
-            <Link href="/auth/signup">Sign Up</Link>
-          </Button>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={10}
+                className="w-56 rounded-xl border border-accent/20 bg-white p-2 shadow-2xl"
+              >
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={dashboardPath}
+                    className="flex items-center gap-2 rounded-lg px-4 py-3 text-[15px] font-medium hover:bg-accent/10 hover:text-accent"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/auth/logout"
+                    className="block w-full rounded-lg px-4 py-3 text-[15px] font-medium text-red-600 hover:bg-red-50"
+                  >
+                    Logout
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Button variant="ghost" asChild className="text-[15px] font-medium">
+                <Link href="/auth/login">Log In</Link>
+              </Button>
+
+              <Button
+                asChild
+                className="rounded-xl px-6 py-5 text-[15px] font-semibold"
+              >
+                <Link href="/auth/signup">Sign Up</Link>
+              </Button>
+            </>
+          )}
         </div>
       </nav>
     </header>
