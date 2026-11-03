@@ -36,7 +36,7 @@ function LessonNode({ node }: { node: JSONContent }) {
       const bodyRows = rows.filter((row) => !headerRows.includes(row))
       return (
         <div className="my-6 overflow-x-auto rounded-lg border">
-          <table className="w-full min-w-[540px] border-collapse">
+          <table className="w-full min-w-135 border-collapse">
             {headerRows.length > 0 && <thead>{headerRows.map((row, index) => <LessonNode key={index} node={row} />)}</thead>}
             <tbody>{bodyRows.map((row, index) => <LessonNode key={index} node={row} />)}</tbody>
           </table>
@@ -46,7 +46,7 @@ function LessonNode({ node }: { node: JSONContent }) {
     case 'tableRow': return <tr className="even:bg-muted/30">{text(node)}</tr>
     case 'tableHeader': return <th className="border border-border bg-muted px-4 py-3 text-left font-semibold">{text(node)}</th>
     case 'tableCell': return <td className="border border-border px-4 py-3 align-top">{text(node)}</td>
-    case 'lessonImage': return <figure className="my-7"><img className="max-h-[32rem] w-full rounded-xl object-contain" src={String(node.attrs?.src ?? '')} alt={String(node.attrs?.alt ?? '')} />{node.attrs?.caption && <figcaption className="mt-2 text-center text-sm text-muted-foreground">{String(node.attrs.caption)}</figcaption>}</figure>
+    case 'lessonImage': return <figure className="my-7"><img className="max-h-128 w-full rounded-xl object-contain" src={String(node.attrs?.src ?? '')} alt={String(node.attrs?.alt ?? '')} />{node.attrs?.caption && <figcaption className="mt-2 text-center text-sm text-muted-foreground">{String(node.attrs.caption)}</figcaption>}</figure>
     case 'lessonVideo': return <figure className="my-7"><div className="aspect-video overflow-hidden rounded-xl bg-black"><iframe className="h-full w-full" src={String(node.attrs?.url ?? '')} title={String(node.attrs?.title || 'Lesson video')} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div>{node.attrs?.caption && <figcaption className="mt-2 text-center text-sm text-muted-foreground">{String(node.attrs.caption)}</figcaption>}</figure>
     case 'callout': return <aside className={`my-6 rounded-r-xl border-l-4 p-4 ${intentClass[String(node.attrs?.intent ?? 'info')] ?? intentClass.info}`}><p className="mb-1 text-xs font-bold uppercase">{String(node.attrs?.intent ?? 'info')}</p>{text(node)}</aside>
     case 'resource': return <a href={String(node.attrs?.url ?? '')} target="_blank" rel="noopener noreferrer" className="my-5 flex items-center gap-3 rounded-xl border p-4 transition-colors hover:bg-muted"><FileText className="h-5 w-5 text-primary" /><span className="flex-1 font-medium">{String(node.attrs?.title ?? 'Resource')}</span><span className="inline-flex items-center gap-1 text-sm text-primary"><Download className="h-4 w-4" />{String(node.attrs?.label ?? 'Download')}</span></a>

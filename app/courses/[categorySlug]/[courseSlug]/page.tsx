@@ -1,85 +1,409 @@
-import { prisma } from '@/lib/prisma';
-import CourseClient, { mockCourses } from './course-client';
+
+import { prisma } from "@/lib/prisma";
+import CourseClient, { mockCourses } from "./course-client";
+
+/* =========================================================
+   COURSE DETAILS PAGE
+   LOYAL LEADERSHIP INSTITUTE
+========================================================= */
+
+type CourseDetailsPageProps = {
+  params: Promise<{
+    categorySlug: string;
+    courseSlug: string;
+  }>;
+};
 
 export default async function CourseDetailsPage({
   params,
-}: {
-  params: Promise<{ categorySlug: string; courseSlug: string }>;
-}) {
+}: CourseDetailsPageProps) {
   const { categorySlug, courseSlug } = await params;
 
-  // 1. Try fetching from database
-  let course = null;
-  let dbCourse = null;
-  
+  let course: any = null;
+  let isDbCourse = false;
+
   try {
-    dbCourse = await prisma.course.findUnique({
-      where: { slug: courseSlug },
-      include: { 
+    /* =====================================================
+       FETCH COURSE FROM DATABASE
+    ===================================================== */
+
+    const dbCourse = await prisma.course.findUnique({
+      where: {
+        slug: courseSlug,
+      },
+
+      include: {
         category: true,
-        syllabus: true,
+
+        /* -----------------------------------------------
+           MODULES AND THEIR ACTUAL LESSONS
+        ----------------------------------------------- */
+
+        syllabus: {
+          orderBy: [
+            {
+              order: "asc",
+            },
+            {
+              createdAt: "asc",
+            },
+          ],
+
+          include: {
+            lessons: {
+              orderBy: [
+                {
+                  order: "asc",
+                },
+                {
+                  createdAt: "asc",
+                },
+              ],
+            },
+          },
+        },
+
+        /* -----------------------------------------------
+           COURSE FAQS AND LEARNER STORIES
+        ----------------------------------------------- */
+
         faqs: true,
-        learnerStories: true
-      }
+        learnerStories: true,
+      },
     });
 
+    /* =====================================================
+       TRANSFORM DATABASE COURSE
+    ===================================================== */
+
     if (dbCourse) {
+      isDbCourse = true;
+
+      /* -----------------------------------------------
+         PRICING
+      ----------------------------------------------- */
+
+      const originalPrice = Number(
+        dbCourse.price ?? 0,
+      );
+
+      const discountAmount = Math.max(
+        0,
+        Number(dbCourse.discount ?? 0),
+      );
+
+      const finalPrice = Math.max(
+        0,
+        originalPrice - discountAmount,
+      );
+
+      const discountPercentage =
+        originalPrice > 0 && discountAmount > 0
+          ? Math.round(
+              (Math.min(
+                discountAmount,
+                originalPrice,
+              ) /
+                originalPrice) *
+                100,
+            )
+          : 0;
+
+      /* -----------------------------------------------
+         MODULES
+      ----------------------------------------------- */
+
+      const modules = dbCourse.syllabus.map(
+        (module) => {
+          const actualLessons = Array.isArray(
+            module.lessons,
+          )
+            ? module.lessons
+            : [];
+
+          return {
+            id: module.id,
+
+            title: module.title,
+
+            /*
+             * Preserve the description exactly as
+             * stored in the database.
+             *
+             * The CourseClient diagnostic will help
+             * identify whether it contains HTML or
+             * escaped HTML.
+             */
+            description: module.description ?? "",
+
+            /*
+             * Actual number of lessons belonging
+             * to this module.
+             */
+            lessons: actualLessons.length,
+
+            /*
+             * Keep the lesson records available
+             * for future syllabus enhancements.
+             */
+            lessonItems: actualLessons,
+
+            duration: "Self-paced",
+          };
+        },
+      );
+
+      /* -----------------------------------------------
+         OVERVIEW
+      ----------------------------------------------- */
+
+      const overview = Array.isArray(
+        dbCourse.overview,
+      )
+        ? dbCourse.overview
+        : dbCourse.overview
+          ? [dbCourse.overview]
+          : [];
+
+      /* -----------------------------------------------
+         LEARNING OUTCOMES
+      ----------------------------------------------- */
+
+      const learningOutcomes = Array.isArray(
+        dbCourse.learningOutcomes,
+      )
+        ? dbCourse.learningOutcomes
+        : [];
+
+      /* -----------------------------------------------
+         TARGET LEARNERS
+      ----------------------------------------------- */
+
+      const targetLearners = Array.isArray(
+        dbCourse.careerFields,
+      )
+        ? dbCourse.careerFields
+        : [];
+
+      /* -----------------------------------------------
+         CAREER OPPORTUNITIES
+      ----------------------------------------------- */
+
+      const careerOpportunities = Array.isArray(
+        dbCourse.hiringSectors,
+      )
+        ? dbCourse.hiringSectors
+        : [];
+
+      /* =====================================================
+         BUILD COURSE OBJECT FOR COURSECLIENT
+      ===================================================== */
+
       course = {
+        /* ---------------------------------------------
+           IDENTIFICATION
+        --------------------------------------------- */
+
         id: dbCourse.id,
+
         title: dbCourse.title,
-        description: dbCourse.description,
-        category: dbCourse.category?.name || categorySlug,
-        level: dbCourse.level || 'Beginner',
-        study_type: dbCourse.conductingType || 'Online',
-        requirements: 'No prior experience required.',
-        certificate: dbCourse.hasCertificate ? 'Certificate of completion' : 'No certificate',
-        price: dbCourse.price ? Number(dbCourse.price) : 49.99,
-        discounted_price: dbCourse.discount ? Number(dbCourse.price) - Number(dbCourse.discount) : undefined,
-        discount_percentage: dbCourse.discount && Number(dbCourse.price) > 0 ? Math.round((Number(dbCourse.discount) / Number(dbCourse.price)) * 100) : 0,
-        image: dbCourse.thumbnail || 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?w=800&h=400&fit=crop',
-        rating: dbCourse.avgRating || 4.5,
-        students: dbCourse.studentNumber || 100,
-        duration: dbCourse.duration || 'Self-paced',
-        instructor: 'Expert Instructor',
-        instructor_bio: 'A passionate expert in this field with years of industry experience.',
-        overview: dbCourse.overview,
-        learning_outcomes: dbCourse.learningOutcomes?.length > 0 ? dbCourse.learningOutcomes : ['Fundamental concepts', 'Practical applications', 'Advanced techniques'],
-        who_should_learn: dbCourse.careerFields?.length > 0 ? dbCourse.careerFields : ['Anyone looking to advance their skills'],
-        career_opportunities: dbCourse.hiringSectors?.length > 0 ? dbCourse.hiringSectors : ['Technology', 'Business', 'Finance'],
-        market_growth: dbCourse.growthPercentage || 0,
-        estimated_salary: dbCourse.estimatedSalary || 'Competitive',
-        syllabus: dbCourse.syllabus?.length > 0 ? dbCourse.syllabus : [
-          { title: 'Module 1: Introduction', lessons: 3, duration: '1.5 hours' },
-          { title: 'Module 2: Core Concepts', lessons: 5, duration: '3 hours' },
-          { title: 'Module 3: Practical Projects', lessons: 4, duration: '4 hours' }
+
+        description: dbCourse.description ?? "",
+
+        category:
+          dbCourse.category?.name ||
+          categorySlug,
+
+        /* ---------------------------------------------
+           COURSE DETAILS
+        --------------------------------------------- */
+
+        level:
+          dbCourse.level || "Beginner",
+
+        study_type:
+          dbCourse.conductingType || "Online",
+
+        requirements:
+          "No prior experience required.",
+
+        certificate: dbCourse.hasCertificate
+          ? "Certificate of completion"
+          : "No certificate",
+
+        /* ---------------------------------------------
+           PRICE
+        --------------------------------------------- */
+
+        price: originalPrice,
+
+        discounted_price:
+          discountAmount > 0
+            ? finalPrice
+            : undefined,
+
+        discount_percentage:
+          discountPercentage,
+
+        /* ---------------------------------------------
+           COURSE IMAGE
+        --------------------------------------------- */
+
+        image:
+          dbCourse.thumbnail ||
+          "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?w=800&h=400&fit=crop",
+
+        /* ---------------------------------------------
+           COURSE STATISTICS
+        --------------------------------------------- */
+
+        rating: Number(
+          dbCourse.avgRating ?? 0,
+        ),
+
+        students: Number(
+          dbCourse.studentNumber ?? 0,
+        ),
+
+        duration:
+          dbCourse.duration || "Self-paced",
+
+        /* ---------------------------------------------
+           INSTRUCTOR
+        --------------------------------------------- */
+
+        instructor: "Expert Instructor",
+
+        instructor_bio:
+          "Learn from experienced professionals.",
+
+        /* ---------------------------------------------
+           COURSE OVERVIEW
+        --------------------------------------------- */
+
+        overview,
+
+        /* ---------------------------------------------
+           EXISTING PUBLIC PAGE FIELD MAPPING
+
+           Preserve the mapping currently used by
+           your CourseClient component.
+        --------------------------------------------- */
+
+        learning_outcomes: learningOutcomes,
+
+        who_should_learn: targetLearners,
+
+        career_opportunities:
+          careerOpportunities,
+
+        /* ---------------------------------------------
+           ADDITIONAL INFORMATION
+        --------------------------------------------- */
+
+        market_growth:
+          dbCourse.growthPercentage ?? 0,
+
+        estimated_salary:
+          dbCourse.estimatedSalary ?? "",
+
+        /* ---------------------------------------------
+           REAL DATABASE MODULES
+
+           Never substitute fictional modules
+           for an actual database course.
+        --------------------------------------------- */
+
+        syllabus: modules,
+
+        /* ---------------------------------------------
+           FAQS
+        --------------------------------------------- */
+
+        faqs:
+          dbCourse.faqs?.length > 0
+            ? dbCourse.faqs.map((faq) => ({
+                question: faq.question,
+                answer: faq.answer,
+              }))
+            : [],
+
+        /* ---------------------------------------------
+           LEARNER STORIES
+        --------------------------------------------- */
+
+        learner_stories:
+          dbCourse.learnerStories?.length > 0
+            ? dbCourse.learnerStories.map(
+                (story) => ({
+                  name: story.name,
+                  role: story.role,
+                  story: story.story,
+                }),
+              )
+            : [],
+
+        /* ---------------------------------------------
+           CERTIFICATIONS
+        --------------------------------------------- */
+
+        certifications:
+          dbCourse.hasCertificate
+            ? ["Certificate of Completion"]
+            : [],
+
+        /* ---------------------------------------------
+           KEY ASPECTS
+        --------------------------------------------- */
+
+        key_aspects: [
+          dbCourse.conductingType || "Online",
+          "Self-Paced Learning",
         ],
-        faqs: dbCourse.faqs?.length > 0 ? dbCourse.faqs : [
-          { question: 'Do I need prior experience?', answer: 'This course is designed to accommodate beginners.' },
-          { question: 'Will I get a certificate?', answer: 'Yes, upon full completion.' }
-        ],
-        learner_stories: dbCourse.learnerStories?.length > 0 ? dbCourse.learnerStories : [],
-        certifications: dbCourse.hasCertificate ? ['Certificate of Completion'] : [],
-        key_aspects: ['Fully Online', 'Self-Paced Learning', 'Lifetime Access']
       };
     }
   } catch (error) {
-    console.error("Error fetching course from DB:", error);
+    console.error(
+      "[CourseDetailsPage] Failed to load course:",
+      error,
+    );
   }
 
-  // 2. Try falling back to mock courses if not found in DB
+  /* =========================================================
+     FALLBACK TO DEMO COURSES
+
+     Demo courses are used only when a matching
+     database course is not available.
+  ========================================================= */
+
   if (!course) {
-    const mockCourse = mockCourses.find((c) => {
-      const generatedSlug = c.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      return generatedSlug === courseSlug;
-    });
+    const mockCourse = mockCourses.find(
+      (mock) => {
+        const generatedSlug = mock.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+
+        return generatedSlug === courseSlug;
+      },
+    );
 
     if (mockCourse) {
       course = mockCourse;
+      isDbCourse = false;
     }
   }
 
-  // 3. Render client component with course data (or null if not found)
-  // Pass isDbCourse flag to indicate if this is real DB course (enrollable) or mock data
-  const isDbCourse = !!dbCourse;
-  return <CourseClient course={course} categorySlug={categorySlug} courseSlug={courseSlug} isDbCourse={isDbCourse} />;
+  /* =========================================================
+     RENDER COURSE DETAILS
+  ========================================================= */
+
+  return (
+    <CourseClient
+      course={course}
+      categorySlug={categorySlug}
+      courseSlug={courseSlug}
+      isDbCourse={isDbCourse}
+    />
+  );
 }

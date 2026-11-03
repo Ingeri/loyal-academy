@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,7 +21,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+
 import { Loader2, Plus, X } from "lucide-react";
+
+import RichTextEditor, {
+  type ContentBlock,
+} from "@/components/instructor/rich-text-editor";
 
 interface Category {
   id: string;
@@ -32,192 +37,344 @@ interface CourseFormProps {
   categories: Category[];
 }
 
-export default function CourseForm({ categories }: CourseFormProps) {
+type RepeatableField =
+  | "careerFields"
+  | "hiringSectors"
+  | "learningOutcomes";
+
+export default function CourseForm({
+  categories,
+}: CourseFormProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [isLoading, setIsLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  /*
+   * Course Overview now uses the same
+   * rich content editor as your module form.
+   */
+  const [overviewBlocks, setOverviewBlocks] =
+    useState<ContentBlock[]>([]);
 
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
-    overview: [""],
+
     thumbnail: "",
+
     categoryId: "",
+
     price: "0",
+
     level: "BEGINNER",
+
     duration: "",
+
     hasCertificate: true,
+
     hasExam: false,
+
     conductingType: "Online",
-    learningOutcomes: [""],
+
+    /*
+     * We keep these internal field names
+     * so your existing API is less likely
+     * to break.
+     *
+     * careerFields =
+     * Who Should Learn This Course
+     *
+     * hiringSectors =
+     * Why This Course Matters
+     */
     careerFields: [""],
+
     hiringSectors: [""],
-    growthPercentage: "",
-    estimatedSalary: "",
-    expectedIncome: "",
-    discount: "",
+
+    learningOutcomes: [""],
   });
 
-  const addHiringSector = () => {
+  /*
+   * Generic functions for all three
+   * repeatable sections.
+   */
+  const addListItem = (
+    field: RepeatableField,
+  ) => {
     setFormData((prev) => ({
       ...prev,
-      hiringSectors: [...prev.hiringSectors, ""],
-    }));
-  };
-
-  const removeHiringSector = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      hiringSectors: prev.hiringSectors.filter(
-        (_: any, i: number) => i !== index,
-      ),
-    }));
-  };
-
-  const updateHiringSector = (index: number, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      hiringSectors: prev.hiringSectors.map((item: string, i: number) =>
-        i === index ? value : item,
-      ),
-    }));
-  };
-
-  const addOverviewItem = () => {
-    setFormData((prev) => ({ ...prev, overview: [...prev.overview, ""] }));
-  };
-
-  const removeOverviewItem = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      overview: prev.overview.filter((_: any, i: number) => i !== index),
-    }));
-  };
-
-  const updateOverviewItem = (index: number, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      overview: prev.overview.map((item: string, i: number) =>
-        i === index ? value : item,
-      ),
-    }));
-  };
-
-  const uploadFile = async (file: File) => {
-    const fd = new FormData();
-    fd.append("file", file, file.name);
-
-    const res = await fetch("/api/uploads/image", {
-      method: "POST",
-      body: fd,
-    });
-
-    if (!res.ok) {
-      throw new Error("Upload failed");
-    }
-
-    const data = await res.json();
-    return data.url as string;
-  };
-
-  const addListItem = (field: "learningOutcomes" | "careerFields") => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: [...prev[field], ""],
+      [field]: [
+        ...prev[field],
+        "",
+      ],
     }));
   };
 
   const removeListItem = (
-    field: "learningOutcomes" | "careerFields",
+    field: RepeatableField,
     index: number,
   ) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: prev[field].filter((_, i) => i !== index),
+
+      [field]:
+        prev[field].filter(
+          (_, itemIndex) =>
+            itemIndex !== index,
+        ),
     }));
   };
 
   const updateListItem = (
-    field: "learningOutcomes" | "careerFields",
+    field: RepeatableField,
     index: number,
     value: string,
   ) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: prev[field].map((item, i) => (i === index ? value : item)),
+
+      [field]:
+        prev[field].map(
+          (item, itemIndex) =>
+            itemIndex === index
+              ? value
+              : item,
+        ),
     }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
+  /*
+   * Existing image upload logic.
+   */
+  const uploadFile = async (
+    file: File,
+  ) => {
+    const fd = new FormData();
+
+    fd.append(
+      "file",
+      file,
+      file.name,
+    );
+
+    const response = await fetch(
+      "/api/uploads/image",
+      {
+        method: "POST",
+        body: fd,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "Upload failed",
+      );
+    }
+
+    const data =
+      await response.json();
+
+    return data.url as string;
+  };
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
     setError(null);
 
+    /*
+     * Basic validation
+     */
+    if (!formData.title.trim()) {
+      setError(
+        "Course title is required.",
+      );
+
+      return;
+    }
+
+    if (!formData.categoryId) {
+      setError(
+        "Please select a category.",
+      );
+
+      return;
+    }
+
+    if (
+      overviewBlocks.length === 0
+    ) {
+      setError(
+        "Please add a course overview.",
+      );
+
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      const response = await fetch("/api/instructor/courses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          overview: formData.overview.filter(
-            (item: string) => item.trim() !== "",
-          ),
-          learningOutcomes: formData.learningOutcomes.filter(
-            (item) => item.trim() !== "",
-          ),
-          careerFields: formData.careerFields.filter(
-            (item) => item.trim() !== "",
-          ),
-          hiringSectors: formData.hiringSectors?.filter(
-            (item: string) => item.trim() !== "",
-          ),
-        }),
-      });
+      /*
+       * Convert rich editor blocks to HTML.
+       *
+       * Your current overview field was
+       * string[], so we place the generated
+       * HTML inside that array.
+       */
+      const overviewHtml =
+        contentBlocksToHtml(
+          overviewBlocks,
+        );
 
-      const data = await response.json();
+      /*
+       * Because your API previously received
+       * a required description field, we
+       * generate one automatically from the
+       * Course Overview instead of displaying
+       * the old Short Description field.
+       */
+      const generatedDescription =
+        contentBlocksToPlainText(
+          overviewBlocks,
+        ).slice(0, 500);
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create course");
+      const response = await fetch(
+        "/api/instructor/courses",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            ...formData,
+
+            description:
+              generatedDescription,
+
+            overview:
+              overviewHtml.trim()
+                ? [overviewHtml]
+                : [],
+
+            careerFields:
+              formData.careerFields.filter(
+                (item) =>
+                  item.trim() !== "",
+              ),
+
+            hiringSectors:
+              formData.hiringSectors.filter(
+                (item) =>
+                  item.trim() !== "",
+              ),
+
+            learningOutcomes:
+              formData.learningOutcomes.filter(
+                (item) =>
+                  item.trim() !== "",
+              ),
+          }),
+        },
+      );
+
+      let data: any = {};
+
+      try {
+        data =
+          await response.json();
+      } catch {
+        data = {};
       }
 
-      router.push(`/instructor/courses/${data.slug}`);
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Failed to create course",
+        );
+      }
+
+      router.push(
+        `/instructor/courses/${data.slug}`,
+      );
+
+      router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred",
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8">
+      {/* PAGE TITLE */}
       <div>
-        <h1 className="text-3xl font-bold">Create New Course</h1>
-        <p className="text-muted-foreground mt-2">
-          Fill in the details to create a new course
+        <h1 className="text-3xl font-bold">
+          Create New Course
+        </h1>
+
+        <p className="mt-2 text-muted-foreground">
+          Fill in the details to create
+          a new course
         </p>
       </div>
 
       <Card className="py-8">
         <CardHeader>
-          <CardTitle>Course Information</CardTitle>
-          <CardDescription>Basic information about your course</CardDescription>
+          <CardTitle>
+            Course Information
+          </CardTitle>
+
+          <CardDescription>
+            Basic information about your
+            course
+          </CardDescription>
         </CardHeader>
+
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-8"
+          >
+            {/* ERROR */}
             {error && (
-              <div className="p-4 bg-destructive/10 text-destructive rounded-md">
+              <div className="rounded-md bg-destructive/10 p-4 text-destructive">
                 {error}
               </div>
             )}
 
+            {/* COURSE TITLE + SLUG */}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="title">Course Title *</Label>
+                <Label htmlFor="title">
+                  Course Title *
+                </Label>
+
                 <Input
                   id="title"
                   value={formData.title}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, title: e.target.value }))
+                  onChange={(event) =>
+                    setFormData(
+                      (prev) => ({
+                        ...prev,
+
+                        title:
+                          event.target
+                            .value,
+                      }),
+                    )
                   }
                   required
                   placeholder="Introduction to Web Development"
@@ -225,398 +382,579 @@ export default function CourseForm({ categories }: CourseFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug (auto-generated)</Label>
+                <Label htmlFor="slug">
+                  Slug (auto-generated)
+                </Label>
+
                 <Input
                   id="slug"
                   value={formData.title
                     .toLowerCase()
-                    .replace(/[^a-z0-9]+/g, "-")}
+                    .replace(
+                      /[^a-z0-9]+/g,
+                      "-",
+                    )
+                    .replace(
+                      /^-+|-+$/g,
+                      "",
+                    )}
                   disabled
                   className="bg-muted"
                 />
               </div>
             </div>
 
+            {/* COURSE OVERVIEW */}
             <div className="space-y-2">
-              <Label htmlFor="description">Short Description *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
+              <RichTextEditor
+                value={overviewBlocks}
+                onChange={
+                  setOverviewBlocks
                 }
-                required
-                rows={3}
-                placeholder="A brief description of your course"
+                label="Course Overview *"
+                emptyMessage='No course overview yet. Click "Add Block" to start writing.'
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Course Overview</Label>
-              {formData.overview.map((ov: string, index: number) => (
-                <div key={index} className="flex gap-2">
-                  <Textarea
-                    value={ov}
-                    onChange={(e) => updateOverviewItem(index, e.target.value)}
-                    rows={4}
-                    placeholder="Describe this section of the overview"
-                  />
-                  {formData.overview.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeOverviewItem(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addOverviewItem}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Overview Section
-              </Button>
-            </div>
-
+            {/* THUMBNAIL + CATEGORY */}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="thumbnail">Thumbnail</Label>
+                <Label htmlFor="thumbnail">
+                  Thumbnail
+                </Label>
+
                 <input
                   id="thumbnail"
                   type="file"
                   accept="image/*"
                   aria-label="Upload thumbnail image"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
+                  onChange={async (
+                    event,
+                  ) => {
+                    const file =
+                      event.target
+                        .files?.[0];
+
+                    if (!file) {
+                      return;
+                    }
+
                     setIsLoading(true);
+
                     try {
-                      const url = await uploadFile(file);
-                      setFormData((prev) => ({ ...prev, thumbnail: url }));
+                      const url =
+                        await uploadFile(
+                          file,
+                        );
+
+                      setFormData(
+                        (prev) => ({
+                          ...prev,
+                          thumbnail: url,
+                        }),
+                      );
                     } catch (err) {
                       setError(
-                        err instanceof Error ? err.message : "Upload failed",
+                        err instanceof
+                          Error
+                          ? err.message
+                          : "Upload failed",
                       );
                     } finally {
-                      setIsLoading(false);
+                      setIsLoading(
+                        false,
+                      );
                     }
                   }}
                 />
+
                 {formData.thumbnail && (
-                  <div className="text-sm text-muted-foreground mt-2">
-                    Uploaded: {formData.thumbnail}
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    Uploaded:{" "}
+                    {
+                      formData.thumbnail
+                    }
                   </div>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="category">
+                  Category *
+                </Label>
+
                 <Select
-                  value={formData.categoryId}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, categoryId: value }))
+                  value={
+                    formData.categoryId
+                  }
+                  onValueChange={(
+                    value,
+                  ) =>
+                    setFormData(
+                      (prev) => ({
+                        ...prev,
+                        categoryId:
+                          value,
+                      }),
+                    )
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
+
                   <SelectContent>
-                    {categories.length === 0 ? (
-                      <SelectItem value="" disabled>
-                        No categories available
+                    {categories.length ===
+                    0 ? (
+                      <SelectItem
+                        value="no-categories"
+                        disabled
+                      >
+                        No categories
+                        available
                       </SelectItem>
                     ) : (
-                      categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))
+                      categories.map(
+                        (category) => (
+                          <SelectItem
+                            key={
+                              category.id
+                            }
+                            value={
+                              category.id
+                            }
+                          >
+                            {
+                              category.name
+                            }
+                          </SelectItem>
+                        ),
+                      )
                     )}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
+            {/* PRICE + LEVEL + DURATION */}
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">
+                  Price ($)
+                </Label>
+
                 <Input
                   id="price"
                   type="number"
                   min="0"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, price: e.target.value }))
+                  onChange={(event) =>
+                    setFormData(
+                      (prev) => ({
+                        ...prev,
+
+                        price:
+                          event.target
+                            .value,
+                      }),
+                    )
                   }
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="level">Level *</Label>
+                <Label htmlFor="level">
+                  Level *
+                </Label>
+
                 <Select
                   value={formData.level}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, level: value }))
+                  onValueChange={(
+                    value,
+                  ) =>
+                    setFormData(
+                      (prev) => ({
+                        ...prev,
+                        level: value,
+                      }),
+                    )
                   }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
+
                   <SelectContent>
-                    <SelectItem value="BEGINNER">Beginner</SelectItem>
-                    <SelectItem value="INTERMEDIATE">Intermediate</SelectItem>
-                    <SelectItem value="ADVANCED">Advanced</SelectItem>
+                    <SelectItem value="BEGINNER">
+                      Beginner
+                    </SelectItem>
+
+                    <SelectItem value="INTERMEDIATE">
+                      Intermediate
+                    </SelectItem>
+
+                    <SelectItem value="ADVANCED">
+                      Advanced
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration</Label>
+                <Label htmlFor="duration">
+                  Duration
+                </Label>
+
                 <Input
                   id="duration"
-                  value={formData.duration}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      duration: e.target.value,
-                    }))
+                  value={
+                    formData.duration
+                  }
+                  onChange={(event) =>
+                    setFormData(
+                      (prev) => ({
+                        ...prev,
+
+                        duration:
+                          event.target
+                            .value,
+                      }),
+                    )
                   }
                   placeholder="e.g., 8 weeks"
                 />
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            {/* CONDUCTING TYPE + OPTIONS */}
+            <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="conductingType">Conducting Type</Label>
+                <Label htmlFor="conductingType">
+                  Conducting Type
+                </Label>
+
                 <Select
-                  value={formData.conductingType}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      conductingType: value,
-                    }))
+                  value={
+                    formData.conductingType
+                  }
+                  onValueChange={(
+                    value,
+                  ) =>
+                    setFormData(
+                      (prev) => ({
+                        ...prev,
+
+                        conductingType:
+                          value,
+                      }),
+                    )
                   }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
+
                   <SelectContent>
-                    <SelectItem value="Online">Online</SelectItem>
-                    <SelectItem value="OnSite">On Site</SelectItem>
-                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    <SelectItem value="Online">
+                      Online
+                    </SelectItem>
+
+                    <SelectItem value="OnSite">
+                      On Site
+                    </SelectItem>
+
+                    <SelectItem value="Hybrid">
+                      Hybrid
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="flex items-center gap-4 pt-6">
-                <Checkbox
-                  id="hasCertificate"
-                  checked={formData.hasCertificate}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      hasCertificate: checked as boolean,
-                    }))
-                  }
-                />
-                <Label htmlFor="hasCertificate">Include Certificate</Label>
+              <div className="flex flex-wrap items-center gap-5 pt-6">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="hasCertificate"
+                    checked={
+                      formData.hasCertificate
+                    }
+                    onCheckedChange={(
+                      checked,
+                    ) =>
+                      setFormData(
+                        (prev) => ({
+                          ...prev,
 
-                <Checkbox
-                  id="hasExam"
-                  checked={formData.hasExam}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      hasExam: checked as boolean,
-                    }))
-                  }
-                />
-                <Label htmlFor="hasExam">Include Exam</Label>
+                          hasCertificate:
+                            checked ===
+                            true,
+                        }),
+                      )
+                    }
+                  />
+
+                  <Label htmlFor="hasCertificate">
+                    Include Certificate
+                  </Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="hasExam"
+                    checked={
+                      formData.hasExam
+                    }
+                    onCheckedChange={(
+                      checked,
+                    ) =>
+                      setFormData(
+                        (prev) => ({
+                          ...prev,
+
+                          hasExam:
+                            checked ===
+                            true,
+                        }),
+                      )
+                    }
+                  />
+
+                  <Label htmlFor="hasExam">
+                    Include Exam
+                  </Label>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Learning Outcomes</Label>
-              {formData.learningOutcomes.map((outcome, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={outcome}
-                    onChange={(e) =>
-                      updateListItem("learningOutcomes", index, e.target.value)
-                    }
-                    placeholder="e.g., Build responsive websites"
-                  />
-                  {formData.learningOutcomes.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeListItem("learningOutcomes", index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
+            <div className="border-t pt-6" />
+
+            {/* WHO SHOULD LEARN */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-base font-semibold">
+                  Who Should Learn This
+                  Course?
+                </Label>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add the target learners
+                  for this course
+                </p>
+              </div>
+
+              {formData.careerFields.map(
+                (learner, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-2"
+                  >
+                    <Input
+                      value={learner}
+                      onChange={(
+                        event,
+                      ) =>
+                        updateListItem(
+                          "careerFields",
+                          index,
+                          event.target
+                            .value,
+                        )
+                      }
+                      placeholder="e.g., University students, young professionals, managers"
+                    />
+
+                    {formData
+                      .careerFields
+                      .length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          removeListItem(
+                            "careerFields",
+                            index,
+                          )
+                        }
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ),
+              )}
+
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => addListItem("learningOutcomes")}
+                onClick={() =>
+                  addListItem(
+                    "careerFields",
+                  )
+                }
                 className="w-full"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
+                Add Target Learner
+              </Button>
+            </div>
+
+            {/* WHY THIS COURSE MATTERS */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-base font-semibold">
+                  Why This Course
+                  Matters
+                </Label>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add the important
+                  reasons and benefits of
+                  this course
+                </p>
+              </div>
+
+              {formData.hiringSectors.map(
+                (reason, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-2"
+                  >
+                    <Input
+                      value={reason}
+                      onChange={(
+                        event,
+                      ) =>
+                        updateListItem(
+                          "hiringSectors",
+                          index,
+                          event.target
+                            .value,
+                        )
+                      }
+                      placeholder="e.g., Fundamental concepts, practical applications"
+                    />
+
+                    {formData
+                      .hiringSectors
+                      .length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          removeListItem(
+                            "hiringSectors",
+                            index,
+                          )
+                        }
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ),
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  addListItem(
+                    "hiringSectors",
+                  )
+                }
+                className="w-full"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Reason
+              </Button>
+            </div>
+
+            {/* LEARNING OUTCOMES */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-base font-semibold">
+                  Learning Outcomes
+                </Label>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add what learners
+                  should achieve after
+                  completing this course
+                </p>
+              </div>
+
+              {formData.learningOutcomes.map(
+                (
+                  outcome,
+                  index,
+                ) => (
+                  <div
+                    key={index}
+                    className="flex gap-2"
+                  >
+                    <Input
+                      value={outcome}
+                      onChange={(
+                        event,
+                      ) =>
+                        updateListItem(
+                          "learningOutcomes",
+                          index,
+                          event.target
+                            .value,
+                        )
+                      }
+                      placeholder="e.g., Build responsive websites"
+                    />
+
+                    {formData
+                      .learningOutcomes
+                      .length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          removeListItem(
+                            "learningOutcomes",
+                            index,
+                          )
+                        }
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ),
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  addListItem(
+                    "learningOutcomes",
+                  )
+                }
+                className="w-full"
+              >
+                <Plus className="mr-2 h-4 w-4" />
                 Add Learning Outcome
               </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label>Career Fields</Label>
-              {formData.careerFields.map((field, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={field}
-                    onChange={(e) =>
-                      updateListItem("careerFields", index, e.target.value)
-                    }
-                    placeholder="e.g., Software Engineering"
-                  />
-                  {formData.careerFields.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeListItem("careerFields", index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => addListItem("careerFields")}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Career Field
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Hiring Sectors</Label>
-              {formData.hiringSectors.map((sector: string, index: number) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={sector}
-                    onChange={(e) => updateHiringSector(index, e.target.value)}
-                    placeholder="e.g., Fintech"
-                  />
-                  {formData.hiringSectors.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeHiringSector(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addHiringSector}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Hiring Sector
-              </Button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="space-y-2">
-                <Label htmlFor="discount">Discount ($)</Label>
-                <Input
-                  id="discount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.discount}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      discount: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="growthPercentage">Growth %</Label>
-                <Input
-                  id="growthPercentage"
-                  type="number"
-                  step="0.1"
-                  value={formData.growthPercentage}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      growthPercentage: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="estimatedSalary">Estimated Salary</Label>
-                <Input
-                  id="estimatedSalary"
-                  value={formData.estimatedSalary}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      estimatedSalary: e.target.value,
-                    }))
-                  }
-                  placeholder="e.g., $40k - $60k"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="expectedIncome">Expected Income</Label>
-                <Input
-                  id="expectedIncome"
-                  value={formData.expectedIncome}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      expectedIncome: e.target.value,
-                    }))
-                  }
-                  placeholder="e.g., $200/month"
-                />
-              </div>
-            </div>
-
+            {/* ACTIONS */}
             <div className="flex gap-4 pt-4">
-              <Button type="submit" disabled={isLoading} className="flex-1">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1"
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -626,10 +964,13 @@ export default function CourseForm({ categories }: CourseFormProps) {
                   "Create Course"
                 )}
               </Button>
+
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.back()}
+                onClick={() =>
+                  router.back()
+                }
                 disabled={isLoading}
               >
                 Cancel
@@ -640,4 +981,238 @@ export default function CourseForm({ categories }: CourseFormProps) {
       </Card>
     </div>
   );
+}
+
+/*
+ * Convert your ContentBlock[] rich editor
+ * data to HTML.
+ */
+function contentBlocksToHtml(
+  blocks: ContentBlock[],
+): string {
+  return blocks
+    .map((block) => {
+      switch (block.type) {
+        case "heading":
+          return `<h${block.level}>${escapeHtml(
+            block.text,
+          )}</h${block.level}>`;
+
+        case "paragraph":
+          return `<p>${escapeHtml(
+            block.text,
+          )}</p>`;
+
+        case "image":
+          return `
+            <figure>
+              <img
+                src="${escapeHtml(
+                  block.url,
+                )}"
+                alt="${escapeHtml(
+                  block.alt,
+                )}"
+              />
+
+              ${
+                block.caption
+                  ? `<figcaption>${escapeHtml(
+                      block.caption,
+                    )}</figcaption>`
+                  : ""
+              }
+            </figure>
+          `;
+
+        case "list": {
+          const tag =
+            block.ordered
+              ? "ol"
+              : "ul";
+
+          const items =
+            block.items
+              .map(
+                (item) =>
+                  `<li>${escapeHtml(
+                    item,
+                  )}</li>`,
+              )
+              .join("");
+
+          return `<${tag}>${items}</${tag}>`;
+        }
+
+        case "table": {
+          const headers =
+            block.headers
+              .map(
+                (header) =>
+                  `<th>${escapeHtml(
+                    header,
+                  )}</th>`,
+              )
+              .join("");
+
+          const rows =
+            block.rows
+              .map(
+                (row) =>
+                  `<tr>${row
+                    .map(
+                      (cell) =>
+                        `<td>${escapeHtml(
+                          cell,
+                        )}</td>`,
+                    )
+                    .join(
+                      "",
+                    )}</tr>`,
+              )
+              .join("");
+
+          return `
+            <table>
+              <thead>
+                <tr>
+                  ${headers}
+                </tr>
+              </thead>
+
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          `;
+        }
+
+        case "video":
+          return `
+            <div>
+              <strong>
+                ${escapeHtml(
+                  block.title,
+                )}
+              </strong>
+
+              <p>
+                <a
+                  href="${escapeHtml(
+                    block.url,
+                  )}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Watch video
+                </a>
+              </p>
+
+              ${
+                block.duration
+                  ? `<p>Duration: ${escapeHtml(
+                      block.duration,
+                    )}</p>`
+                  : ""
+              }
+            </div>
+          `;
+
+        case "code":
+          return `
+            <pre>
+              <code data-language="${escapeHtml(
+                block.language,
+              )}">
+${escapeHtml(block.code)}
+              </code>
+            </pre>
+          `;
+
+        case "callout":
+          return `
+            <div data-callout="${escapeHtml(
+              block.intent,
+            )}">
+              ${escapeHtml(
+                block.text,
+              )}
+            </div>
+          `;
+
+        default:
+          return "";
+      }
+    })
+    .join("\n");
+}
+
+/*
+ * Generate a normal text version from the
+ * overview. This lets your existing API
+ * continue receiving "description" even
+ * though the Short Description field is no
+ * longer shown in the form.
+ */
+function contentBlocksToPlainText(
+  blocks: ContentBlock[],
+): string {
+  return blocks
+    .map((block) => {
+      switch (block.type) {
+        case "heading":
+        case "paragraph":
+        case "callout":
+          return block.text;
+
+        case "image":
+          return (
+            block.caption ||
+            block.alt ||
+            ""
+          );
+
+        case "list":
+          return block.items.join(
+            ". ",
+          );
+
+        case "table":
+          return [
+            ...block.headers,
+            ...block.rows.flat(),
+          ].join(". ");
+
+        case "video":
+          return [
+            block.title,
+            block.duration,
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+        case "code":
+          return block.code;
+
+        default:
+          return "";
+      }
+    })
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+}
+
+function escapeHtml(
+  value: string,
+): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll(
+      "'",
+      "&#039;",
+    );
 }
