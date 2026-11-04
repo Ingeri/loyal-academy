@@ -1,7 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,6 @@ import {
   Award,
   Star,
   CheckCircle,
-  MessageSquare,
-  HelpCircle,
   Calendar,
   Zap,
   CheckCircle2,
@@ -26,11 +24,12 @@ import {
   ChevronDown,
   Briefcase,
   Target,
-  LineChart,
   Quote,
-  DollarSign,
-  Check,
 } from "lucide-react";
+
+/* =========================================================
+   MOCK COURSES
+========================================================= */
 
 export const mockCourses = [
   {
@@ -54,6 +53,9 @@ export const mockCourses = [
     instructor: "Sarah Johnson",
     instructor_bio:
       "Sarah is a senior web developer with 10+ years of experience.",
+    overview: [
+      "<p>Learn the foundations of modern web development and gain practical skills for building responsive websites.</p>",
+    ],
     learning_outcomes: [
       "HTML & CSS Fundamentals",
       "JavaScript Basics",
@@ -67,8 +69,16 @@ export const mockCourses = [
     market_growth:
       "Web development has a projected growth of 13% through 2032, making it one of the fastest-growing tech fields.",
     syllabus: [
-      { title: "Module 1: HTML Basics", lessons: 5, duration: "2 hours" },
-      { title: "Module 2: CSS Styling", lessons: 6, duration: "2.5 hours" },
+      {
+        title: "Module 1: HTML Basics",
+        lessons: 5,
+        duration: "2 hours",
+      },
+      {
+        title: "Module 2: CSS Styling",
+        lessons: 6,
+        duration: "2.5 hours",
+      },
       {
         title: "Module 3: JavaScript Fundamentals",
         lessons: 8,
@@ -146,6 +156,9 @@ export const mockCourses = [
     instructor: "Mike Chen",
     instructor_bio:
       "Mike is a React expert and has built multiple production applications.",
+    overview: [
+      "<p>Develop advanced React skills and learn production-ready architectural patterns.</p>",
+    ],
     learning_outcomes: [
       "React Hooks",
       "Context API",
@@ -159,7 +172,11 @@ export const mockCourses = [
     market_growth:
       "React skills are in high demand, with an average salary increase of 25% for developers proficient in advanced patterns.",
     syllabus: [
-      { title: "Module 1: Advanced Hooks", lessons: 7, duration: "3 hours" },
+      {
+        title: "Module 1: Advanced Hooks",
+        lessons: 7,
+        duration: "3 hours",
+      },
       {
         title: "Module 2: Context & Provider Patterns",
         lessons: 5,
@@ -176,25 +193,13 @@ export const mockCourses = [
         duration: "4 hours",
       },
     ],
-    faqs: [
-      {
-        question: "Do I need to know React basics?",
-        answer: "Yes, basic React knowledge is required.",
-      },
-      {
-        question: "Are there any projects?",
-        answer: "Yes, includes 3 real-world projects.",
-      },
-      {
-        question: "Lifetime access?",
-        answer: "Yes, you get lifetime access to all course materials.",
-      },
-    ],
+    faqs: [],
     learner_stories: [
       {
         name: "Alex Johnson",
         role: "Senior React Developer",
-        story: "This course elevated my React skills to the next level!",
+        story:
+          "This course elevated my React skills to the next level!",
       },
       {
         name: "Maria Garcia",
@@ -203,381 +208,10 @@ export const mockCourses = [
           "The patterns I learned are exactly what our production team needed.",
       },
     ],
-    certifications: [
-      "Advanced React Certificate",
-      "React Patterns Certified",
-      "Performance Expert Badge",
-    ],
+    certifications: ["Advanced React Certificate"],
     key_aspects: [
       "Full Online Course",
-      "CPD Approved",
       "Employer Approved",
-      "Fully Endorsed Course",
-      "No Entry Requirements",
-      "Boost Your Resume",
-      "Own Pace Study",
-      "Premium Course Material",
-      "Completion Certificate",
-    ],
-  },
-  {
-    id: "3",
-    title: "Data Science Essentials",
-    description:
-      "Introduction to Python, pandas, and data visualization. Learn the fundamentals of data analysis.",
-    category: "Data Science",
-    level: "Beginner",
-    study_type: "Hybrid",
-    requirements: "Basic computer skills.",
-    certificate: "Data Science certificate",
-    price: 59.99,
-    discounted_price: 47.99,
-    discount_percentage: 20,
-    image:
-      "https://images.pexels.com/photos/3182751/pexels-photo-3182751.jpeg?w=800&h=400&fit=crop",
-    rating: 4.7,
-    students: 3200,
-    duration: "12 weeks",
-    instructor: "Dr. Emily Rodriguez",
-    instructor_bio:
-      "Dr. Rodriguez has a PhD in Data Science and 8 years of industry experience.",
-    learning_outcomes: [
-      "Python Programming",
-      "Data Analysis with Pandas",
-      "Data Visualization",
-      "Statistical Concepts",
-    ],
-    who_should_learn:
-      "Anyone interested in data science, analytics, or business intelligence with basic computer skills.",
-    career_opportunities:
-      "Qualify for junior data analyst, data scientist, or business analyst positions.",
-    market_growth:
-      "Data science roles are growing 36% faster than average, with median salaries over $120,000.",
-    syllabus: [
-      { title: "Module 1: Python Basics", lessons: 8, duration: "3 hours" },
-      {
-        title: "Module 2: Pandas & Data Manipulation",
-        lessons: 7,
-        duration: "3 hours",
-      },
-      {
-        title: "Module 3: Data Visualization",
-        lessons: 6,
-        duration: "2 hours",
-      },
-      {
-        title: "Module 4: Statistical Analysis",
-        lessons: 5,
-        duration: "2 hours",
-      },
-    ],
-    faqs: [
-      {
-        question: "Do I need math background?",
-        answer: "Basic math understanding helps but we teach what you need.",
-      },
-      {
-        question: "What tools will I learn?",
-        answer: "Python, Pandas, Matplotlib, and Jupyter Notebooks.",
-      },
-      {
-        question: "Job placement?",
-        answer: "We offer job placement assistance for top performers.",
-      },
-    ],
-    learner_stories: [
-      {
-        name: "Robert Lee",
-        role: "Data Analyst",
-        story: "Transitioned from finance to data science with this course!",
-      },
-      {
-        name: "Sarah Wilson",
-        role: "Business Analyst",
-        story: "Now I can build dashboards and analyze data like a pro.",
-      },
-    ],
-    certifications: [
-      "Data Science Certificate",
-      "Python Certified",
-      "Analytics Professional Badge",
-    ],
-    key_aspects: [
-      "Full Online Course",
-      "CPD Approved",
-      "Employer Approved",
-      "Fully Endorsed Course",
-      "No Entry Requirements",
-      "Boost Your Resume",
-      "Own Pace Study",
-      "Premium Course Material",
-      "Completion Certificate",
-    ],
-  },
-  {
-    id: "4",
-    title: "UX/UI Design Bootcamp",
-    description:
-      "Learn design principles, Figma, and user research. A practical bootcamp for aspiring designers.",
-    category: "Design",
-    level: "Intermediate",
-    study_type: "In-person",
-    requirements: "Basic design skills.",
-    certificate: "UX/UI Design badge",
-    price: 69.99,
-    discounted_price: 55.99,
-    discount_percentage: 20,
-    image:
-      "https://images.pexels.com/photos/3150150/pexels-photo-3150150.jpeg?w=800&h=400&fit=crop",
-    rating: 4.6,
-    students: 1540,
-    duration: "10 weeks",
-    instructor: "Alex Kim",
-    instructor_bio:
-      "Alex is a design director with 12 years of experience at leading tech companies.",
-    learning_outcomes: [
-      "Design Principles",
-      "Figma Mastery",
-      "User Research",
-      "Prototyping & Testing",
-    ],
-    who_should_learn:
-      "Aspiring designers, product managers, and anyone interested in creating beautiful user experiences.",
-    career_opportunities:
-      "Qualify for UX/UI designer, product designer, or design researcher roles.",
-    market_growth:
-      "UX/UI design demand is growing 17% annually with average salaries of $95,000-$130,000.",
-    syllabus: [
-      {
-        title: "Module 1: Design Fundamentals",
-        lessons: 6,
-        duration: "2 hours",
-      },
-      { title: "Module 2: Figma Mastery", lessons: 8, duration: "3 hours" },
-      { title: "Module 3: User Research", lessons: 5, duration: "2 hours" },
-      {
-        title: "Module 4: Portfolio Building",
-        lessons: 4,
-        duration: "2 hours",
-      },
-    ],
-    faqs: [
-      {
-        question: "Do I need design experience?",
-        answer: "No, this bootcamp welcomes beginners.",
-      },
-      {
-        question: "Do you provide design tools?",
-        answer: "Yes, Figma account and all assets provided.",
-      },
-      {
-        question: "Portfolio building included?",
-        answer: "Yes, we help you build a professional portfolio.",
-      },
-    ],
-    learner_stories: [
-      {
-        name: "Emma Davis",
-        role: "UX Designer",
-        story: "Built my portfolio during the course and landed a dream job!",
-      },
-      {
-        name: "James Wilson",
-        role: "Product Designer",
-        story: "The user research skills were game-changing for my career.",
-      },
-    ],
-    certifications: [
-      "UX/UI Design Certificate",
-      "Figma Certified",
-      "Research Methods Badge",
-    ],
-    key_aspects: [
-      "Full Online Course",
-      "CPD Approved",
-      "Employer Approved",
-      "Fully Endorsed Course",
-      "No Entry Requirements",
-      "Boost Your Resume",
-      "Own Pace Study",
-      "Premium Course Material",
-      "Completion Certificate",
-    ],
-  },
-  {
-    id: "5",
-    title: "Cloud Architecture with AWS",
-    description:
-      "Deploy and manage applications on AWS. Learn cloud architecture best practices.",
-    category: "Cloud",
-    level: "Intermediate",
-    study_type: "Online",
-    requirements: "Some cloud or dev experience helpful.",
-    certificate: "AWS architecture certificate",
-    price: 89.99,
-    discounted_price: 71.99,
-    discount_percentage: 20,
-    image:
-      "https://images.pexels.com/photos/3182759/pexels-photo-3182759.jpeg?w=800&h=400&fit=crop",
-    rating: 4.8,
-    students: 2100,
-    duration: "12 weeks",
-    instructor: "James Park",
-    instructor_bio:
-      "James is an AWS Solutions Architect with 9 years of cloud experience.",
-    learning_outcomes: [
-      "AWS Core Services",
-      "Cloud Architecture",
-      "Scalability & Security",
-      "Cost Optimization",
-    ],
-    who_should_learn:
-      "DevOps engineers, backend developers, and architects wanting to master AWS.",
-    career_opportunities:
-      "AWS certified professionals earn 20-30% more than non-certified peers.",
-    market_growth:
-      "Cloud engineering roles are growing 35% annually with critical talent shortage.",
-    syllabus: [
-      { title: "Module 1: AWS Fundamentals", lessons: 8, duration: "3 hours" },
-      { title: "Module 2: Core Services", lessons: 10, duration: "4 hours" },
-      {
-        title: "Module 3: Architecture Best Practices",
-        lessons: 7,
-        duration: "3 hours",
-      },
-      {
-        title: "Module 4: Real-World Scenarios",
-        lessons: 6,
-        duration: "3 hours",
-      },
-    ],
-    faqs: [
-      {
-        question: "Do I need cloud experience?",
-        answer: "Some infrastructure knowledge helps but not required.",
-      },
-      {
-        question: "Does this prepare for AWS certification?",
-        answer: "Yes, prepares for Solutions Architect Associate.",
-      },
-      {
-        question: "Free AWS credits?",
-        answer: "Yes, $100 in free AWS credits included.",
-      },
-    ],
-    learner_stories: [
-      {
-        name: "Michael Chang",
-        role: "Solutions Architect",
-        story: "This course was the key to my AWS certification and promotion!",
-      },
-      {
-        name: "Lisa Anderson",
-        role: "Cloud Engineer",
-        story: "Built my first production deployment with confidence.",
-      },
-    ],
-    certifications: [
-      "AWS Cloud Certificate",
-      "AWS Solutions Architect Ready",
-      "Cloud Expert Badge",
-    ],
-    key_aspects: [
-      "Full Online Course",
-      "CPD Approved",
-      "Employer Approved",
-      "Fully Endorsed Course",
-      "No Entry Requirements",
-      "Boost Your Resume",
-      "Own Pace Study",
-      "Premium Course Material",
-      "Completion Certificate",
-    ],
-  },
-  {
-    id: "6",
-    title: "Machine Learning Fundamentals",
-    description:
-      "Build your first ML models with scikit-learn. A practical introduction to machine learning.",
-    category: "Data Science",
-    level: "Intermediate",
-    study_type: "Hybrid",
-    requirements: "Familiarity with Python recommended.",
-    discounted_price: 79.99,
-    discount_percentage: 20,
-    certificate: "Machine Learning fundamentals certificate",
-    price: 99.99,
-    image:
-      "https://images.pexels.com/photos/3862627/pexels-photo-3862627.jpeg?w=800&h=400&fit=crop",
-    rating: 4.9,
-    students: 2800,
-    duration: "14 weeks",
-    instructor: "Prof. David Lee",
-    instructor_bio:
-      "Prof. Lee has a PhD in Machine Learning and published 20+ research papers.",
-    learning_outcomes: [
-      "ML Fundamentals",
-      "Supervised Learning",
-      "Unsupervised Learning",
-      "Model Evaluation",
-    ],
-    who_should_learn:
-      "Data scientists, engineers, and analysts ready to build ML models.",
-    career_opportunities:
-      "ML engineers earn 30-50% more than average software engineers.",
-    market_growth:
-      "ML job postings increased 74% in the last year, with massive demand.",
-    syllabus: [
-      { title: "Module 1: ML Basics", lessons: 6, duration: "2 hours" },
-      {
-        title: "Module 2: Supervised Learning",
-        lessons: 9,
-        duration: "4 hours",
-      },
-      {
-        title: "Module 3: Unsupervised Learning",
-        lessons: 7,
-        duration: "3 hours",
-      },
-      { title: "Module 4: Production ML", lessons: 8, duration: "4 hours" },
-    ],
-    faqs: [
-      {
-        question: "Math prerequisites?",
-        answer: "We cover the math you need in the course.",
-      },
-      {
-        question: "Real-world projects?",
-        answer: "Yes, 5 real-world ML projects included.",
-      },
-      {
-        question: "Career support?",
-        answer: "Yes, includes career mentoring and networking.",
-      },
-    ],
-    learner_stories: [
-      {
-        name: "David Zhang",
-        role: "ML Engineer",
-        story: "Moved from data analyst to ML engineer thanks to this course.",
-      },
-      {
-        name: "Sophie Martin",
-        role: "AI Researcher",
-        story: "The foundation here led to my PhD in ML.",
-      },
-    ],
-    certifications: [
-      "ML Certificate",
-      "Scikit-learn Expert",
-      "Data Science Master Badge",
-    ],
-    key_aspects: [
-      "Full Online Course",
-      "CPD Approved",
-      "Employer Approved",
-      "Fully Endorsed Course",
-      "No Entry Requirements",
       "Boost Your Resume",
       "Own Pace Study",
       "Premium Course Material",
@@ -586,19 +220,26 @@ export const mockCourses = [
   },
 ];
 
-function getCourse(id: string) {
-  return mockCourses.find((c) => c.id === id) || null;
-}
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function renderRatingStars(rating: number) {
   return (
     <div className="flex items-center gap-1">
       {Array.from({ length: 5 }, (_, index) => {
-        const fill = Math.max(0, Math.min(100, (rating - index) * 100));
+        const fill = Math.max(
+          0,
+          Math.min(100, (rating - index) * 100),
+        );
 
         return (
-          <span key={index} className="relative inline-block">
+          <span
+            key={index}
+            className="relative inline-block"
+          >
             <Star className="h-5 w-5 text-muted-foreground" />
+
             <span
               className="absolute inset-y-0 left-0 overflow-hidden text-yellow-400"
               style={{ width: `${fill}%` }}
@@ -617,22 +258,130 @@ const TABS = [
   "syllabus",
   "certifications",
   "stories",
-  "faq",
 ] as const;
 
-// Helper function to pick an icon based on the text content
 const getAspectIcon = (text: string) => {
   const lowerText = text.toLowerCase();
-  if (lowerText.includes("certificate") || lowerText.includes("endorsed"))
+
+  if (
+    lowerText.includes("certificate") ||
+    lowerText.includes("endorsed")
+  ) {
     return <Trophy className="h-4 w-4" />;
-  if (lowerText.includes("pace")) return <History className="h-4 w-4" />;
-  if (lowerText.includes("approved")) return <UserCheck className="h-4 w-4" />;
-  if (lowerText.includes("resume") || lowerText.includes("boost"))
+  }
+
+  if (lowerText.includes("pace")) {
+    return <History className="h-4 w-4" />;
+  }
+
+  if (lowerText.includes("approved")) {
+    return <UserCheck className="h-4 w-4" />;
+  }
+
+  if (
+    lowerText.includes("resume") ||
+    lowerText.includes("boost")
+  ) {
     return <TrendingUp className="h-4 w-4" />;
-  if (lowerText.includes("material")) return <FileText className="h-4 w-4" />;
-  if (lowerText.includes("online")) return <PlayCircle className="h-4 w-4" />;
-  return <Zap className="h-4 w-4" />; // Default icon
+  }
+
+  if (lowerText.includes("material")) {
+    return <FileText className="h-4 w-4" />;
+  }
+
+  if (lowerText.includes("online")) {
+    return <PlayCircle className="h-4 w-4" />;
+  }
+
+  return <Zap className="h-4 w-4" />;
 };
+
+/* =========================================================
+   RICH TEXT STYLING
+========================================================= */
+
+const richTextClasses = `
+  text-base
+  leading-relaxed
+  text-muted-foreground
+
+  [&_p]:mb-4
+  [&_p:last-child]:mb-0
+
+  [&_h1]:mb-5
+  [&_h1]:mt-6
+  [&_h1]:text-3xl
+  [&_h1]:font-black
+  [&_h1]:text-foreground
+
+  [&_h2]:mb-4
+  [&_h2]:mt-6
+  [&_h2]:text-2xl
+  [&_h2]:font-bold
+  [&_h2]:text-foreground
+
+  [&_h3]:mb-3
+  [&_h3]:mt-5
+  [&_h3]:text-xl
+  [&_h3]:font-bold
+  [&_h3]:text-foreground
+
+  [&_strong]:font-bold
+  [&_strong]:text-foreground
+
+  [&_em]:italic
+
+  [&_ul]:my-5
+  [&_ul]:ml-8
+  [&_ul]:list-disc
+  [&_ul]:space-y-2
+
+  [&_ol]:my-5
+  [&_ol]:ml-8
+  [&_ol]:list-decimal
+  [&_ol]:space-y-2
+
+  [&_li]:pl-1
+
+  [&_blockquote]:my-6
+  [&_blockquote]:border-l-4
+  [&_blockquote]:border-primary
+  [&_blockquote]:bg-primary/5
+  [&_blockquote]:px-5
+  [&_blockquote]:py-3
+  [&_blockquote]:font-medium
+  [&_blockquote]:italic
+  [&_blockquote]:text-foreground
+
+  [&_a]:font-semibold
+  [&_a]:text-primary
+  [&_a]:underline
+  [&_a]:underline-offset-4
+
+  [&_img]:my-6
+  [&_img]:h-auto
+  [&_img]:max-w-full
+  [&_img]:rounded-xl
+
+  [&_table]:my-6
+  [&_table]:w-full
+  [&_table]:border-collapse
+
+  [&_th]:border
+  [&_th]:border-border
+  [&_th]:bg-muted
+  [&_th]:p-3
+  [&_th]:text-left
+  [&_th]:font-bold
+
+  [&_td]:border
+  [&_td]:border-border
+  [&_td]:p-3
+`;
+
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function CourseClient({
   course,
@@ -646,25 +395,46 @@ export default function CourseClient({
   isDbCourse?: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("overview");
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [isEnrolled, setIsEnrolled] = useState(false);
-  const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(true);
 
-  // Debug state for enrollment
+  const [activeTab, setActiveTab] =
+    useState<(typeof TABS)[number]>("overview");
+
+  const [isEnrolled, setIsEnrolled] =
+    useState(false);
+
+  const [
+    isCheckingEnrollment,
+    setIsCheckingEnrollment,
+  ] = useState(true);
+
   const [enrollDebug, setEnrollDebug] = useState<{
     step: string;
-    status: "idle" | "loading" | "success" | "error";
+    status:
+      | "idle"
+      | "loading"
+      | "success"
+      | "error";
     message: string;
     details?: any;
-  }>({ step: "idle", status: "idle", message: "" });
+  }>({
+    step: "idle",
+    status: "idle",
+    message: "",
+  });
+
+  /* =======================================================
+     CHECK ENROLLMENT
+  ======================================================= */
 
   useEffect(() => {
     setMounted(true);
 
-    // Check if user is already enrolled
     const checkEnrollment = async () => {
-      console.log("[DEBUG] Checking enrollment for course:", course?.id);
+      if (!course?.id) {
+        setIsCheckingEnrollment(false);
+        return;
+      }
+
       setEnrollDebug({
         step: "Checking enrollment status...",
         status: "loading",
@@ -673,19 +443,22 @@ export default function CourseClient({
 
       try {
         const res = await fetch("/api/enrollments");
-        console.log("[DEBUG] Enrollments API response status:", res.status);
 
         if (res.ok) {
-          const enrollments = await res.json();
-          console.log("[DEBUG] User enrollments:", enrollments);
+          const data = await res.json();
+
+          const enrollments = Array.isArray(data)
+            ? data
+            : [];
 
           const enrolled = enrollments.some(
             (e: any) =>
-              e.courseId === course?.id || e.course?.id === course?.id,
+              e.courseId === course.id ||
+              e.course?.id === course.id,
           );
-          console.log("[DEBUG] Is enrolled in this course:", enrolled);
 
           setIsEnrolled(enrolled);
+
           setEnrollDebug({
             step: "Enrollment check complete",
             status: "success",
@@ -698,53 +471,36 @@ export default function CourseClient({
             },
           });
         } else {
-          // Try to parse error, fallback to status text if JSON fails
-          let errorMessage = `HTTP ${res.status}: ${res.statusText}`;
           let errorData: any = {};
 
           try {
             errorData = await res.json();
-            if (errorData.error) {
-              errorMessage = errorData.error;
-            }
-          } catch (e) {
-            // Response body wasn't valid JSON
-            console.log("[DEBUG] Error response was not JSON");
+          } catch {
+            // Response may not be JSON.
           }
 
-          console.error("[DEBUG] Failed to fetch enrollments:", {
-            status: res.status,
-            statusText: res.statusText,
-            errorData,
+          setEnrollDebug({
+            step:
+              res.status === 401
+                ? "Not authenticated"
+                : "Error checking enrollment",
+            status: "error",
+            message:
+              res.status === 401
+                ? "Please sign in to check enrollment status"
+                : errorData.error ||
+                  `HTTP ${res.status}`,
+            details: errorData,
           });
-
-          // Handle 401 specifically
-          if (res.status === 401) {
-            setEnrollDebug({
-              step: "Not authenticated",
-              status: "error",
-              message: "Please sign in to check enrollment status",
-              details: { status: res.status, error: errorMessage },
-            });
-          } else {
-            setEnrollDebug({
-              step: "Error checking enrollment",
-              status: "error",
-              message: errorMessage,
-              details: {
-                status: res.status,
-                statusText: res.statusText,
-                errorData,
-              },
-            });
-          }
         }
       } catch (error) {
-        console.error("[DEBUG] Error checking enrollment:", error);
         setEnrollDebug({
           step: "Error",
           status: "error",
-          message: error instanceof Error ? error.message : "Network error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Network error",
         });
       } finally {
         setIsCheckingEnrollment(false);
@@ -754,32 +510,61 @@ export default function CourseClient({
     checkEnrollment();
   }, [course?.id]);
 
+  /* =======================================================
+     ACTIVE TAB WHILE SCROLLING
+  ======================================================= */
+
   useEffect(() => {
     const handleScroll = () => {
-      const sections = document.querySelectorAll("[data-section]");
+      const sections =
+        document.querySelectorAll("[data-section]");
+
       let currentSection = "overview";
 
       sections.forEach((section) => {
-        const rect = section.getBoundingClientRect();
+        const rect =
+          section.getBoundingClientRect();
+
         if (rect.top <= 200) {
-          currentSection = section.getAttribute("data-section") || "overview";
+          currentSection =
+            section.getAttribute("data-section") ||
+            "overview";
         }
       });
 
       if (TABS.includes(currentSection as any)) {
-        setActiveTab(currentSection as (typeof TABS)[number]);
+        setActiveTab(
+          currentSection as (typeof TABS)[number],
+        );
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        handleScroll,
+      );
+    };
   }, []);
 
+  /* =======================================================
+     ENROLLMENT
+  ======================================================= */
+
   const handleEnroll = async () => {
-    // If already enrolled, redirect to learn page immediately
     if (isEnrolled) {
-      toast.info("Already enrolled! Redirecting to course...");
-      window.location.href = `/learn/${courseSlug}`;
+      toast.info(
+        "Already enrolled! Redirecting to course...",
+      );
+
+      window.location.href =
+        `/learn/${courseSlug}`;
+
       return;
     }
 
@@ -788,156 +573,140 @@ export default function CourseClient({
       status: "loading",
       message: "Sending enrollment request...",
     });
-    toast.loading("Enrolling you in this course...", { id: "enroll-toast" });
+
+    toast.loading(
+      "Enrolling you in this course...",
+      { id: "enroll-toast" },
+    );
 
     try {
-      console.log("[DEBUG] Sending enrollment request:", {
-        courseId: course?.id,
-      });
+      const res = await fetch(
+        "/api/enrollments",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            courseId: course?.id,
+          }),
+        },
+      );
 
-      const res = await fetch("/api/enrollments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseId: course?.id }),
-      });
+      let data: any = {};
 
-      console.log("[DEBUG] Enrollment response status:", res.status);
-      const data = await res.json();
-      console.log("[DEBUG] Enrollment response data:", data);
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
 
       if (res.ok) {
-        // SUCCESS CASE
         setEnrollDebug({
           step: "Enrollment successful!",
           status: "success",
-          message: `Enrolled in "${data.course?.title}"`,
+          message:
+            `Enrolled in "${data.course?.title || course.title}"`,
           details: {
             enrollmentId: data.id,
             userId: data.userId,
             courseId: data.courseId,
             enrolledAt: data.createdAt,
-            courseTitle: data.course?.title,
           },
         });
 
         toast.success(
-          <div className="space-y-1">
-            <p className="font-semibold">Successfully enrolled!</p>
-            <p className="text-sm text-gray-600">{data.course?.title}</p>
-            <p className="text-xs text-gray-500">Enrollment ID: {data.id}</p>
-          </div>,
-          { id: "enroll-toast", duration: 4000 },
+          "Successfully enrolled!",
+          {
+            id: "enroll-toast",
+            duration: 4000,
+          },
         );
 
-        // Update local state
         setIsEnrolled(true);
 
-        // Redirect after short delay
         setTimeout(() => {
-          window.location.href = `/learn/${courseSlug}`;
+          window.location.href =
+            `/learn/${courseSlug}`;
         }, 1500);
       } else if (res.status === 401) {
-        // NOT AUTHENTICATED
-        setEnrollDebug({
-          step: "Authentication required",
-          status: "error",
-          message: "User not logged in",
-        });
-        toast.error("Please sign in to enroll", { id: "enroll-toast" });
+        toast.error(
+          "Please sign in to enroll",
+          { id: "enroll-toast" },
+        );
 
         setTimeout(() => {
-          window.location.href = `/auth/login?redirect=/courses/${categorySlug}/${courseSlug}`;
+          window.location.href =
+            `/auth/login?redirect=/courses/${categorySlug}/${courseSlug}`;
         }, 1000);
-      } else if (res.status === 400) {
-        // BAD REQUEST - Already enrolled or other issue
-        if (data.error?.includes("Already enrolled")) {
-          setEnrollDebug({
-            step: "Already enrolled",
-            status: "success",
-            message: "You were already enrolled in this course",
-            details: data,
-          });
-          toast.info("You're already enrolled! Redirecting...", {
-            id: "enroll-toast",
-          });
-          setIsEnrolled(true);
+      } else if (
+        res.status === 400 &&
+        data.error?.includes("Already enrolled")
+      ) {
+        setIsEnrolled(true);
 
-          setTimeout(() => {
-            window.location.href = `/learn/${courseSlug}`;
-          }, 1500);
-        } else {
-          setEnrollDebug({
-            step: "Enrollment failed",
-            status: "error",
-            message: data.error || "Unknown error",
-            details: data,
-          });
-          toast.error(
-            <div className="space-y-1">
-              <p className="font-semibold">Unable to enroll</p>
-              <p className="text-sm text-gray-600">{data.error}</p>
-            </div>,
-            { id: "enroll-toast", duration: 5000 },
-          );
-        }
+        toast.info(
+          "You're already enrolled! Redirecting...",
+          { id: "enroll-toast" },
+        );
+
+        setTimeout(() => {
+          window.location.href =
+            `/learn/${courseSlug}`;
+        }, 1500);
       } else {
-        // SERVER ERROR
-        setEnrollDebug({
-          step: "Server error",
-          status: "error",
-          message: data.error || "Failed to enroll",
-          details: data,
-        });
         toast.error(
-          <div className="space-y-1">
-            <p className="font-semibold">Enrollment failed</p>
-            <p className="text-sm text-gray-600">
-              {data.error || "Please try again later"}
-            </p>
-            {data.details && (
-              <p className="text-xs text-gray-500">Details: {data.details}</p>
-            )}
-          </div>,
-          { id: "enroll-toast", duration: 6000 },
+          data.error || "Failed to enroll",
+          { id: "enroll-toast" },
         );
       }
     } catch (error) {
-      console.error("[DEBUG] Enrollment error:", error);
       setEnrollDebug({
         step: "Network/Error",
         status: "error",
-        message: error instanceof Error ? error.message : "Network error",
-        details: { error: String(error) },
+        message:
+          error instanceof Error
+            ? error.message
+            : "Network error",
       });
+
       toast.error(
-        <div className="space-y-1">
-          <p className="font-semibold">Network error</p>
-          <p className="text-sm text-gray-600">
-            Please check your connection and try again
-          </p>
-        </div>,
-        { id: "enroll-toast", duration: 5000 },
+        "Please check your connection and try again",
+        { id: "enroll-toast" },
       );
     }
   };
+
+  /* =======================================================
+     LOADING
+  ======================================================= */
 
   if (!mounted) {
     return null;
   }
 
+  /* =======================================================
+     COURSE NOT FOUND
+  ======================================================= */
+
   if (!course) {
     return (
       <main className="min-h-screen bg-background pt-20">
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex min-h-screen items-center justify-center">
           <Card className="p-8 text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-2">
+            <h1 className="mb-2 text-2xl font-bold">
               Course Not Found
             </h1>
-            <p className="text-muted-foreground mb-4">
-              The course you&apos;re looking for doesn&apos;t exist.
+
+            <p className="mb-4 text-muted-foreground">
+              The course you&apos;re looking for
+              doesn&apos;t exist.
             </p>
+
             <Button asChild>
-              <Link href="/courses">Back to Courses</Link>
+              <Link href="/courses">
+                Back to Courses
+              </Link>
             </Button>
           </Card>
         </div>
@@ -945,452 +714,602 @@ export default function CourseClient({
     );
   }
 
+  /* =======================================================
+     PAGE
+  ======================================================= */
+
   return (
     <main className="min-h-screen bg-background pt-20">
-      {/* Content Sections */}
-      <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-12">
-            {/* Hero Section */}
-            <div className="relative min-h-[28rem] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary/90 via-primary to-primary/80">
-              <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/3182750/pexels-photo-3182750.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')] opacity-20 bg-cover bg-center mix-blend-overlay" />
-              <div className="relative inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-              <div className="relative w-full overflow-hidden">
-                <div className="p-8 sm:p-12">
-                  <div className="max-w-4xl mx-auto space-y-8">
-                    <div className="text-sm text-white/80 font-medium">
-                      <Link
-                        href="/"
-                        className="hover:text-white transition-colors"
-                      >
-                        Home
-                      </Link>
-                      <span className="mx-2">›</span>
-                      <span>{course.category}</span>
-                      <span className="mx-2">›</span>
-                      <span className="font-bold text-white">
-                        {course.title}
-                      </span>
-                    </div>
+      <div className="mx-auto max-w-6xl px-2 py-4 sm:px-4">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
 
-                    <div className="space-y-4 relative z-10">
-                      <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-md leading-tight">
-                        {course.title}
-                      </h1>
-                      {course.description && (
-                        <p className="max-w-3xl text-lg text-white/90 leading-relaxed drop-shadow font-medium">
-                          {course.description}
-                        </p>
+          {/* MAIN CONTENT */}
+          <div className="space-y-12 lg:col-span-2">
+
+            {/* HERO */}
+            <div className="relative min-h-112 w-full overflow-hidden rounded-2xl bg-linear-to-br from-primary/90 via-primary to-primary/80">
+              <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/3182750/pexels-photo-3182750.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')] bg-cover bg-center opacity-20 mix-blend-overlay" />
+
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
+
+              <div className="relative p-8 sm:p-12">
+                <div className="mx-auto max-w-4xl space-y-8">
+
+                  {/* BREADCRUMB */}
+                  <div className="text-sm font-medium text-white/80">
+                    <Link
+                      href="/"
+                      className="hover:text-white"
+                    >
+                      Home
+                    </Link>
+
+                    <span className="mx-2">›</span>
+                    <span>{course.category}</span>
+                    <span className="mx-2">›</span>
+
+                    <span className="font-bold text-white">
+                      {course.title}
+                    </span>
+                  </div>
+
+                  {/* TITLE */}
+                  <h1 className="text-4xl font-black leading-tight text-white drop-shadow-md md:text-5xl">
+                    {course.title}
+                  </h1>
+
+                  {/* RATING */}
+                  <div className="flex flex-col gap-4 text-white sm:flex-row sm:items-center sm:gap-16">
+                    <div className="flex items-center gap-3">
+                      <span className="rounded bg-yellow-400 px-2 py-1 text-sm font-semibold text-white">
+                        {Number(
+                          course.rating || 0,
+                        ).toFixed(1)}
+                      </span>
+
+                      {renderRatingStars(
+                        Number(course.rating || 0),
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-16 text-white">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold rounded bg-yellow-400 text-white px-2 py-1">
-                          {course.rating.toFixed(1)}
-                        </span>
-                        {renderRatingStars(course.rating)}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <Users className="h-5 w-5" />
-                        {course.students.toLocaleString()} students
-                      </div>
-                    </div>
+                    <div className="flex items-center gap-2 text-sm text-white/90">
+                      <Users className="h-5 w-5" />
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-white/90">
-                      <div className="rounded-2xl bg-white/10 p-4">
-                        <p className="text-xs uppercase tracking-[0.24em] text-white/70 mb-2">
-                          Duration
-                        </p>
-                        <p className="font-semibold text-white">
-                          {course.duration}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl bg-white/10 p-4">
-                        <p className="text-xs uppercase tracking-[0.24em] text-white/70 mb-2">
-                          Type
-                        </p>
-                        <p className="font-semibold text-white">
-                          {course.study_type}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl bg-white/10 p-4">
-                        <p className="text-xs uppercase tracking-[0.24em] text-white/70 mb-2">
-                          Requirements
-                        </p>
-                        <p className="font-semibold text-white">
-                          {course.requirements}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl bg-white/10 p-4">
-                        <p className="text-xs uppercase tracking-[0.24em] text-white/70 mb-2">
-                          Certificate
-                        </p>
-                        <p className="font-semibold text-white">
-                          {course.certificate}
-                        </p>
-                      </div>
+                      {Number(
+                        course.students || 0,
+                      ).toLocaleString()}{" "}
+                      students
                     </div>
                   </div>
+
+                  {/* DETAILS */}
+                  <div className="grid grid-cols-1 gap-4 text-white/90 sm:grid-cols-2">
+                    {[
+                      {
+                        label: "Duration",
+                        value:
+                          course.duration ||
+                          "Self-paced",
+                      },
+                      {
+                        label: "Type",
+                        value:
+                          course.study_type ||
+                          "Online",
+                      },
+                      {
+                        label: "Requirements",
+                        value:
+                          course.requirements ||
+                          "No special requirements",
+                      },
+                      {
+                        label: "Certificate",
+                        value:
+                          course.certificate ||
+                          "Certificate of completion",
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="rounded-2xl bg-white/10 p-4"
+                      >
+                        <p className="mb-2 text-xs uppercase tracking-[0.24em] text-white/70">
+                          {item.label}
+                        </p>
+
+                        <p className="font-semibold text-white">
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
                 </div>
               </div>
             </div>
 
-            {/* Sticky Tab Navigation */}
-            <div className="sticky top-0 bg-background border-b border-border z-40">
-              <div className="max-w-4xl mx-auto px-4 sm:px-8">
-                <div className="flex overflow-x-auto gap-1 sm:gap-4">
+            {/* TABS */}
+            <div className="sticky top-0 z-40 border-b border-border bg-background">
+              <div className="mx-auto max-w-4xl px-4 sm:px-8">
+                <div className="flex gap-1 overflow-x-auto sm:gap-4">
                   {TABS.map((tab) => (
                     <button
                       key={tab}
                       onClick={() => {
                         setActiveTab(tab);
-                        const section = document.querySelector(
-                          `[data-section="${tab}"]`,
-                        );
-                        section?.scrollIntoView({ behavior: "smooth" });
+
+                        document
+                          .querySelector(
+                            `[data-section="${tab}"]`,
+                          )
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                          });
                       }}
-                      className={`px-4 py-4 font-medium transition-colors whitespace-nowrap border-b-2 ${
+                      className={`whitespace-nowrap border-b-2 px-4 py-4 font-medium transition-colors ${
                         activeTab === tab
                           ? "border-primary text-primary"
                           : "border-transparent text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                      {tab.charAt(0).toUpperCase() +
+                        tab.slice(1)}
                     </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Learning Outcomes & Overview Section */}
-            <section data-section="overview" className="scroll-mt-32 pt-8">
-              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
+            {/* =================================================
+                OVERVIEW
+            ================================================= */}
+
+            <section
+              data-section="overview"
+              className="scroll-mt-32 pt-8"
+            >
+              <h2 className="relative mx-auto mb-12 block w-fit text-center text-3xl font-black text-foreground after:absolute after:-bottom-3 after:left-1/2 after:h-1.5 after:w-1/2 after:-translate-x-1/2 after:rounded-full after:bg-linear-to-r after:from-primary after:to-primary/20 after:content-['']">
                 Course Overview
               </h2>
 
-              {course.overview &&
-                Array.isArray(course.overview) &&
+              {/* RICH TEXT OVERVIEW */}
+              {Array.isArray(course.overview) &&
                 course.overview.length > 0 && (
-                  <div className="bg-muted/30 rounded-2xl p-8 border border-border/50 mb-8 space-y-5">
-                    {course.overview.map((paragraph: string, index: number) => (
-                      <p
-                        key={index}
-                        className="text-lg text-foreground/90 leading-relaxed font-medium"
-                      >
-                        {paragraph}
-                      </p>
-                    ))}
+                  <div className="mb-8 space-y-6 rounded-2xl border border-border/50 bg-muted/30 p-8">
+                    {course.overview.map(
+                      (
+                        content: string,
+                        index: number,
+                      ) => (
+                        <div
+                          key={index}
+                          className={`${richTextClasses} text-lg font-medium text-foreground/90`}
+                          dangerouslySetInnerHTML={{
+                            __html: content ?? "",
+                          }}
+                        />
+                      ),
+                    )}
                   </div>
                 )}
 
-              <div className="bg-white dark:bg-muted/50 rounded-2xl p-8 border shadow-sm mb-8">
-                <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                  <Target className="h-6 w-6 text-primary" /> What You&apos;ll
-                  Learn
+              {/* WHO SHOULD LEARN */}
+              <div className="mb-8 rounded-2xl border border-primary/10 bg-primary/5 p-8 shadow-sm">
+                <h3 className="mb-6 flex items-center gap-2 text-xl font-bold text-foreground">
+                  <Target className="h-6 w-6 text-primary" />
+                  Who Should Learn This Course.
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
-                  {course.learning_outcomes.map(
-                    (outcome: string, idx: number) => (
-                      <div key={idx} className="flex items-start gap-3">
-                        <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-foreground/90 font-medium">
-                          {outcome}
-                        </span>
-                      </div>
-                    ),
+
+                <div className="space-y-4">
+                  {Array.isArray(
+                    course.who_should_learn,
+                  ) ? (
+                    course.who_should_learn.map(
+                      (
+                        item: string,
+                        idx: number,
+                      ) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-3"
+                        >
+                          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+
+                          <span className="font-medium leading-relaxed text-foreground/90">
+                            {item}
+                          </span>
+                        </div>
+                      ),
+                    )
+                  ) : course.who_should_learn ? (
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+
+                      <span className="font-medium leading-relaxed text-foreground/90">
+                        {course.who_should_learn}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      Target learners will be available soon.
+                    </p>
                   )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Who Should Learn */}
-                <div className="bg-primary/5 rounded-2xl p-8 border border-primary/10">
-                  <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <Users className="h-6 w-6 text-primary" /> Who Should Learn
-                  </h3>
-                  <div className="space-y-4">
-                    {Array.isArray(course.who_should_learn) ? (
-                      course.who_should_learn.map(
-                        (item: string, idx: number) => (
-                          <div key={idx} className="flex items-start gap-3">
-                            <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                            <span className="text-foreground/90 font-medium">
-                              {item}
-                            </span>
-                          </div>
-                        ),
-                      )
-                    ) : (
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-foreground/90 font-medium">
-                          {course.who_should_learn}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              {/* WHY THIS COURSE MATTERS */}
+              <div className="mb-8 rounded-2xl border bg-white p-8 shadow-sm dark:bg-muted/50">
+                <h3 className="mb-6 flex items-center gap-2 text-xl font-bold text-foreground">
+                  <Award className="h-6 w-6 text-primary" />
+                  Why This Course Matters.
+                </h3>
 
-                {/* Career Opportunities */}
-                <div className="bg-muted rounded-2xl p-8 border shadow-sm">
-                  <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <Briefcase className="h-6 w-6 text-primary" /> Career
-                    Opportunities
-                  </h3>
-                  <div className="space-y-4">
-                    {Array.isArray(course.career_opportunities) ? (
-                      course.career_opportunities.map(
-                        (item: string, idx: number) => (
-                          <div key={idx} className="flex items-start gap-3">
-                            <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                            <span className="text-foreground/90 font-medium">
-                              {item}
-                            </span>
-                          </div>
-                        ),
-                      )
-                    ) : (
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-foreground/90 font-medium">
-                          {course.career_opportunities}
-                        </span>
-                      </div>
+                {Array.isArray(
+                  course.learning_outcomes,
+                ) &&
+                course.learning_outcomes.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                    {course.learning_outcomes.map(
+                      (
+                        outcome: string,
+                        idx: number,
+                      ) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-3"
+                        >
+                          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+
+                          <span className="font-medium text-foreground/90">
+                            {outcome}
+                          </span>
+                        </div>
+                      ),
                     )}
                   </div>
-                </div>
+                ) : (
+                  <p className="font-medium text-muted-foreground">
+                    Why this course matters information will
+                    be available soon.
+                  </p>
+                )}
               </div>
 
-              {/* Market Growth */}
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card className="p-8 bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/20 shadow-sm relative overflow-hidden">
-                  <LineChart className="absolute -bottom-4 -right-4 h-32 w-32 text-green-500/10" />
-                  <h4 className="text-sm font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-2 relative z-10">
-                    Market Growth
-                  </h4>
-                  <div className="text-4xl font-black text-foreground mb-2 relative z-10">
-                    {course.market_growth}
-                    {typeof course.market_growth === "number" ? "%" : ""}
-                  </div>
-                  <p className="text-muted-foreground font-medium relative z-10">
-                    Projected industry growth
-                  </p>
-                </Card>
-                <Card className="p-8 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border-blue-500/20 shadow-sm relative overflow-hidden">
-                  <DollarSign className="absolute -bottom-4 -right-4 h-32 w-32 text-blue-500/10" />
-                  <h4 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 relative z-10">
-                    Estimated Salary
-                  </h4>
-                  <div className="text-3xl font-black text-foreground mb-2 relative z-10">
-                    {course.estimated_salary || "Competitive"}
-                  </div>
-                  <p className="text-muted-foreground font-medium relative z-10">
-                    Average potential earnings
-                  </p>
-                </Card>
+              {/* LEARNING OUTCOMES */}
+              <div className="rounded-2xl border bg-muted p-8 shadow-sm">
+                <h3 className="mb-6 flex items-center gap-2 text-xl font-bold text-foreground">
+                  <Briefcase className="h-6 w-6 text-primary" />
+                  Learning Outcomes.
+                </h3>
+
+                <div className="space-y-4">
+                  {Array.isArray(
+                    course.career_opportunities,
+                  ) ? (
+                    course.career_opportunities.map(
+                      (
+                        item: string,
+                        idx: number,
+                      ) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-3"
+                        >
+                          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+
+                          <span className="font-medium leading-relaxed text-foreground/90">
+                            {item}
+                          </span>
+                        </div>
+                      ),
+                    )
+                  ) : course.career_opportunities ? (
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+
+                      <span className="font-medium leading-relaxed text-foreground/90">
+                        {course.career_opportunities}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      Learning outcomes will be available soon.
+                    </p>
+                  )}
+                </div>
               </div>
             </section>
 
-            {/* Syllabus */}
-            <section data-section="syllabus" className="scroll-mt-32 pt-8">
-              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
+            {/* =================================================
+                SYLLABUS
+            ================================================= */}
+
+            <section
+              data-section="syllabus"
+              className="scroll-mt-32 pt-8"
+            >
+              <h2 className="relative mx-auto mb-12 block w-fit text-center text-3xl font-black text-foreground after:absolute after:-bottom-3 after:left-1/2 after:h-1.5 after:w-1/2 after:-translate-x-1/2 after:rounded-full after:bg-linear-to-r after:from-primary after:to-primary/20 after:content-['']">
                 Syllabus
               </h2>
+
               <div className="space-y-4">
-                {course.syllabus.map((module: any, idx: number) => (
-                  <details
-                    key={idx}
-                    className="group bg-white dark:bg-muted/30 rounded-xl border shadow-sm [&_summary::-webkit-details-marker]:hidden"
-                  >
-                    <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold">
-                          {idx + 1}
-                        </div>
-                        <h4 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                          {module.title.startsWith("Module")
-                            ? module.title
-                            : `Module ${idx + 1}: ${module.title}`}
-                        </h4>
-                      </div>
-                      <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-open:rotate-180" />
-                    </summary>
-                    <div className="px-6 pb-6 pt-0 border-t mx-6 mt-2 border-border/50">
-                      {module.description ? (
-                        <p className="text-muted-foreground mt-4 leading-relaxed font-medium">
-                          {module.description}
-                        </p>
-                      ) : (
-                        <p className="text-muted-foreground mt-4 leading-relaxed font-medium">
-                          Detailed curriculum for this module will be available
-                          upon enrollment.
-                        </p>
-                      )}
-                      <div className="flex items-center gap-6 text-sm font-bold text-foreground mt-6 bg-muted p-3 rounded-lg w-fit">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-primary" />{" "}
-                          {module.lessons || 0} lessons
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-primary" />{" "}
-                          {module.duration || "Self-paced"}
-                        </div>
-                      </div>
-                    </div>
-                  </details>
-                ))}
+                {Array.isArray(course.syllabus) &&
+                course.syllabus.length > 0 ? (
+                  course.syllabus.map(
+                    (module: any, idx: number) => {
+                      const lessonCount =
+                        typeof module.lessons === "number"
+                          ? module.lessons
+                          : Array.isArray(module.lessons)
+                            ? module.lessons.length
+                            : Array.isArray(module.lessonItems)
+                              ? module.lessonItems.length
+                              : 0;
+
+                      return (
+                        <details
+                          key={module.id ?? idx}
+                          className="group rounded-xl border bg-white shadow-sm dark:bg-muted/30 [&_summary::-webkit-details-marker]:hidden"
+                        >
+                          <summary className="flex cursor-pointer list-none items-center justify-between p-6">
+                            <div className="flex items-center gap-4">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+                                {idx + 1}
+                              </div>
+
+                              <h4 className="text-lg font-bold text-foreground transition-colors group-hover:text-primary">
+                                {module.title?.startsWith(
+                                  "Module",
+                                )
+                                  ? module.title
+                                  : `Module ${idx + 1}: ${
+                                      module.title ||
+                                      "Untitled"
+                                    }`}
+                              </h4>
+                            </div>
+
+                            <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300 group-open:rotate-180" />
+                          </summary>
+
+                          <div className="mx-6 border-t border-border/50 px-6 pb-6">
+
+                            {/* TEMPORARY HTML DIAGNOSTIC */}
+                            {process.env.NODE_ENV ===
+                              "development" &&
+                              typeof module.description ===
+                                "string" && (
+                                <pre className="mt-4 overflow-x-auto whitespace-pre-wrap break-all rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950">
+                                  {JSON.stringify(
+                                    module.description.slice(
+                                      0,
+                                      150,
+                                    ),
+                                  )}
+                                </pre>
+                              )}
+
+                            {/* MODULE DESCRIPTION */}
+                            {module.description ? (
+                              <div
+                                className={`mt-5 ${richTextClasses}`}
+                                dangerouslySetInnerHTML={{
+                                  __html:
+                                    module.description ?? "",
+                                }}
+                              />
+                            ) : (
+                              <p className="mt-4 font-medium leading-relaxed text-muted-foreground">
+                                Detailed curriculum for this
+                                module will be available upon
+                                enrollment.
+                              </p>
+                            )}
+
+                            {/* LESSON COUNT */}
+                            <div className="mt-6 flex w-fit items-center gap-6 rounded-lg bg-muted p-3 text-sm font-bold">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-primary" />
+
+                                {lessonCount}{" "}
+                                {lessonCount === 1
+                                  ? "lesson"
+                                  : "lessons"}
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-primary" />
+
+                                {module.duration ||
+                                  "Self-paced"}
+                              </div>
+                            </div>
+
+                          </div>
+                        </details>
+                      );
+                    },
+                  )
+                ) : (
+                  <Card className="p-8 text-center text-muted-foreground">
+                    Course syllabus will be available soon.
+                  </Card>
+                )}
               </div>
             </section>
 
-            {/* Certifications */}
+            {/* =================================================
+                CERTIFICATIONS
+            ================================================= */}
+
             <section
               data-section="certifications"
               className="scroll-mt-32 pt-8"
             >
-              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
+              <h2 className="relative mx-auto mb-12 block w-fit text-center text-3xl font-black text-foreground after:absolute after:-bottom-3 after:left-1/2 after:h-1.5 after:w-1/2 after:-translate-x-1/2 after:rounded-full after:bg-linear-to-r after:from-primary after:to-primary/20 after:content-['']">
                 Certifications
               </h2>
-              <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 rounded-2xl p-8 shadow-sm">
-                <div className="flex flex-col sm:flex-row items-start gap-6 mb-6">
-                  <div className="p-4 bg-amber-500/20 rounded-2xl flex-shrink-0">
-                    <Trophy className="h-10 w-10 text-amber-600 dark:text-amber-400" />
+
+              <div className="rounded-2xl border border-amber-500/20 bg-linear-to-br from-amber-500/10 to-orange-500/5 p-8 shadow-sm">
+                <div className="mb-6 flex flex-col items-start gap-6 sm:flex-row">
+                  <div className="shrink-0 rounded-2xl bg-amber-500/20 p-4">
+                    <Trophy className="h-10 w-10 text-amber-600" />
                   </div>
+
                   <div>
-                    <h3 className="text-2xl font-black text-foreground">
+                    <h3 className="text-2xl font-black">
                       Certification — 100% Included
                     </h3>
-                    <p className="text-muted-foreground mt-2 font-medium text-lg">
-                      Stand out to employers with recognized credentials upon
+
+                    <p className="mt-2 text-lg font-medium text-muted-foreground">
+                      Stand out to employers with
+                      recognized credentials upon
                       completion.
                     </p>
                   </div>
                 </div>
+
                 <div className="space-y-4 sm:ml-20">
-                  <div className="flex items-center gap-3 bg-white/50 dark:bg-muted/50 p-3 rounded-lg border border-amber-500/10">
-                    <CheckCircle2 className="h-6 w-6 text-amber-500 flex-shrink-0" />
-                    <span className="text-lg font-bold text-foreground">
-                      CPD Accredited PDF Certificate (Digital Certificate
-                      Included)
+                  <div className="flex items-center gap-3 rounded-lg border border-amber-500/10 bg-white/50 p-3">
+                    <CheckCircle2 className="h-6 w-6 shrink-0 text-amber-500" />
+
+                    <span className="text-lg font-bold">
+                      CPD Accredited PDF Certificate
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 bg-white/50 dark:bg-muted/50 p-3 rounded-lg border border-amber-500/10">
-                    <CheckCircle2 className="h-6 w-6 text-amber-500 flex-shrink-0" />
-                    <span className="text-lg font-bold text-foreground">
+
+                  <div className="flex items-center gap-3 rounded-lg border border-amber-500/10 bg-white/50 p-3">
+                    <CheckCircle2 className="h-6 w-6 shrink-0 text-amber-500" />
+
+                    <span className="text-lg font-bold">
                       Endorsed QLS Certificate – PDF
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 mt-6 pt-6 border-t border-amber-500/20">
-                    <Star className="h-6 w-6 text-amber-500 flex-shrink-0 fill-amber-500" />
-                    <span className="text-xl font-black text-foreground uppercase tracking-wide">
-                      No Hidden Fees — ever
-                    </span>
-                  </div>
                 </div>
               </div>
             </section>
 
-            {/* Learner Stories */}
-            <section data-section="stories" className="scroll-mt-32 pt-8">
-              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
+            {/* =================================================
+                LEARNER STORIES
+            ================================================= */}
+
+            <section
+              data-section="stories"
+              className="scroll-mt-32 pt-8"
+            >
+              <h2 className="relative mx-auto mb-12 block w-fit text-center text-3xl font-black text-foreground after:absolute after:-bottom-3 after:left-1/2 after:h-1.5 after:w-1/2 after:-translate-x-1/2 after:rounded-full after:bg-linear-to-r after:from-primary after:to-primary/20 after:content-['']">
                 Learner Stories
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {course.learner_stories.map((story: any, idx: number) => (
-                  <Card
-                    key={idx}
-                    className="p-8 relative overflow-hidden group hover:shadow-md transition-shadow bg-white dark:bg-muted/20 border-primary/10"
-                  >
-                    <Quote className="absolute top-4 right-4 h-24 w-24 text-primary/5 -z-10 rotate-12 group-hover:scale-110 transition-transform duration-500" />
-                    <div className="flex flex-col h-full">
-                      <p className="text-foreground/90 mb-8 italic text-lg leading-relaxed relative z-10 flex-grow font-medium">
-                        &quot;{story.story}&quot;
-                      </p>
-                      <div className="flex items-center gap-4 mt-auto">
-                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center text-white font-bold text-xl shadow-inner border-2 border-white">
-                          {story.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-bold text-foreground text-lg">
-                            {story.name}
+
+              {Array.isArray(
+                course.learner_stories,
+              ) &&
+              course.learner_stories.length > 0 ? (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {course.learner_stories.map(
+                    (story: any, idx: number) => (
+                      <Card
+                        key={idx}
+                        className="group relative overflow-hidden border-primary/10 bg-white p-8"
+                      >
+                        <Quote className="absolute right-4 top-4 -z-10 h-24 w-24 rotate-12 text-primary/5" />
+
+                        <div className="flex h-full flex-col">
+                          <p className="mb-8 grow text-lg font-medium italic leading-relaxed">
+                            &quot;{story.story}&quot;
                           </p>
-                          <p className="text-sm font-bold text-primary">
-                            {story.role}
-                          </p>
+
+                          <div className="mt-auto flex items-center gap-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-xl font-bold text-white">
+                              {story.name?.charAt(0) ||
+                                "L"}
+                            </div>
+
+                            <div>
+                              <p className="text-lg font-bold">
+                                {story.name}
+                              </p>
+
+                              <p className="text-sm font-bold text-primary">
+                                {story.role}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+                      </Card>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <Card className="p-8 text-center text-muted-foreground">
+                  Learner stories will appear here soon.
+                </Card>
+              )}
             </section>
 
-            {/* FAQs */}
-            <section data-section="faq" className="scroll-mt-32 pt-8">
-              <h2 className="text-3xl font-black text-center text-foreground mb-12 relative block w-fit mx-auto after:content-[''] after:absolute after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-1.5 after:bg-gradient-to-r after:from-primary after:to-primary/20 after:rounded-full hover:text-primary transition-colors duration-300">
-                Frequently Asked Questions
-              </h2>
-              <div className="space-y-4">
-                {course.faqs.map((faq: any, idx: number) => (
-                  <details
-                    key={idx}
-                    className="group bg-white dark:bg-muted/30 rounded-xl border shadow-sm [&_summary::-webkit-details-marker]:hidden"
-                  >
-                    <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                      <div className="flex items-center gap-4 pr-4">
-                        <HelpCircle className="h-6 w-6 text-primary flex-shrink-0" />
-                        <h4 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                          {faq.question}
-                        </h4>
-                      </div>
-                      <ChevronDown className="h-6 w-6 text-muted-foreground transition-transform duration-300 group-open:rotate-180 flex-shrink-0" />
-                    </summary>
-                    <div className="px-6 pb-6 pt-0 border-t mx-6 mt-2 border-border/50">
-                      <p className="text-muted-foreground mt-4 text-lg leading-relaxed font-medium">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  </details>
-                ))}
-              </div>
-            </section>
           </div>
 
-          {/* Sidebar */}
+          {/* =================================================
+              SIDEBAR
+          ================================================= */}
+
           <div className="lg:col-span-1">
-            <div className="sticky top-4 space-y-6 h-fit">
-              {/* First Card: Pricing & CTA */}
-              <Card className="p-8 space-y-6 shadow-sm">
-                <h3 className="text-xl font-bold text-foreground">
+            <div className="sticky top-4 h-fit space-y-6">
+
+              <Card className="space-y-6 p-8 shadow-sm">
+                <h3 className="text-xl font-bold">
                   Full Course
                 </h3>
+
+                {/* PRICE */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-3xl font-bold text-primary">
-                      ${course.discounted_price}
+                      $
+                      {course.discounted_price ??
+                        course.price ??
+                        0}
                     </span>
-                    <span className="text-lg text-muted-foreground line-through">
-                      ${course.price}
-                    </span>
-                    <span className="text-xs font-bold bg-red-100 text-red-600 px-2 py-1 rounded">
-                      {course.discount_percentage}% OFF
-                    </span>
+
+                    {course.discounted_price != null &&
+                      course.price != null &&
+                      course.discounted_price !==
+                        course.price && (
+                        <span className="text-lg text-muted-foreground line-through">
+                          ${course.price}
+                        </span>
+                      )}
+
+                    {course.discount_percentage > 0 && (
+                      <span className="rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-600">
+                        {course.discount_percentage}% OFF
+                      </span>
+                    )}
                   </div>
+
                   <div className="flex items-center gap-2">
-                    {renderRatingStars(course.rating)}
+                    {renderRatingStars(
+                      Number(course.rating || 0),
+                    )}
+
                     <span className="text-sm font-semibold">
-                      ({course.rating.toFixed(1)})
+                      (
+                      {Number(
+                        course.rating || 0,
+                      ).toFixed(1)}
+                      )
                     </span>
                   </div>
                 </div>
 
+                {/* ENROLL */}
                 {isDbCourse ? (
                   <Button
                     onClick={handleEnroll}
                     size="lg"
                     disabled={isCheckingEnrollment}
-                    className="w-full cursor-pointer hover:shadow-lg transition-all text-base font-bold"
+                    className="w-full text-base font-bold"
                   >
                     {isCheckingEnrollment
                       ? "Checking..."
@@ -1402,179 +1321,137 @@ export default function CourseClient({
                   <Button
                     size="lg"
                     disabled
-                    className="w-full text-base font-bold opacity-70 cursor-not-allowed"
-                    title="This is a demo course. Only database courses can be enrolled."
+                    className="w-full cursor-not-allowed text-base font-bold opacity-70"
                   >
-                    Demo Course (Not Enrollable)
+                    Demo Course
                   </Button>
                 )}
 
-                {/* Enrollment Debug Panel */}
-                {isDbCourse && (
-                  <Card
-                    className={`p-4 border-l-4 ${
-                      enrollDebug.status === "error"
-                        ? "border-l-red-500 bg-red-50/50"
-                        : enrollDebug.status === "success"
-                          ? "border-l-green-500 bg-green-50/50"
-                          : enrollDebug.status === "loading"
-                            ? "border-l-blue-500 bg-blue-50/50"
-                            : "border-l-gray-300 bg-gray-50/50"
-                    }`}
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm font-semibold">
-                        {enrollDebug.status === "error" && (
-                          <span className="text-red-600">⚠️ Status: Error</span>
-                        )}
-                        {enrollDebug.status === "success" && (
-                          <span className="text-green-600">
-                            ✅ Status: Success
-                          </span>
-                        )}
-                        {enrollDebug.status === "loading" && (
-                          <span className="text-blue-600">
-                            ⏳ Status: Loading...
-                          </span>
-                        )}
-                        {enrollDebug.status === "idle" && (
-                          <span className="text-gray-600">ℹ️ Status: Idle</span>
-                        )}
+                {/* COURSE INCLUDES */}
+                <div className="space-y-4">
+                  <h4 className="flex items-center gap-2 font-semibold">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    Course Includes:
+                  </h4>
+
+                  <div className="space-y-3 text-sm text-muted-foreground">
+
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                        <Users className="h-4 w-4" />
                       </div>
-                      <p className="text-xs text-gray-600 font-medium">
-                        {enrollDebug.step}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {enrollDebug.message}
-                      </p>
-                      {enrollDebug.details && (
-                        <details className="text-xs">
-                          <summary className="cursor-pointer text-primary hover:underline">
-                            View Details
-                          </summary>
-                          <pre className="mt-2 p-2 bg-gray-100 rounded text-[10px] overflow-auto max-h-40">
-                            {JSON.stringify(enrollDebug.details, null, 2)}
-                          </pre>
-                        </details>
+
+                      <span>
+                        {course.study_type ||
+                          "Online"}{" "}
+                        Access
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                        <Clock className="h-4 w-4" />
+                      </div>
+
+                      <span>
+                        {course.duration ||
+                          "Self-paced"}{" "}
+                        total duration
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                        <Calendar className="h-4 w-4" />
+                      </div>
+
+                      <span>
+                        Study at your own pace
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                        <Award className="h-4 w-4" />
+                      </div>
+
+                      <span>
+                        {course.certificate ||
+                          "Certificate of completion"}
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
+              </Card>
+
+              {/* KEY ASPECTS */}
+              {Array.isArray(
+                course.key_aspects,
+              ) &&
+                course.key_aspects.length > 0 && (
+                  <Card>
+                    <h3 className="rounded-t-xl bg-muted px-8 py-6 text-xl font-bold">
+                      Key Aspects
+                    </h3>
+
+                    <div className="grid grid-cols-1 overflow-hidden border border-border">
+                      {course.key_aspects.map(
+                        (
+                          aspect: string,
+                          idx: number,
+                        ) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-3 px-8 py-5 text-sm odd:bg-background even:bg-muted/50"
+                          >
+                            <div className="shrink-0 text-primary">
+                              {getAspectIcon(
+                                aspect,
+                              )}
+                            </div>
+
+                            <span className="font-medium">
+                              {aspect}
+                            </span>
+                          </div>
+                        ),
+                      )}
+                    </div>
+
+                    <div className="border-t border-border px-8 py-8">
+                      {isDbCourse ? (
+                        <Button
+                          onClick={handleEnroll}
+                          size="lg"
+                          disabled={
+                            isCheckingEnrollment
+                          }
+                          className="w-full"
+                        >
+                          {isCheckingEnrollment
+                            ? "Checking..."
+                            : isEnrolled
+                              ? "Continue Learning"
+                              : "Enroll in Course"}
+                        </Button>
+                      ) : (
+                        <Button
+                          disabled
+                          className="w-full opacity-70"
+                        >
+                          Demo Course
+                        </Button>
                       )}
                     </div>
                   </Card>
                 )}
 
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-foreground flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                    Course Includes:
-                  </h4>
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <Users className="h-4 w-4" />
-                      </div>
-                      <span>{course.study_type} Access</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <Clock className="h-4 w-4" />
-                      </div>
-                      <span>{course.duration} total duration</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <Calendar className="h-4 w-4" />
-                      </div>
-                      <span>Study at your own pace</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <Award className="h-4 w-4" />
-                      </div>
-                      <span>{course.certificate}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Second Card: Key Aspects */}
-              <Card>
-                <h3 className="text-xl px-8 py-6 font-bold text-foreground bg-muted rounded-t-xl">
-                  Key Aspects
-                </h3>
-                <div className="grid grid-cols-1 overflow-hidden border border-border">
-                  {course.key_aspects.map((aspect: string, idx: number) => (
-                    <div
-                      key={idx}
-                      className={`
-                         flex items-center gap-3 px-8 py-5 text-sm transition-colors
-                         even:bg-muted/50 odd:bg-background hover:bg-primary/5
-                       `}
-                    >
-                      <div className="text-primary shrink-0">
-                        {getAspectIcon(aspect)}
-                      </div>
-                      <span className="font-medium text-foreground/90">
-                        {aspect}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="pt-16 px-8 border-t border-border">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold">
-                      SPECIAL OFFER
-                    </span>
-                    <span className="text-xl font-bold text-primary">
-                      ${course.discounted_price}
-                    </span>
-                    <span className="text-lg text-muted-foreground line-through">
-                      ${course.price}
-                    </span>
-                  </div>
-                  <div className="flex justify-center gap-2 py-4">
-                    {/* Payment methods - using text for simplicity */}
-                    <span className="text-sm bg-gray-100 px-2 py-1 rounded">
-                      Visa
-                    </span>
-                    <span className="text-sm bg-gray-100 px-2 py-1 rounded">
-                      Mastercard
-                    </span>
-                    <span className="text-sm bg-gray-100 px-2 py-1 rounded">
-                      PayPal
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 py-4">
-                    {isDbCourse ? (
-                      <Button
-                        onClick={handleEnroll}
-                        size="lg"
-                        disabled={isCheckingEnrollment}
-                        className="w-full cursor-pointer hover:shadow-lg transition-all py-8"
-                      >
-                        {isCheckingEnrollment
-                          ? "Checking..."
-                          : isEnrolled
-                            ? "Continue Learning"
-                            : "Enroll in Course"}
-                      </Button>
-                    ) : (
-                      <Button
-                        size="lg"
-                        disabled
-                        className="w-full py-8 opacity-70 cursor-not-allowed"
-                        title="This is a demo course. Only database courses can be enrolled."
-                      >
-                        Demo Course (Not Enrollable)
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </Card>
             </div>
           </div>
+
         </div>
       </div>
-
     </main>
   );
 }

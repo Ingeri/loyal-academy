@@ -169,6 +169,23 @@ export default function LearnPage() {
 
       const learningData = await res.json();
 
+      // Always display modules and lessons in their saved numeric order.
+      // Copies are sorted so the raw API response is not mutated.
+      const orderedSyllabus: Module[] = [
+        ...(learningData.course.syllabus || []),
+      ]
+        .sort(
+          (a: Module, b: Module) =>
+            (a.order ?? 0) - (b.order ?? 0),
+        )
+        .map((module: Module) => ({
+          ...module,
+          lessons: [...(module.lessons || [])].sort(
+            (a: Lesson, b: Lesson) =>
+              (a.order ?? 0) - (b.order ?? 0),
+          ),
+        }));
+
       // Enhance data with completion status
       const completedLessonsSet = new Set(
         learningData.progress.completedLessons,
@@ -176,7 +193,7 @@ export default function LearnPage() {
 
       const enhancedCourse = {
         ...learningData.course,
-        syllabus: learningData.course.syllabus.map((module: Module) => {
+        syllabus: orderedSyllabus.map((module: Module) => {
           const moduleLessons = module.lessons.map((lesson: Lesson) => ({
             ...lesson,
             isCompleted: completedLessonsSet.has(lesson.id),
@@ -449,7 +466,7 @@ export default function LearnPage() {
   if (error) {
     return (
       <main className="min-h-screen bg-background pt-20">
-        <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex items-center justify-center min-h-3/5">
           <Card className="p-8 text-center max-w-md">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen className="h-8 w-8 text-red-500" />
@@ -553,7 +570,7 @@ export default function LearnPage() {
 
       <div className="flex max-w-7xl mx-auto">
         {/* Sidebar - Curriculum */}
-        <aside className="hidden lg:block w-80 border-r bg-card sticky top-[4rem] h-[calc(100vh-4rem)] overflow-hidden">
+        <aside className="hidden lg:block w-80 border-r bg-card sticky top-16 h-[calc(100vh-4rem)] overflow-hidden">
           <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/40">
             <div className="p-4">
               <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-4">
@@ -610,9 +627,9 @@ export default function LearnPage() {
                               }`}
                             >
                               {lesson.isCompleted ? (
-                                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                               ) : (
-                                <Play className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <Play className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                               )}
                               <div className="flex-1 min-w-0">
                                 <p
@@ -650,7 +667,7 @@ export default function LearnPage() {
                                         : "text-muted-foreground"
                                     }`}
                                   >
-                                    <HelpCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                    <HelpCircle className="h-4 w-4 mt-0.5 shrink-0" />
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center justify-between gap-2">
                                         <p className="text-sm">{quiz.title}</p>
@@ -690,7 +707,7 @@ export default function LearnPage() {
                                         : ""
                                     }`}
                                   >
-                                    <Award className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                                    <Award className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center justify-between gap-2">
                                         <p className="text-sm font-medium text-amber-900">
@@ -740,7 +757,7 @@ export default function LearnPage() {
                                 : ""
                             }`}
                           >
-                            <Award className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <Award className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
                                 <p className="text-sm font-medium text-amber-900">
@@ -1389,9 +1406,9 @@ function InlineQuiz({
               <div key={q.id} className="border rounded-lg p-3 space-y-2">
                 <div className="flex items-start gap-2">
                   {q.isCorrect ? (
-                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
                   ) : (
-                    <XCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <XCircle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
                   )}
                   <span className="text-sm font-medium">
                     {idx + 1}. {q.text}
@@ -1639,7 +1656,6 @@ function LessonView({
   isLastLesson: boolean;
 }) {
   const [isCompleting, setIsCompleting] = useState(false);
-  const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [showExam, setShowExam] = useState(false);
 
   const handleComplete = async () => {
@@ -1741,7 +1757,7 @@ function LessonView({
           {exam.isCompleted ? (
             <Card className="p-6 border-l-4 border-l-green-500">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                   <CheckCircle className="h-6 w-6 text-green-600" />
                 </div>
                 <div className="flex-1">
@@ -1768,7 +1784,7 @@ function LessonView({
           ) : !showExam ? (
             <Card className="p-6 border-l-4 border-l-red-500">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                   <Award className="h-6 w-6 text-red-600" />
                 </div>
                 <div className="flex-1">

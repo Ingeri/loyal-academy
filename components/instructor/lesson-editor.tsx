@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableCell,
 } from "@tiptap/extension-table";
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Mark, Node, mergeAttributes } from "@tiptap/core";
 import {
   AlertCircle,
   Bold,
@@ -51,7 +51,62 @@ const safeVideoUrl = (value: string) => {
   } catch {
     return null;
   }
+
 };
+
+const LessonTextStyle = Mark.create({
+  name: "lessonTextStyle",
+
+  addAttributes() {
+    return {
+      fontSize: {
+        default: null,
+        parseHTML: (element) => element.style.fontSize || null,
+      },
+      color: {
+        default: null,
+        parseHTML: (element) => element.style.color || null,
+      },
+    };
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: "span",
+        getAttrs: (element) => {
+          if (!(element instanceof HTMLElement)) return false;
+
+          return element.style.fontSize || element.style.color
+            ? {}
+            : false;
+        },
+      },
+    ];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    const style = [
+      HTMLAttributes.fontSize
+        ? `font-size: ${HTMLAttributes.fontSize}`
+        : "",
+      HTMLAttributes.color
+        ? `color: ${HTMLAttributes.color}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("; ");
+
+    return [
+      "span",
+      mergeAttributes(
+        HTMLAttributes,
+        style ? { style } : {},
+      ),
+      0,
+    ];
+  },
+});
 
 const LessonImage = Node.create({
   name: "lessonImage",
@@ -166,6 +221,7 @@ export function LessonEditor({
         heading: { levels: [1, 2, 3] },
         link: { openOnClick: false },
       }),
+      LessonTextStyle,
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
@@ -316,6 +372,75 @@ export function LessonEditor({
         >
           H3
         </Button>
+
+        {/* FONT SIZE */}
+        <Select
+          value={
+            editor.getAttributes("lessonTextStyle").fontSize || "16px"
+          }
+          onValueChange={(fontSize) =>
+            editor
+              .chain()
+              .focus()
+              .setMark("lessonTextStyle", { fontSize })
+              .run()
+          }
+        >
+          <SelectTrigger
+            className="h-9 w-26.25"
+            title="Font size"
+          >
+            <SelectValue placeholder="Size" />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="12px">12 px</SelectItem>
+            <SelectItem value="14px">14 px</SelectItem>
+            <SelectItem value="16px">16 px</SelectItem>
+            <SelectItem value="18px">18 px</SelectItem>
+            <SelectItem value="20px">20 px</SelectItem>
+            <SelectItem value="24px">24 px</SelectItem>
+            <SelectItem value="28px">28 px</SelectItem>
+            <SelectItem value="32px">32 px</SelectItem>
+            <SelectItem value="36px">36 px</SelectItem>
+            <SelectItem value="48px">48 px</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* TEXT COLOR */}
+        <label
+          className="flex h-9 cursor-pointer items-center gap-2 rounded-md px-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+          title="Text color"
+        >
+          <span>Color</span>
+
+          <span
+            className="h-5 w-5 rounded-full border shadow-sm"
+            style={{
+              backgroundColor:
+                editor.getAttributes("lessonTextStyle").color || "#111827",
+            }}
+          />
+
+          <input
+            type="color"
+            aria-label="Choose text color"
+            className="sr-only"
+            value={
+              editor.getAttributes("lessonTextStyle").color || "#111827"
+            }
+            onChange={(event) =>
+              editor
+                .chain()
+                .focus()
+                .setMark("lessonTextStyle", {
+                  color: event.target.value,
+                })
+                .run()
+            }
+          />
+        </label>
+
         {tool("Bullet list", () =>
           editor.chain().focus().toggleBulletList().run(),
         )}

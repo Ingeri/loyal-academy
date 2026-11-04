@@ -74,6 +74,9 @@ model Module {
   description    String
   id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   courseId       String           @db.Uuid
+  order           Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
   courseProgress CourseProgress[]
   lessons        Lesson[]
   course         Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)

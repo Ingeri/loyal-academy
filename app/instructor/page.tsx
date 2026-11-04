@@ -1,186 +1,337 @@
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth/session';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { 
-  BookOpen, Users, TrendingUp, ArrowRight, 
-  Sparkles, Award 
-} from 'lucide-react';
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth/session'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import {
+  BookOpen,
+  Users,
+  TrendingUp,
+  ArrowRight,
+  Sparkles,
+  Award,
+} from 'lucide-react'
 
 export default async function InstructorPage() {
-  const session = await getSession();
-  const userId = session!.userId;
+  const session = await getSession()
+
+  if (!session) {
+    redirect('/auth/login?redirect=/instructor')
+  }
+
+  const userId = session.userId
 
   const [user, courses, enrollments, certificates] = await Promise.all([
-    prisma.user.findUnique({ 
-      where: { id: userId }, 
-      select: { name: true } 
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true },
     }),
+
     prisma.course.findMany({
       where: { instructorId: userId },
       orderBy: { createdAt: 'desc' },
-      take: 5
+      take: 5,
     }),
+
     prisma.enrollment.findMany({
       where: {
-        course: { instructorId: userId }
+        course: {
+          instructorId: userId,
+        },
       },
-      include: { course: true, user: true },
+      include: {
+        course: true,
+        user: true,
+      },
       orderBy: { createdAt: 'desc' },
-      take: 10
+      take: 10,
     }),
+
     prisma.certificate.count({
       where: {
-        course: { instructorId: userId }
-      }
-    })
-  ]);
+        course: {
+          instructorId: userId,
+        },
+      },
+    }),
+  ])
 
-  const firstName = user?.name?.split(' ')[0] || 'Instructor';
+  const firstName = user?.name?.split(' ')[0] || 'Instructor'
+
+  const publishedCourses = courses.filter(
+    (course: (typeof courses)[number]) => course.published
+  ).length
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      {/* HEADER */}
+      <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight">
             Welcome, {firstName}!
           </h1>
-          <p className="text-muted-foreground mt-2 text-lg">
-            You have {courses.length} courses and {enrollments.length} student enrollments.
+
+          <p className="mt-2 text-lg text-muted-foreground">
+            You have {courses.length} courses and {enrollments.length} student
+            enrollments.
           </p>
         </div>
-        <Button size="lg" className="rounded-full shadow-lg hover:shadow-primary/20 transition-all" asChild>
-          <Link href="/instructor/courses">
-            Manage Courses
-          </Link>
+
+        <Button
+          size="lg"
+          asChild
+          className="rounded-full shadow-lg transition-all hover:shadow-primary/20"
+        >
+          <Link href="/instructor/courses">Manage Courses</Link>
         </Button>
       </header>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Courses" value={courses.length} icon={<BookOpen className="text-blue-500 w-5 h-5"/>} color="bg-blue-500/10" />
-        <StatCard label="Students" value={enrollments.length} icon={<Users className="text-amber-500 w-5 h-5"/>} color="bg-amber-500/10" />
-        <StatCard label="Published" value={courses.filter(c => c.published).length} icon={<TrendingUp className="text-green-500 w-5 h-5"/>} color="bg-green-500/10" />
-        <StatCard label="Certificates" value={certificates} icon={<Award className="text-purple-500 w-5 h-5"/>} color="bg-purple-500/10" />
+      {/* STATS */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Courses"
+          value={courses.length}
+          icon={<BookOpen className="h-5 w-5 text-blue-500" />}
+          color="bg-blue-500/10"
+        />
+
+        <StatCard
+          label="Students"
+          value={enrollments.length}
+          icon={<Users className="h-5 w-5 text-amber-500" />}
+          color="bg-amber-500/10"
+        />
+
+        <StatCard
+          label="Published"
+          value={publishedCourses}
+          icon={<TrendingUp className="h-5 w-5 text-green-500" />}
+          color="bg-green-500/10"
+        />
+
+        <StatCard
+          label="Certificates"
+          value={certificates}
+          icon={<Award className="h-5 w-5 text-purple-500" />}
+          color="bg-purple-500/10"
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2 space-y-6">
+      {/* MAIN CONTENT */}
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          {/* RECENT ENROLLMENTS HEADER */}
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Recent Enrollments</h2>
+
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/instructor/students" className="flex items-center gap-1">
-                View all <ArrowRight className="h-4 w-4" />
+              <Link
+                href="/instructor/students"
+                className="flex items-center gap-1"
+              >
+                View all
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
 
+          {/* RECENT ENROLLMENTS */}
           <div className="grid gap-4">
-            {enrollments.length > 0 ? enrollments.slice(0, 5).map((enrollment) => (
-              <Card key={enrollment.id} className="p-4 bg-card/50">
-                <div className="flex gap-5 items-center">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold truncate">{enrollment.course.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Student: {enrollment.user.name || enrollment.user.email}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">{Math.round(enrollment.progress)}%</div>
-                    <div className="text-xs text-muted-foreground">Progress</div>
-                  </div>
-                </div>
-              </Card>
-            )) : (
-              <Card className="p-12 text-center border-dashed bg-muted/5">
-                <Sparkles className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No enrollments yet.</p>
+            {enrollments.length > 0 ? (
+              enrollments
+                .slice(0, 5)
+                .map((enrollment: (typeof enrollments)[number]) => (
+                  <Card
+                    key={enrollment.id}
+                    className="bg-card/50 p-4"
+                  >
+                    <div className="flex items-center gap-5">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate font-bold">
+                          {enrollment.course.title}
+                        </h3>
+
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Student:{' '}
+                          {enrollment.user.name ||
+                            enrollment.user.email ||
+                            'Unknown student'}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="text-sm font-medium">
+                          {Math.round(Number(enrollment.progress || 0))}%
+                        </div>
+
+                        <div className="text-xs text-muted-foreground">
+                          Progress
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+            ) : (
+              <Card className="border-dashed bg-muted/5 p-12 text-center">
+                <Sparkles className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+
+                <p className="text-muted-foreground">
+                  No enrollments yet.
+                </p>
               </Card>
             )}
           </div>
 
+          {/* COURSES HEADER */}
           <div className="flex items-center justify-between pt-4">
             <h2 className="text-2xl font-bold">Your Courses</h2>
+
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/instructor/courses" className="flex items-center gap-1">
-                View all <ArrowRight className="h-4 w-4" />
+              <Link
+                href="/instructor/courses"
+                className="flex items-center gap-1"
+              >
+                View all
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
 
+          {/* COURSES */}
           <div className="grid gap-4">
-            {courses.length > 0 ? courses.map((course) => (
-              <Card key={course.id} className="p-4 bg-card/50">
-                <div className="flex gap-5 items-center">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold truncate">{course.title}</h3>
-                      {course.published && (
-                        <span className="text-xs bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full font-medium">
-                          Published
-                        </span>
-                      )}
+            {courses.length > 0 ? (
+              courses.map((course: (typeof courses)[number]) => (
+                <Card
+                  key={course.id}
+                  className="bg-card/50 p-4"
+                >
+                  <div className="flex items-center gap-5">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="truncate font-bold">
+                          {course.title}
+                        </h3>
+
+                        {course.published && (
+                          <span className="rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-500">
+                            Published
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {course.studentNumber || 0} students enrolled
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {course.studentNumber || 0} students enrolled
-                    </p>
+
+                    <div className="text-right">
+                      <div className="text-sm font-medium">
+                        ${Number(course.price || 0).toFixed(2)}
+                      </div>
+
+                      <div className="text-xs text-muted-foreground">
+                        Price
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">${Number(course.price)}</div>
-                    <div className="text-xs text-muted-foreground">Price</div>
-                  </div>
-                </div>
-              </Card>
-            )) : (
-              <Card className="p-12 text-center border-dashed bg-muted/5">
-                <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No courses yet.</p>
+                </Card>
+              ))
+            ) : (
+              <Card className="border-dashed bg-muted/5 p-12 text-center">
+                <BookOpen className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+
+                <p className="text-muted-foreground">
+                  No courses yet.
+                </p>
+
                 <Button className="mt-4" asChild>
-                  <Link href="/instructor/courses/new">Create your first course</Link>
+                  <Link href="/instructor/courses/new">
+                    Create your first course
+                  </Link>
                 </Button>
               </Card>
             )}
           </div>
         </div>
 
+        {/* RIGHT SIDEBAR */}
         <div className="space-y-6">
-          <Card className="p-6 bg-slate-900 text-white relative overflow-hidden border-none shadow-xl">
-             <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-2 opacity-80 text-xs font-bold uppercase tracking-wider">
-                  <TrendingUp className="h-4 w-4" /> Total Students
-                </div>
-                <div className="text-5xl font-black mb-4">{enrollments.length}</div>
-                <p className="text-sm opacity-80">Active learners across all courses</p>
-             </div>
-             <Users className="absolute -right-6 -bottom-6 h-32 w-32 text-white/5 rotate-12" />
+          {/* STUDENTS CARD */}
+          <Card className="relative overflow-hidden border-none bg-slate-900 p-6 text-white shadow-xl">
+            <div className="relative z-10">
+              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider opacity-80">
+                <TrendingUp className="h-4 w-4" />
+                Total Students
+              </div>
+
+              <div className="mb-4 text-5xl font-black">
+                {enrollments.length}
+              </div>
+
+              <p className="text-sm opacity-80">
+                Active learners across all courses
+              </p>
+            </div>
+
+            <Users className="absolute -bottom-6 -right-6 h-32 w-32 rotate-12 text-white/5" />
           </Card>
 
-          <Card className="p-6 bg-linear-to-br from-purple-600 to-indigo-600 text-white relative overflow-hidden border-none shadow-xl">
-             <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-2 opacity-80 text-xs font-bold uppercase tracking-wider">
-                  <Award className="h-4 w-4" /> Certificates Issued
-                </div>
-                <div className="text-5xl font-black mb-4">{certificates}</div>
-                <p className="text-sm opacity-80">Students who completed your courses</p>
-             </div>
-             <Award className="absolute -right-6 -bottom-6 h-32 w-32 text-white/5 rotate-12" />
+          {/* CERTIFICATES CARD */}
+          <Card className="relative overflow-hidden border-none bg-linear-to-br from-purple-600 to-indigo-600 p-6 text-white shadow-xl">
+            <div className="relative z-10">
+              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider opacity-80">
+                <Award className="h-4 w-4" />
+                Certificates Issued
+              </div>
+
+              <div className="mb-4 text-5xl font-black">
+                {certificates}
+              </div>
+
+              <p className="text-sm opacity-80">
+                Students who completed your courses
+              </p>
+            </div>
+
+            <Award className="absolute -bottom-6 -right-6 h-32 w-32 rotate-12 text-white/5" />
           </Card>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-function StatCard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: string }) {
+type StatCardProps = {
+  label: string
+  value: number
+  icon: React.ReactNode
+  color: string
+}
+
+function StatCard({
+  label,
+  value,
+  icon,
+  color,
+}: StatCardProps) {
   return (
-    <Card className="p-6 flex flex-col gap-3 border-none shadow-sm hover:shadow-md transition-shadow bg-card/60">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner ${color}`}>
+    <Card className="flex flex-col gap-3 border-none bg-card/60 p-6 shadow-sm transition-shadow hover:shadow-md">
+      <div
+        className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-inner ${color}`}
+      >
         {icon}
       </div>
+
       <div>
-        <div className="text-2xl font-bold tracking-tight">{value}</div>
-        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{label}</div>
+        <div className="text-2xl font-bold tracking-tight">
+          {value}
+        </div>
+
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {label}
+        </div>
       </div>
     </Card>
-  );
+  )
 }
