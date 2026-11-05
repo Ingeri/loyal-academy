@@ -12,7 +12,6 @@ import {
   Clock,
   Sparkles,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -38,12 +37,12 @@ export default function ContactPage() {
     setError(null)
 
     try {
-      const supabase = createClient()
-      const { error: submitError } = await supabase
-        .from('contact_messages')
-        .insert([formData])
-
-      if (submitError) throw submitError
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (!response.ok) throw new Error('Contact submission failed')
 
       setSubmitted(true)
       setFormData({ name: '', email: '', subject: '', message: '' })

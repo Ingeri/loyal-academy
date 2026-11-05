@@ -1,20 +1,19 @@
 import { prisma } from '@/lib/prisma';
-import { createClient } from '@/lib/supabase/server';
+import { getSession } from '@/lib/auth/session';
 import { NextRequest, NextResponse } from 'next/server';
 
 // GET /api/certificates - List user's certificates
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const session = await getSession();
 
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const certificates = await prisma.certificate.findMany({
       where: {
-        userId: user.id,
+        userId: session.userId,
       },
       include: {
         course: {

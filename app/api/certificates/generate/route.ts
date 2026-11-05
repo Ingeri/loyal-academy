@@ -1,14 +1,13 @@
 import { prisma } from '@/lib/prisma';
-import { createClient } from '@/lib/supabase/server';
+import { getSession } from '@/lib/auth/session';
 import { NextRequest, NextResponse } from 'next/server';
 
 // POST /api/certificates/generate - Generate certificate if eligible
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const session = await getSession();
 
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -25,7 +24,7 @@ export async function POST(request: NextRequest) {
     // Check if already has certificate
     const existingCert = await prisma.certificate.findFirst({
       where: {
-        userId: user.id,
+        userId: session.userId,
         courseId: courseId,
       },
     });
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest) {
     const enrollment = await prisma.enrollment.findUnique({
       where: {
         userId_courseId: {
-          userId: user.id,
+          userId: session.userId,
           courseId: courseId,
         },
       },
@@ -74,7 +73,7 @@ export async function POST(request: NextRequest) {
     // Get user's progress
     const progress = await prisma.courseProgress.findMany({
       where: {
-        userId: user.id,
+        userId: session.userId,
         courseId: courseId,
         isCompleted: true,
       },
@@ -93,7 +92,7 @@ export async function POST(request: NextRequest) {
     if (examQuizzes.length > 0) {
       const examSubmissions = await prisma.quizSubmission.findMany({
         where: {
-          userId: user.id,
+          userId: session.userId,
           quizId: {
             in: examQuizzes.map(q => q.id),
           },
@@ -149,7 +148,7 @@ export async function POST(request: NextRequest) {
     // Create certificate
     const certificate = await prisma.certificate.create({
       data: {
-        userId: user.id,
+        userId: session.userId,
         courseId: courseId,
         certificateNumber: certificateNumber,
         grade: grade,

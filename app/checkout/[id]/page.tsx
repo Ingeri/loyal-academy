@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { getSession } from '@/lib/auth/session';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -7,26 +7,17 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft } from 'lucide-react';
 
 async function getCourse(id: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('courses')
-    .select('*')
-    .eq('id', id)
-    .eq('is_published', true)
-    .single();
-
-  return data;
+  const { prisma } = await import('@/lib/prisma');
+  return prisma.course.findFirst({
+    where: { id, published: true },
+  });
 }
 
 export default async function CheckoutPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
+  const session = await getSession();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!session) {
     redirect('/auth/login');
   }
 
