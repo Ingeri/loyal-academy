@@ -19,5 +19,9 @@
    pnpm prisma generate
    pnpm build
    ```
-7. Point the Namecheap Node.js application entry point at `node_modules/.bin/next` and start it as `start`.
-8. Keep `public/uploads` writable for local avatar uploads. For a persistent or load-balanced deployment, move avatars to object storage.
+7. In cPanel, create a Node.js application with:
+   - Application root: `public_html`
+   - Startup file: `server.js`
+   - Node.js version: 22 or newer
+9. Configure `DATABASE_URL` and `AUTH_SECRET` in the cPanel Node.js application's Environment Variables section. Redeploy from the `namecheap` branch and restart the application.
+10. Keep `public/uploads` writable for local avatar uploads. For a persistent or load-balanced deployment, move avatars to object storage.
