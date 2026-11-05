@@ -4,14 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import bcrypt from 'bcrypt';
-import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-
-// Initialize Supabase client for storage
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
 
 // Zod Schemas
 const UpdateProfileSchema = z.object({
@@ -193,22 +186,12 @@ export async function uploadAvatar(formData: FormData) {
     const fileName = `${session.userId}-${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('Loyal')
-      .upload(filePath, file, {
-        upsert: true,
-      });
-
-    if (error) {
-      console.error('Supabase upload error:', error);
-      return { error: 'Failed to upload avatar' };
-    }
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('Loyal')
-      .getPublicUrl(filePath);
+    const { mkdir, writeFile } = await import('node:fs/promises');
+    const { join } = await import('node:path');
+    const uploadsDirectory = join(process.cwd(), 'public', 'uploads', 'avatars');
+    await mkdir(uploadsDirectory, { recursive: true });
+    await writeFile(join(uploadsDirectory, fileName), Buffer.from(await file.arrayBuffer()));
+    const publicUrl = `/uploads/avatars/${fileName}`;
 
     // Update user avatarUrl
     await prisma.user.update({
