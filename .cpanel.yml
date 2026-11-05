@@ -1,7 +1,7 @@
 ---
 deployment:
   tasks:
-    - export DEPLOY_ROOT=$HOME/public_html
+    - export DEPLOY_ROOT=/home/loyataom/public_html
     - /bin/mkdir -p $DEPLOY_ROOT
     - /usr/bin/rsync -a --delete --exclude='.git/' --exclude='.cpanel.yml' --exclude='node_modules/' --exclude='.next/' ./ $DEPLOY_ROOT/
     - /bin/bash -lc "cd $DEPLOY_ROOT && npm install --omit=dev=false && npm run build"

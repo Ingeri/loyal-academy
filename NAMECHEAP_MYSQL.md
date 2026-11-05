@@ -20,8 +20,8 @@
    pnpm build
    ```
 7. In cPanel, create a Node.js application with:
-   - Application root: `public_html`
+   - Application root: `/home/loyataom/public_html`
    - Startup file: `server.js`
    - Node.js version: 22 or newer
-9. Configure `DATABASE_URL` and `AUTH_SECRET` in the cPanel Node.js application's Environment Variables section. Redeploy from the `namecheap` branch and restart the application.
+9. Configure `DATABASE_URL` and `AUTH_SECRET` in the cPanel Node.js application's Environment Variables section. Redeploy from the `main` branch and restart the application.
 10. Keep `public/uploads` writable for local avatar uploads. For a persistent or load-balanced deployment, move avatars to object storage.
