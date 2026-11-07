@@ -16,7 +16,7 @@ model Category {
 model Course {
   title            String
   slug             String           @unique
-  description      String?
+  description      String?          @db.Text
   thumbnail        String?
   published        Boolean          @default(false)
   createdAt        DateTime         @default(now())
@@ -71,7 +71,7 @@ model Review {
 
 model Module {
   title          String
-  description    String
+  description    String @db.Text
   id             String           @id @default(uuid()) @db.Char(36)
   courseId       String           @db.Char(36)
   order           Int              @default(0)
@@ -85,8 +85,8 @@ model Module {
 
 model FAQ {
   id       String @id @default(uuid()) @db.Char(36)
-  question String
-  answer   String
+  question String @db.Text
+  answer   String @db.Text
   courseId String @db.Char(36)
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
@@ -95,7 +95,7 @@ model LearnerStory {
   id       String  @id @default(uuid()) @db.Char(36)
   name     String
   role     String?
-  story    String
+  story    String  @db.Text
   image    String?
   courseId String  @db.Char(36)
   course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -249,7 +249,7 @@ model Blog {
   id             String       @id @default(uuid()) @db.Char(36)
   title          String
   slug           String       @unique
-  description    String?
+  description    String? @db.Text
   content        Json
   authorName     String
   readTime       Int
@@ -288,7 +288,7 @@ model BlogFaq {
 model Project {
   id                  String               @id @default(uuid()) @db.Char(36)
   title               String
-  description         String
+  description         String               @db.Text
   budget              Decimal              @db.Decimal(10, 2)
   timeline            String
   skillsRequired      Json                 @default("[]")
@@ -312,7 +312,7 @@ model ProjectApplication {
   id          String             @id @default(uuid()) @db.Char(36)
   projectId   String             @db.Char(36)
   applicantId String
-  coverLetter String?
+  coverLetter String?           @db.Text
   status      ApplicationStatus  @default(PENDING)
   reviewNotes String?
   createdAt   DateTime           @default(now())
@@ -325,7 +325,7 @@ model ProjectApplication {
 model CaseStudy {
   id             String   @id @default(uuid()) @db.Char(36)
   title          String
-  description    String
+  description    String            @db.Text
   imageUrl       String?
   clientName     String
   projectOutcome String
@@ -341,7 +341,7 @@ model Partnership {
   contactEmail    String
   contactName     String
   partnershipType PartnershipType
-  description     String
+  description     String            @db.Text
   websiteUrl      String?
   status          PartnershipStatus @default(PENDING)
   createdAt       DateTime          @default(now())
@@ -351,7 +351,7 @@ model Partnership {
 model Scholarship {
   id                  String                   @id @default(uuid()) @db.Char(36)
   title               String
-  description         String
+  description         String                   @db.Text
   amount              Decimal                  @db.Decimal(10, 2)
   type                ScholarshipType
   eligibilityCriteria Json
@@ -373,7 +373,7 @@ model ScholarshipApplication {
   id                  String            @id @default(uuid()) @db.Char(36)
   scholarshipId       String            @db.Char(36)
   applicantId         String
-  motivationLetter    String
+  motivationLetter    String            @db.Text
   financialNeedProof  String?
   status              ApplicationStatus @default(PENDING)
   reviewNotes         String?
@@ -392,7 +392,7 @@ model Quote {
   id         String      @id @default(uuid()) @db.Char(36)
   authorName String
   authorRole String?
-  content    String
+  content    String      @db.Text
   imageUrl   String?
   status     QuoteStatus @default(PENDING)
   featured   Boolean     @default(false)
