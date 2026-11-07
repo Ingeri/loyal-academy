@@ -1,10 +1,12 @@
 import { PrismaClient, AssessmentType } from '@prisma/client';
 import * as dotenv from 'dotenv';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import { getDatabaseUrl } from '../lib/database-url';
 
 // 1. Load the environment variables BEFORE initializing the client
 dotenv.config({ path: '.env.local' });
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: new PrismaMariaDb(getDatabaseUrl()) });
 
 function generateAssessmentQuestions(assessmentTitle: string) {
   return Array.from({ length: 5 }).map((_, i) => ({

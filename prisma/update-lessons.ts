@@ -1,5 +1,4 @@
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -9,15 +8,9 @@ import * as dotenv from 'dotenv';
 // Load environment variables from .env.local
 dotenv.config({ path: '.env.local' });
 
-const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error('DIRECT_URL or DATABASE_URL environment variable is not set');
-}
+import { getDatabaseUrl } from '../lib/database-url';
 
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({ adapter: new PrismaMariaDb(getDatabaseUrl()) });
 
 // ESM-compatible __dirname
 const __filename = fileURLToPath(import.meta.url);

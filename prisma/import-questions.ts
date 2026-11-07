@@ -1,20 +1,13 @@
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error('DATABASE_URL environment variable is not set');
-}
+import { getDatabaseUrl } from '../lib/database-url';
 
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({ adapter: new PrismaMariaDb(getDatabaseUrl()) });
 
 async function main() {
   const filePath = './prisma/questions_and_options.json';
