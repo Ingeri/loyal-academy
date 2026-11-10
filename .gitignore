@@ -24,3 +24,10 @@ db_backup/
 .idea/
 .hintrc
 .windsurf/
+
+# ziped
+*.zip
+*.gz
+
+# Shell
+*.sh
