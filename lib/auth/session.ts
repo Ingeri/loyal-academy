@@ -3,6 +3,11 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
 const secretKey = process.env.AUTH_SECRET;
+
+if (!secretKey) {
+  throw new Error('AUTH_SECRET must be configured before starting the Next.js server.');
+}
+
 const key = new TextEncoder().encode(secretKey);
 
 export type SessionPayload = {

@@ -6,6 +6,7 @@
     "dev": "prisma generate && next dev",
     "build": "prisma generate && next build",
     "start": "NODE_ENV=production node server.js",
+    "prepare:deploy": "node scripts/prepare-namecheap-deploy.mjs",
     "lint": "next lint"
   },
   "dependencies": {
@@ -40,6 +41,7 @@
     "@radix-ui/react-toggle": "1.1.10",
     "@radix-ui/react-toggle-group": "1.1.11",
     "@radix-ui/react-tooltip": "1.2.8",
+    "@swc/helpers": "0.5.15",
     "@tiptap/core": "3.30.2",
     "@tiptap/extension-image": "3.30.2",
     "@tiptap/extension-link": "3.30.2",

@@ -15,13 +15,26 @@
    ```
 6. Install and build with the cPanel terminal:
    ```sh
-   pnpm install
+   pnpm install --frozen-lockfile
    pnpm prisma generate
    pnpm build
+   node scripts/prepare-namecheap-deploy.mjs
    ```
 7. In cPanel, create a Node.js application with:
    - Application root: `/home/loyataom/public_html`
    - Startup file: `server.js`
    - Node.js version: 22 or newer
+8. Required production environment variables for the cPanel Node.js app:
+   - `DATABASE_URL` or `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
+   - `AUTH_SECRET` (32+ random characters)
+   - `PORT` (optional, usually set by cPanel)
+   - `NODE_ENV=production`
+   - `NEXT_PUBLIC_BASE_URL` (the public HTTPS URL for the app)
+   - Any email, file storage, and external API variables the app requires
 9. Configure `DATABASE_URL` and `AUTH_SECRET` in the cPanel Node.js application's Environment Variables section. Redeploy from the `main` branch and restart the application.
 10. Keep `public/uploads` writable for local avatar uploads. For a persistent or load-balanced deployment, move avatars to object storage.
+11. Production startup command:
+   ```sh
+   NODE_ENV=production PORT=3000 node server.js
+   ```
+   The bundled `server.js` prefers the generated Next.js standalone server when `.next/standalone/server.js` exists, and falls back to the local dev server only when the standalone build is absent.
