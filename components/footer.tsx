@@ -53,7 +53,7 @@ export default function Footer() {
                   href="mailto:info@loyalleadershipinstitute.org"
                   className="transition hover:text-accent"
                 >
-                  info@loyalleadershipinstitute.org
+                  info@loyalleadershipinstitute.com
                 </a>
               </div>
 
@@ -63,7 +63,7 @@ export default function Footer() {
                   href="tel:+250000000000"
                   className="transition hover:text-accent"
                 >
-                  +250 000 000 000
+                  +250 783 053 572
                 </a>
               </div>
 

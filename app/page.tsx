@@ -87,7 +87,7 @@ async function getFeaturedQuotes() {
 const mockInstructors = [
   {
     id: "1",
-    name: "Counsel Bagabo Faustin",
+    name: "Me. Bagabo Faustin",
     bio: "Founder and visionary leader committed to developing ethical, competent, and purpose-driven African leaders.",
     specialty: "Leadership Development",
     rating: 4.9,
@@ -96,7 +96,7 @@ const mockInstructors = [
   },
   {
     id: "2",
-    name: "Prof. Michael Chen",
+    name: "Mr. Javan MUGENZI",
     bio: "Leadership and professional development trainer with experience in institutional growth and career transformation.",
     specialty: "Career Growth",
     rating: 4.8,
@@ -105,21 +105,12 @@ const mockInstructors = [
   },
   {
     id: "3",
-    name: "Dr. Emily Rodriguez",
+    name: "Mr. Ben MUCYO",
     bio: "Expert in emotional intelligence, personal development, and professional communication.",
-    specialty: "Emotional Intelligence",
+    specialty: "IT & Digital skills",
     rating: 4.9,
     students: 15600,
     courses: 12,
-  },
-  {
-    id: "4",
-    name: "Alex Kim",
-    bio: "Trainer in entrepreneurship, innovation, creativity, and practical workplace excellence.",
-    specialty: "Entrepreneurship",
-    rating: 4.7,
-    students: 9800,
-    courses: 5,
   },
 ];
 
@@ -333,24 +324,20 @@ export default async function Home() {
             {[
               {
                 initials: "BF",
-                name: "Counsel Bagabo Faustin",
-                role: "Founder & Executive Director",
+                name: "Me. Bagabo Faustin",
+                role: "Founder & CEO",
               },
               {
-                initials: "GM",
-                name: "Grace Michael",
-                role: "Program Director",
+                initials: "JM",
+                name: "Mr. Javan MUGENZI",
+                role: "Director of Operations",
               },
               {
-                initials: "JE",
-                name: "John Emmanuel",
-                role: "Training Lead",
+                initials: "BM",
+                name: "Mr. Ben MUCYO",
+                role: "IT Manager",
               },
-              {
-                initials: "MI",
-                name: "Maryam Ibrahim",
-                role: "Operations Manager",
-              },
+              
             ].map((member) => (
               <Card
                 key={member.name}
@@ -717,13 +704,13 @@ export default async function Home() {
               <div className="flex gap-4">
                 <Mail className="h-6 w-6 text-accent" />
                 <span className="text-primary">
-                  info@loyalleadershipinstitute.org
+                  info@loyalleadershipinstitute.com
                 </span>
               </div>
 
               <div className="flex gap-4">
                 <Phone className="h-6 w-6 text-accent" />
-                <span className="text-primary">+250 000 000 000</span>
+                <span className="text-primary">+250 783 053 572</span>
               </div>
 
               <div className="flex gap-4">

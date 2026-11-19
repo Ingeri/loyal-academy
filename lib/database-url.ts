@@ -1,3 +1,4 @@
+
 export function getDatabaseUrl(): string {
   if (
     process.env.DB_HOST &&
@@ -15,7 +16,15 @@ export function getDatabaseUrl(): string {
   }
 
   if (process.env.DATABASE_URL) {
-    return process.env.DATABASE_URL;
+    const url = process.env.DATABASE_URL;
+
+    if (!url.startsWith('mysql://')) {
+      throw new Error(
+        'DATABASE_URL must use mysql:// for Prisma.',
+      );
+    }
+
+    return url;
   }
 
   throw new Error(

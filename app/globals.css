@@ -329,3 +329,13 @@ html {
 .lesson-editor-content figure[data-lesson-video] iframe { @apply aspect-video w-full rounded-xl bg-black; }
 .lesson-editor-content aside[data-callout] { @apply my-5 border-l-4 border-blue-400 bg-blue-50 p-4; }
 .lesson-editor-content a[data-resource] { @apply my-5 block rounded-lg border p-4 font-medium text-primary; }
+
+/* Consistent paragraph alignment across the website */
+
+p {
+  text-align: justify;
+  text-justify: inter-word;
+  line-height: 1.8;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}

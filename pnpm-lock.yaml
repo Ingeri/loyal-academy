@@ -179,6 +179,9 @@ importers:
       lucide-react:
         specifier: ^0.564.0
         version: 0.564.0(react@19.2.4)
+      mariadb:
+        specifier: ^3.5.5
+        version: 3.5.5
       mysql2:
         specifier: ^3.24.6
         version: 3.24.6(@types/node@22.19.11)
@@ -2091,6 +2094,10 @@ packages:
 
   mariadb@3.5.4:
     resolution: {integrity: sha512-3m0vdfgRkjle5/9hHl4R7rlVvnDA7QfuFSNkdIAQNROWKOS0J3b9IQK9HaZSCGEVKiDUbFXFiINfC+cmR5P/aA==}
+    engines: {node: '>= 20.0.0'}
+
+  mariadb@3.5.5:
+    resolution: {integrity: sha512-xvR622+h/ANbFvbi5SCkGnJWAFG2pGCUdSyISXXU3ObJ+P2X8KqdF8goCXquCD/lKnmqDeWfgTt1YY7dDI5i2Q==}
     engines: {node: '>= 20.0.0'}
 
   mysql2@3.15.3:
@@ -4282,6 +4289,14 @@ snapshots:
       '@types/node': 22.19.11
       denque: 2.1.0
       iconv-lite: 0.7.2
+      lru-cache: 11.5.3
+
+  mariadb@3.5.5:
+    dependencies:
+      '@types/geojson': 7946.0.16
+      '@types/node': 22.19.11
+      denque: 2.1.0
+      iconv-lite: 0.7.3
       lru-cache: 11.5.3
 
   mysql2@3.15.3:

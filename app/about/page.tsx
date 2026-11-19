@@ -163,7 +163,7 @@ export default function AboutPage() {
       {/* OUR STORY */}
       <section className="bg-white px-6 py-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
-          <div className="relative min-h-[320px] w-full overflow-hidden rounded-2xl bg-slate-200">
+          <div className="relative min-h-80 w-full overflow-hidden rounded-2xl bg-slate-200">
             <Image
               src="/about/building.jpg"
               alt="LOYAL Leadership Institute building"
@@ -329,34 +329,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      {/* TEAM */}
-      <section className="bg-white px-6 py-16">
-        <p className={`${sectionLabel} text-center`}>Meet Our Leadership Team</p>
-        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-6 md:grid-cols-4">
-          {teamMembers.map((member) => (
-            <div key={member.name} className="rounded-2xl bg-[#fbfaf7] p-4 text-center shadow-sm">
-              <div className="relative mb-3 h-32 w-full overflow-hidden rounded-xl bg-slate-200">
-                <Image
-                  src={member.photo}
-                  alt={member.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <h3 className="text-sm font-black text-primary">{member.name}</h3>
-              <p className="text-xs text-accent">{member.role}</p>
-              <Linkedin className="mx-auto mt-2 h-4 w-4 text-slate-400" />
-            </div>
-          ))}
-        </div>
-        <div className="mt-8 text-center">
-          <button className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white">
-            View All Team Members
-          </button>
-        </div>
-      </section>
-
       {/* PARTNERS */}
       <section className="bg-[#fbfaf7] px-6 py-16">
         <p className={`${sectionLabel} text-center`}>Our Partners</p>

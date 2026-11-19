@@ -1,21 +1,34 @@
+
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from '@prisma/client';
-import { getDatabaseUrl } from './database-url';
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const globalForPrisma = globalThis as unknown as {
+  prisma?: PrismaClient;
+};
 
 function createPrismaClient() {
-  const adapter = new PrismaMariaDb(getDatabaseUrl());
+  const isLocalDatabase =
+    process.env.DB_HOST === '127.0.0.1' ||
+    process.env.DB_HOST === 'localhost';
+
+  const adapter = new PrismaMariaDb({
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: Number(process.env.DB_PORT || 3306),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    connectionLimit: 10,
+    allowPublicKeyRetrieval: isLocalDatabase,
+  });
 
   return new PrismaClient({
     adapter,
   });
 }
 
-const cachedPrisma = globalForPrisma.prisma;
+export const prisma =
+  globalForPrisma.prisma ?? createPrismaClient();
 
-// Next.js preserves globals during hot reload. Discard a client generated before
-// the Quote model was added, otherwise `prisma.quote` remains undefined.
-export const prisma = cachedPrisma?.quote ? cachedPrisma : createPrismaClient();
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
